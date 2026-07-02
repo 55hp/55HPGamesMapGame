@@ -1,7 +1,9 @@
 {
     "name": "hp55games.Tests.EditMode",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "GUID:8eafda1cad27e3a4ab4b563483ff7f66"
+    ],
     "includePlatforms": [
         "Editor"
     ],
