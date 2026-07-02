@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
@@ -16,7 +17,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         [System.Serializable]
         public struct Config
         {
-            public float EmptyWeight;
+            [FormerlySerializedAs("BattagliaFallbackWeight")] [FormerlySerializedAs("EmptyWeight")] public float BattleFallbackWeight;
             public int MinFoodReward;
             public int MaxFoodReward; // esclusivo
             public int MinRequiredPaths;
@@ -25,7 +26,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             public static Config Default => new Config
             {
-                EmptyWeight = 0.25f,
+                BattleFallbackWeight = 0.25f,
                 MinFoodReward = 1,
                 MaxFoodReward = 6, // 1-5 inclusi
                 MinRequiredPaths = 1,
@@ -76,9 +77,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     var coord = HexCoord.FromOffsetOddR(col, row);
                     var tile = new HexTileData(coord);
 
-                    bool isEmpty = rng.NextDouble() < _config.EmptyWeight;
-                    tile.Type = isEmpty ? TileType.None : types[rng.Next(types.Length)];
-                    tile.Magnitude = isEmpty ? 0 : rng.Next(1, 4); // 1-3 inclusi
+                    tile.Type = rng.NextDouble() < _config.BattleFallbackWeight
+                        ? TileType.Battaglia
+                        : types[rng.Next(types.Length)];
+                    tile.Magnitude = rng.Next(1, 4); // 1-3 inclusi, sempre valido: ogni tile ha ora un tipo reale
                     tile.FoodReward = tile.Type == TileType.Risorsa
                         ? rng.Next(_config.MinFoodReward, _config.MaxFoodReward)
                         : 0;

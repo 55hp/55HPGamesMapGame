@@ -55,6 +55,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             int r = row;
             return new HexCoord(q, r);
         }
+        
+        public void ToOffsetOddR(out int col, out int row)
+        {
+            row = R;
+            col = Q + (R - (R & 1)) / 2;
+        }
 
         public bool Equals(HexCoord other) => Q == other.Q && R == other.R;
         public override bool Equals(object obj) => obj is HexCoord other && Equals(other);
