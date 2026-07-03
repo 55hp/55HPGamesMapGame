@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using hp55games.MapGame.Features.Configs;
 using hp55games.Mobile.Core.Architecture;
 using hp55games.Mobile.Core.Context;
 using hp55games.Mobile.Core.Gameplay.Events;
@@ -11,17 +12,20 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// <summary>
     /// Controller di griglia esagonale. Gestisce stato tile, reachability e reveal.
     /// Nessuna logica di rendering: notifica gli ascoltatori con eventi C# puri.
-    /// HP correnti vivono in IGameContextService.Lives; _maxHp è locale a MapGame
-    /// perché Core non ha concetto di "massimo".
+    ///
+    /// HP correnti: _context.Lives (clamped 0.._maxHp).
+    /// Monete correnti: _context.Score (accumulate per run).
+    /// _maxHp è locale perché IGameContextService non ha il concetto di massimo.
+    ///
+    /// Dimensioni e seed provengono da MapGenerationConfig (ScriptableObject).
+    /// Inizializzazione HP/Monete avviene in OnGameStarted (via GameStartedEvent),
+    /// NON in BuildGrid(), per evitare la race con GameplayState.ResetRun().
+    /// Fallback autonomo in Start() per sessioni standalone senza FSM attivo.
     /// </summary>
     public sealed class HexGridController : MonoBehaviour
     {
-        [Header("Griglia")]
-        [SerializeField] private int _width = 6;
-        [SerializeField] private int _height = 6;
-
-        [Header("Generazione mappa")]
-        [SerializeField] private int _randomSeed = 12345;
+        [Header("Configurazione mappa")]
+        [SerializeField] private MapGenerationConfig _config;
 
         [Header("Sopravvivenza")]
         [SerializeField] private int _maxHp = 20;
@@ -30,6 +34,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private IGameContextService  _context;
         private IEventBus            _bus;
         private IFeedbackService     _feedbackService;
+        private IDisposable          _gameStartedSub;
 
         private readonly Dictionary<HexCoord, HexTileData> _tiles = new();
         private HexCoord _playerCoord;
@@ -50,10 +55,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         private void Awake()
         {
-            _context = ServiceRegistry.Resolve<IGameContextService>();
-            _bus     = ServiceRegistry.Resolve<IEventBus>();
-
-            _mapGenerator = new RandomTileTypeGenerator();
+            _context      = ServiceRegistry.Resolve<IGameContextService>();
+            _bus          = ServiceRegistry.Resolve<IEventBus>();
+            _mapGenerator = new AestheticClusterMapGenerator();
             BuildGrid();
         }
 
@@ -62,22 +66,58 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             // IFeedbackService resolved in Start() to avoid ordering issues:
             // FeedbackService.Awake() may not have run yet if both live in the same scene.
             ServiceRegistry.TryResolve<IFeedbackService>(out _feedbackService);
+
+            // Subscribe for FSM-driven sessions: GameplayState publishes GameStartedEvent
+            // after ResetRun() completes, giving us the correct moment to set HP/Monete.
+            _gameStartedSub = _bus.Subscribe<GameStartedEvent>(OnGameStarted);
+
+            // Standalone / prototype fallback: if no FSM is running, Lives is still at its
+            // default (-1) at this point, so initialize immediately.
+            if (_context.Lives < 0)
+                InitializeSession();
         }
 
-        /// <summary>Rigenera la griglia da zero (nuovo seed = nuova mappa).</summary>
+        private void OnDestroy()
+        {
+            _gameStartedSub?.Dispose();
+        }
+
+        private void OnGameStarted(GameStartedEvent _) => InitializeSession();
+
+        /// <summary>
+        /// Imposta HP e Monete a inizio sessione e pubblica i relativi eventi.
+        /// Chiamato sia da GameStartedEvent (FSM path) sia da Start() come fallback
+        /// standalone. Sicuro da invocare più volte: l'ultimo a farlo vince.
+        /// </summary>
+        private void InitializeSession()
+        {
+            _context.Lives = _maxHp;
+            _context.Score = 0;
+            _bus?.Publish(new HpChangedEvent());
+            _bus?.Publish(new ScoreChangedEvent());
+        }
+
+        /// <summary>
+        /// Rigenera la griglia da zero.
+        /// Seed: da IGameContextService.CurrentRunSeed se != 0, altrimenti da _config.Seed.
+        /// </summary>
         public void BuildGrid()
         {
-            var result = _mapGenerator.Generate(_width, _height, _randomSeed);
+            if (_config == null)
+            {
+                Debug.LogError("[HexGridController] _config non assegnato. Assegna un MapGenerationConfig nell'Inspector.", this);
+                return;
+            }
+
+            int seed = (_context?.CurrentRunSeed != 0) ? _context.CurrentRunSeed : _config.Seed;
+            var result = _mapGenerator.Generate(_config.Width, _config.Height, seed);
 
             _tiles.Clear();
             foreach (var kvp in result.Tiles)
                 _tiles[kvp.Key] = kvp.Value;
 
-            _playerCoord   = result.StartCoord;
+            _playerCoord    = result.StartCoord;
             _objectiveCoord = result.ObjectiveCoord;
-
-            _context.Lives = _maxHp;
-            _bus?.Publish(new HpChangedEvent());
 
             RecomputeReachability();
             GridInitialized?.Invoke();
@@ -87,22 +127,40 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         {
             foreach (var tile in _tiles.Values)
             {
-                if (tile.State == TileState.Scoperta) continue;
+                // Knowledge never regresses: only promote Sconosciuta → Conosciuta.
+                // Tiles already Conosciuta or Scoperta are never touched here.
+                if (tile.State != TileState.Sconosciuta) continue;
 
-                bool adjacentToRevealed = false;
                 foreach (var neighbor in GetNeighbors(tile.Coord))
                 {
                     if (neighbor.State == TileState.Scoperta)
                     {
-                        adjacentToRevealed = true;
+                        tile.State = TileState.Conosciuta;
                         break;
                     }
                 }
-
-                tile.State = adjacentToRevealed ? TileState.Coperta : TileState.CopertaBloccata;
             }
 
             ReachabilityChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Action axis: a tile is clickable if it exists, has not yet been resolved
+        /// (State != Scoperta), and has at least one Scoperta neighbor.
+        /// This replaces the old State == Coperta check.
+        /// </summary>
+        public bool IsClickable(HexCoord coord)
+        {
+            if (!_tiles.TryGetValue(coord, out var tile)) return false;
+            if (tile.State == TileState.Scoperta) return false;
+
+            foreach (var neighbor in GetNeighbors(coord))
+            {
+                if (neighbor.State == TileState.Scoperta)
+                    return true;
+            }
+
+            return false;
         }
 
         public IReadOnlyList<HexTileData> GetNeighbors(HexCoord coord)
@@ -119,18 +177,19 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// <summary>
         /// Tenta di rivelare una tile. Ritorna false se non in griglia o non Coperta.
         /// Se la tile è Strada, esegue un flood-fill BFS su tutte le Strada Coperta connesse.
-        /// HP aggiornato per ogni tile rivelata; HpChangedEvent pubblicato una sola volta
-        /// al termine dell'intera azione (tap + cascade).
-        /// GameOver feedback emesso una sola volta se HP raggiunge 0.
+        /// HP e Monete aggiornati per ogni tile rivelata; HpChangedEvent e ScoreChangedEvent
+        /// pubblicati una sola volta al termine dell'intera azione (tap + cascade).
+        /// PlayerDeathEvent emesso una sola volta se HP raggiunge 0.
         /// </summary>
         public bool TryRevealTile(HexCoord target)
         {
             if (!_tiles.TryGetValue(target, out var tile)) return false;
-            if (tile.State != TileState.Coperta) return false;
+            if (!IsClickable(target)) return false;
 
-            tile.State    = TileState.Scoperta;
-            _playerCoord  = target;
+            tile.State   = TileState.Scoperta;
+            _playerCoord = target;
             AccumulateHp(tile);
+            bool moneteEarned = AccumulateMonete(tile);
 
             if (tile.Type == TileType.Strada)
                 CascadeStrada(target);
@@ -140,12 +199,18 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             var neighbors = GetNeighbors(target);
             TileRevealed?.Invoke(tile, neighbors);
 
-            // Publish once after all HP changes from this player action.
+            // Publish once after all HP and Monete changes from this player action.
             _bus?.Publish(new HpChangedEvent());
             _feedbackService?.Play("hp_changed");
 
+            if (moneteEarned)
+                _bus?.Publish(new ScoreChangedEvent());
+
             if (_context.Lives <= 0)
+            {
                 _feedbackService?.Play("game_over");
+                _bus?.Publish(new PlayerDeathEvent());
+            }
 
             return true;
         }
@@ -157,6 +222,17 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private void AccumulateHp(HexTileData tile)
         {
             _context.Lives = Mathf.Clamp(_context.Lives + tile.HpRestore, 0, _maxHp);
+        }
+
+        /// <summary>
+        /// Aggiunge le Monete della tile a _context.Score.
+        /// Ritorna true se il valore è cambiato (per decidere se pubblicare ScoreChangedEvent).
+        /// </summary>
+        private bool AccumulateMonete(HexTileData tile)
+        {
+            if (tile.MoneteGained <= 0) return false;
+            _context.Score += tile.MoneteGained;
+            return true;
         }
 
         /// <summary>
@@ -174,7 +250,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 var coord = queue.Dequeue();
                 foreach (var neighbor in GetNeighbors(coord))
                 {
-                    if (neighbor.Type == TileType.Strada && neighbor.State == TileState.Coperta)
+                    if (neighbor.Type == TileType.Strada && neighbor.State != TileState.Scoperta)
                     {
                         neighbor.State = TileState.Scoperta;
                         AccumulateHp(neighbor);

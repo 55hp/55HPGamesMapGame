@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using hp55games.Mobile.Core.Context;
+using hp55games.Mobile.Core.Gameplay.Events;
 using UnityEngine;
 using hp55games.Mobile.Core.UI;
 
@@ -35,6 +36,12 @@ namespace hp55games.Mobile.Core.Architecture.States
                 IGameContextService context = null;
                 ServiceRegistry.TryResolve(out context);
                 context?.ResetRun();
+
+                // Signal that a fresh run has started. Subscribers (e.g. HexGridController)
+                // use this to initialize run-scoped data (HP, Monete) AFTER ResetRun() has
+                // cleared them, avoiding the Awake/ResetRun ordering race.
+                var bus = ServiceRegistry.Resolve<IEventBus>();
+                bus.Publish(new GameStartedEvent());
 
                 var navigation = ServiceRegistry.Resolve<IUINavigationService>();
                 await navigation.ReplaceAsync(hp55games.Addr.Content.UI.Screens.GameplayHUD);

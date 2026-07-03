@@ -7,7 +7,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// Coordinata assiale (q, r) per la griglia esagonale.
     /// La distanza calcolata è la distanza esagonale standard, equivalente concettualmente
     /// alla Chebyshev distance in coordinate cubiche: max(|x|,|y|,|z|).
-    /// Usata come costo di movimento (food) secondo il GDD.
+    /// Usata per query di adiacenza e per il piazzamento pesato di Start/End.
     /// </summary>
     [Serializable]
     public struct HexCoord : IEquatable<HexCoord>

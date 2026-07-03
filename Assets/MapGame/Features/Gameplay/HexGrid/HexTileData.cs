@@ -18,6 +18,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public int HpRestore;
 
         /// <summary>
+        /// Monete guadagnate al reveal. Assegnate solo a Battaglia (combattimento vinto).
+        /// Zero per tutti gli altri tipi. Il valore balance è responsabilità del designer.
+        /// </summary>
+        public int MoneteGained;
+
+        /// <summary>
         /// True sulla tile Boss, l'obiettivo di missione generato da RandomTileTypeGenerator.
         /// </summary>
         public bool IsObjective;
@@ -25,7 +31,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public HexTileData(HexCoord coord)
         {
             Coord = coord;
-            State = TileState.CopertaBloccata;
+            State = TileState.Sconosciuta;
             Type = TileType.Strada;
             HpRestore = 0;
             IsObjective = false;

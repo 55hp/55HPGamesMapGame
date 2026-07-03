@@ -48,6 +48,13 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                         _                  =>  0,                 // Strada, NPC, Mistery, Boss: no effect yet
                     };
 
+                    // PLACEHOLDER Monete reward — balance is the designer's responsibility.
+                    tile.MoneteGained = type switch
+                    {
+                        TileType.Battaglia => rng.Next(1, 6),    // +1..+5 monete per kill
+                        _                  => 0,
+                    };
+
                     tiles[coord] = tile;
                 }
             }
@@ -77,6 +84,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             objectiveTile.Type = TileType.Boss;
             objectiveTile.IsObjective = true;
             objectiveTile.HpRestore = 0;
+            objectiveTile.State = TileState.Conosciuta;
 
             return new MapGenerationResult
             {

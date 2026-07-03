@@ -4,8 +4,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
     /// Rappresentazione visiva di una tile.
-    /// ApplyState gestisce l'aspetto coperto (Coperta / CopertaBloccata).
+    /// ApplyState gestisce l'aspetto non-risolto (Sconosciuta / Conosciuta).
     /// Reveal mostra l'ambiente scoperto: l'arte ambientale è il sistema di hint.
+    /// SetClickable attiva/disattiva l'indicatore di clickability.
     /// Nessuna logica di gameplay qui: solo rendering.
     ///
     /// Gli sprite assegnati in Inspector sono PLACEHOLDER — verranno
@@ -16,9 +17,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         [Header("Riferimenti")]
         [SerializeField] private SpriteRenderer _background;
 
-        [Header("Sprite stato coperto (placeholder)")]
-        [SerializeField] private Sprite _copertaSprite;
-        [SerializeField] private Sprite _copertaBloccataSprite;
+        [Header("Sprite stato non-risolto (placeholder)")]
+        [SerializeField] private Sprite _sconosciutaSprite;
+        [SerializeField] private Sprite _conosciutaSprite;
+
+        [Header("Indicatore clickability (child GameObject, wired in prefab)")]
+        [SerializeField] private GameObject _clickableIndicator;
 
         [Header("Sprite ambiente scoperto (placeholder)")]
         [SerializeField] private Sprite _stradaSprite;
@@ -37,8 +41,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Aggiorna lo sprite per lo stato coperto. Coperta = raggiungibile, CopertaBloccata = non ancora.
+        /// Aggiorna lo sprite per lo stato di conoscenza.
+        /// Sconosciuta = nessuna informazione (nuvole). Conosciuta = posizione nota, contenuto non risolto.
         /// Non gestisce Scoperta: usa Reveal() per quello.
+        /// Default case: fallback a _sconosciutaSprite.
         /// </summary>
         public void ApplyState(TileState state)
         {
@@ -46,10 +52,18 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             _background.sprite = state switch
             {
-                TileState.Coperta => _copertaSprite,
-                TileState.CopertaBloccata => _copertaBloccataSprite,
-                _ => _copertaBloccataSprite
+                TileState.Conosciuta => _conosciutaSprite,
+                _                    => _sconosciutaSprite,
             };
+        }
+
+        /// <summary>
+        /// Attiva o disattiva l'indicatore visivo di clickability.
+        /// Null-safe: se _clickableIndicator non è assegnato, non fa nulla.
+        /// </summary>
+        public void SetClickable(bool clickable)
+        {
+            _clickableIndicator?.SetActive(clickable);
         }
 
         /// <summary>
@@ -62,14 +76,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             _background.sprite = type switch
             {
-                TileType.Strada => _stradaSprite,
+                TileType.Strada    => _stradaSprite,
                 TileType.Battaglia => _battagliaSprite,
-                TileType.Trappola => _trappolaSprite,
-                TileType.Risorsa => _risorsaSprite,
-                TileType.NPC => _npcSprite,
-                TileType.Mistery => _misterySprite,
-                TileType.Boss => _bossSprite,
-                _ => null
+                TileType.Trappola  => _trappolaSprite,
+                TileType.Risorsa   => _risorsaSprite,
+                TileType.NPC       => _npcSprite,
+                TileType.Mistery   => _misterySprite,
+                TileType.Boss      => _bossSprite,
+                _                  => null
             };
         }
     }
