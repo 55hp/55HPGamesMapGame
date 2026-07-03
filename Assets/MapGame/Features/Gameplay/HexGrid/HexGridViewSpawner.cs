@@ -8,8 +8,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// Istanzia e posiziona una HexTileView per ogni tile della griglia, usando il
     /// componente Grid nativo di Unity (Cell Layout: Hexagon, Point Top) per il
     /// posizionamento world. Aggiorna anche lo sfondo in base allo stato.
-    /// Layer puramente visivo: non decide contenuti, non gestisce hint
-    /// (quello è compito degli IHintRenderer, vedi Hints/).
+    /// Layer puramente visivo: non decide contenuti.
+    /// L'ambiente stesso (vedi HexTileView.Reveal) è il sistema di hint.
     /// </summary>
     public sealed class HexGridViewSpawner : MonoBehaviour
     {
@@ -57,6 +57,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 coord.ToOffsetOddR(out int col, out int row);
                 view.transform.localPosition = _unityGrid.GetCellCenterLocal(new Vector3Int(col, row, 0));                view.Setup(coord);
                 view.ApplyState(tile.State);
+                if (tile.State == TileState.Scoperta)
+                    view.Reveal(tile.Type);
 
                 _views[coord] = view;
             }
@@ -67,7 +69,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             foreach (var kvp in _grid.Tiles)
             {
                 if (_views.TryGetValue(kvp.Key, out var view))
+                {
                     view.ApplyState(kvp.Value.State);
+                    if (kvp.Value.State == TileState.Scoperta)
+                        view.Reveal(kvp.Value.Type);
+                }
             }
         }
     }

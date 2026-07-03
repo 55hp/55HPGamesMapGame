@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
 using hp55games.Mobile.Core.Architecture;
+using hp55games.Mobile.Core.Context;
+using hp55games.Mobile.Core.Gameplay.Events;
+using hp55games.Mobile.Core.Juice;
 using UnityEngine;
 
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
-    /// Controller di griglia esagonale isolato per il test della hint mechanic
-    /// (scena 6x6 dedicata). Gestisce stato tile, food, reachability e reveal.
-    /// Nessuna logica di rendering: notifica gli ascoltatori (IHintRenderer,
-    /// tramite HintVariantSwitcher) con eventi C# puri.
+    /// Controller di griglia esagonale. Gestisce stato tile, reachability e reveal.
+    /// Nessuna logica di rendering: notifica gli ascoltatori con eventi C# puri.
+    /// HP correnti vivono in IGameContextService.Lives; _maxHp è locale a MapGame
+    /// perché Core non ha concetto di "massimo".
     /// </summary>
     public sealed class HexGridController : MonoBehaviour
     {
@@ -17,23 +20,23 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         [SerializeField] private int _width = 6;
         [SerializeField] private int _height = 6;
 
-        [Header("Risorse")]
-        [SerializeField] private int _startingFood = 12;
-
         [Header("Generazione mappa")]
         [SerializeField] private int _randomSeed = 12345;
 
-        private IMapGenerator _mapGenerator;
+        [Header("Sopravvivenza")]
+        [SerializeField] private int _maxHp = 20;
+
+        private IMapGenerator        _mapGenerator;
+        private IGameContextService  _context;
+        private IEventBus            _bus;
+        private IFeedbackService     _feedbackService;
+
         private readonly Dictionary<HexCoord, HexTileData> _tiles = new();
         private HexCoord _playerCoord;
         private HexCoord _objectiveCoord;
-        private int _currentFood;
-        private int _lastPathsFound;
 
-        public int CurrentFood => _currentFood;
-        public HexCoord PlayerCoord => _playerCoord;
+        public HexCoord PlayerCoord    => _playerCoord;
         public HexCoord ObjectiveCoord => _objectiveCoord;
-        public int LastPathsFound => _lastPathsFound;
         public IReadOnlyDictionary<HexCoord, HexTileData> Tiles => _tiles;
 
         /// <summary>La griglia è stata generata ed è pronta (setup iniziale o rigenerazione).</summary>
@@ -47,24 +50,34 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         private void Awake()
         {
-            _mapGenerator = new NaiveWeightedMapGenerator(NaiveWeightedMapGenerator.Config.Default);
+            _context = ServiceRegistry.Resolve<IGameContextService>();
+            _bus     = ServiceRegistry.Resolve<IEventBus>();
+
+            _mapGenerator = new RandomTileTypeGenerator();
             BuildGrid();
         }
 
-        /// <summary>Rigenera la griglia da zero (nuovo seed = nuova mappa). Utile per confrontare
-        /// le varianti hint su mappe/difficoltà diverse.</summary>
+        private void Start()
+        {
+            // IFeedbackService resolved in Start() to avoid ordering issues:
+            // FeedbackService.Awake() may not have run yet if both live in the same scene.
+            ServiceRegistry.TryResolve<IFeedbackService>(out _feedbackService);
+        }
+
+        /// <summary>Rigenera la griglia da zero (nuovo seed = nuova mappa).</summary>
         public void BuildGrid()
         {
-            var result = _mapGenerator.Generate(_width, _height, _startingFood, _randomSeed);
+            var result = _mapGenerator.Generate(_width, _height, _randomSeed);
 
             _tiles.Clear();
             foreach (var kvp in result.Tiles)
                 _tiles[kvp.Key] = kvp.Value;
 
-            _playerCoord = result.StartCoord;
+            _playerCoord   = result.StartCoord;
             _objectiveCoord = result.ObjectiveCoord;
-            _lastPathsFound = result.PathsFound;
-            _currentFood = _startingFood;
+
+            _context.Lives = _maxHp;
+            _bus?.Publish(new HpChangedEvent());
 
             RecomputeReachability();
             GridInitialized?.Invoke();
@@ -76,8 +89,17 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             {
                 if (tile.State == TileState.Scoperta) continue;
 
-                int cost = tile.Coord.DistanceTo(_playerCoord);
-                tile.State = cost <= _currentFood ? TileState.Coperta : TileState.CopertaBloccata;
+                bool adjacentToRevealed = false;
+                foreach (var neighbor in GetNeighbors(tile.Coord))
+                {
+                    if (neighbor.State == TileState.Scoperta)
+                    {
+                        adjacentToRevealed = true;
+                        break;
+                    }
+                }
+
+                tile.State = adjacentToRevealed ? TileState.Coperta : TileState.CopertaBloccata;
             }
 
             ReachabilityChanged?.Invoke();
@@ -95,28 +117,71 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Tenta di rivelare (raggiungere) una tile. Ritorna false se non valida,
-        /// non Coperta, o non raggiungibile col food attuale.
+        /// Tenta di rivelare una tile. Ritorna false se non in griglia o non Coperta.
+        /// Se la tile è Strada, esegue un flood-fill BFS su tutte le Strada Coperta connesse.
+        /// HP aggiornato per ogni tile rivelata; HpChangedEvent pubblicato una sola volta
+        /// al termine dell'intera azione (tap + cascade).
+        /// GameOver feedback emesso una sola volta se HP raggiunge 0.
         /// </summary>
         public bool TryRevealTile(HexCoord target)
         {
             if (!_tiles.TryGetValue(target, out var tile)) return false;
             if (tile.State != TileState.Coperta) return false;
 
-            int cost = target.DistanceTo(_playerCoord);
-            if (cost > _currentFood) return false;
+            tile.State    = TileState.Scoperta;
+            _playerCoord  = target;
+            AccumulateHp(tile);
 
-            _currentFood -= cost;
-            _currentFood += tile.FoodReward;
-            _playerCoord = target;
-            tile.State = TileState.Scoperta;
+            if (tile.Type == TileType.Strada)
+                CascadeStrada(target);
 
             RecomputeReachability();
 
             var neighbors = GetNeighbors(target);
             TileRevealed?.Invoke(tile, neighbors);
 
+            // Publish once after all HP changes from this player action.
+            _bus?.Publish(new HpChangedEvent());
+            _feedbackService?.Play("hp_changed");
+
+            if (_context.Lives <= 0)
+                _feedbackService?.Play("game_over");
+
             return true;
+        }
+
+        /// <summary>
+        /// Applica l'HpRestore di una tile appena rivelata a _context.Lives (clamped).
+        /// Non pubblica eventi — il publish avviene una sola volta per azione in TryRevealTile.
+        /// </summary>
+        private void AccumulateHp(HexTileData tile)
+        {
+            _context.Lives = Mathf.Clamp(_context.Lives + tile.HpRestore, 0, _maxHp);
+        }
+
+        /// <summary>
+        /// BFS flood-fill: rivela automaticamente tutte le tile Strada Coperta
+        /// raggiungibili dalla coordinata di partenza, senza emettere eventi di reveal.
+        /// Accumula HP per ogni tile rivelata; il publish è responsabilità di TryRevealTile.
+        /// </summary>
+        private void CascadeStrada(HexCoord origin)
+        {
+            var queue = new Queue<HexCoord>();
+            queue.Enqueue(origin);
+
+            while (queue.Count > 0)
+            {
+                var coord = queue.Dequeue();
+                foreach (var neighbor in GetNeighbors(coord))
+                {
+                    if (neighbor.Type == TileType.Strada && neighbor.State == TileState.Coperta)
+                    {
+                        neighbor.State = TileState.Scoperta;
+                        AccumulateHp(neighbor);
+                        queue.Enqueue(neighbor.Coord);
+                    }
+                }
+            }
         }
     }
 }

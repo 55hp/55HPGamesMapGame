@@ -3,30 +3,31 @@ using UnityEngine;
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
-    /// Rappresentazione visiva minimale di una tile: sfondo per stato (Scoperta/Coperta/
-    /// CopertaBloccata) + uno slot icona che gli IHintRenderer controllano.
-    /// Nessuna logica di gameplay o di scelta contenuti qui: solo rendering.
+    /// Rappresentazione visiva di una tile.
+    /// ApplyState gestisce l'aspetto coperto (Coperta / CopertaBloccata).
+    /// Reveal mostra l'ambiente scoperto: l'arte ambientale è il sistema di hint.
+    /// Nessuna logica di gameplay qui: solo rendering.
     ///
-    /// Gli sprite assegnati in Inspector sono PLACEHOLDER per il test — verranno
-    /// sostituiti con gli asset Isle of Lore 2 quando si passa dal prototipo alla mappa reale.
+    /// Gli sprite assegnati in Inspector sono PLACEHOLDER — verranno
+    /// sostituiti con gli asset Isle of Lore 2 quando si passa al prototipo reale.
     /// </summary>
     public sealed class HexTileView : MonoBehaviour
     {
         [Header("Riferimenti")]
         [SerializeField] private SpriteRenderer _background;
-        [SerializeField] private SpriteRenderer _icon;
 
-        [Header("Sprite stato (placeholder)")]
-        [SerializeField] private Sprite _scopertaSprite;
+        [Header("Sprite stato coperto (placeholder)")]
         [SerializeField] private Sprite _copertaSprite;
         [SerializeField] private Sprite _copertaBloccataSprite;
 
-        [Header("Icone categoria (placeholder)")]
-        [SerializeField] private Sprite _unknownIconSprite; // "?"
-        [SerializeField] private Sprite _battagliaIconSprite;
-        [SerializeField] private Sprite _npcIconSprite;
-        [SerializeField] private Sprite _misteryIconSprite;
-        [SerializeField] private Sprite _risorsaIconSprite;
+        [Header("Sprite ambiente scoperto (placeholder)")]
+        [SerializeField] private Sprite _stradaSprite;
+        [SerializeField] private Sprite _battagliaSprite;
+        [SerializeField] private Sprite _trappolaSprite;
+        [SerializeField] private Sprite _risorsaSprite;
+        [SerializeField] private Sprite _npcSprite;
+        [SerializeField] private Sprite _misterySprite;
+        [SerializeField] private Sprite _bossSprite;
 
         public HexCoord Coord { get; private set; }
 
@@ -35,55 +36,41 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             Coord = coord;
         }
 
+        /// <summary>
+        /// Aggiorna lo sprite per lo stato coperto. Coperta = raggiungibile, CopertaBloccata = non ancora.
+        /// Non gestisce Scoperta: usa Reveal() per quello.
+        /// </summary>
         public void ApplyState(TileState state)
         {
-            if (_background != null)
-            {
-                _background.sprite = state switch
-                {
-                    TileState.Scoperta => _scopertaSprite,
-                    TileState.Coperta => _copertaSprite,
-                    TileState.CopertaBloccata => _copertaBloccataSprite,
-                    _ => _copertaBloccataSprite
-                };
-            }
+            if (_background == null) return;
 
-            // Su Scoperta il contenuto è già noto/consumato: l'icona hint non ha più senso.
-            if (state == TileState.Scoperta)
-                HideIcon();
+            _background.sprite = state switch
+            {
+                TileState.Coperta => _copertaSprite,
+                TileState.CopertaBloccata => _copertaBloccataSprite,
+                _ => _copertaBloccataSprite
+            };
         }
 
-        public void ShowUnknownIcon() => SetIconSprite(_unknownIconSprite);
-
-        public void ShowCategoryIcon(TileType type)
+        /// <summary>
+        /// Mostra l'ambiente della tile rivelata. L'arte ambientale è il sistema di hint:
+        /// non esiste una sovrapposizione icona separata.
+        /// </summary>
+        public void Reveal(TileType type)
         {
-            SetIconSprite(type switch
+            if (_background == null) return;
+
+            _background.sprite = type switch
             {
-                TileType.Battaglia => _battagliaIconSprite,
-                TileType.NPC => _npcIconSprite,
-                TileType.Mistery => _misteryIconSprite,
-                TileType.Risorsa => _risorsaIconSprite,
+                TileType.Strada => _stradaSprite,
+                TileType.Battaglia => _battagliaSprite,
+                TileType.Trappola => _trappolaSprite,
+                TileType.Risorsa => _risorsaSprite,
+                TileType.NPC => _npcSprite,
+                TileType.Mistery => _misterySprite,
+                TileType.Boss => _bossSprite,
                 _ => null
-            });
-        }
-
-        public void HideIcon()
-        {
-            if (_icon != null) _icon.enabled = false;
-        }
-
-        private void SetIconSprite(Sprite sprite)
-        {
-            if (_icon == null) return;
-
-            if (sprite == null)
-            {
-                _icon.enabled = false;
-                return;
-            }
-
-            _icon.enabled = true;
-            _icon.sprite = sprite;
+            };
         }
     }
 }

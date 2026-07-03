@@ -6,11 +6,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// </summary>
     public enum TileType
     {
-        /// <summary>Nessun contenuto. Corrisponde a "Grey = Empty" nei hint di bordo (V2/V3).</summary>
-        None,
+        Strada,
         Battaglia,
+        Trappola,
+        Risorsa,
         NPC,
         Mistery,
-        Risorsa
+        Boss
     }
 }

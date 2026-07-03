@@ -51,7 +51,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             bool revealed = _grid.TryRevealTile(coord);
             if (!revealed)
-                Debug.Log($"[HexTileTapController] Tap su {coord} ignorato (non Coperta o food insufficiente).");
+                Debug.Log($"[HexTileTapController] Tap su {coord} ignorato (non Coperta o coordinata fuori griglia).");
         }
     }
 }
