@@ -74,6 +74,7 @@ public static class HP55_ScriptExporter
 
         File.WriteAllText(outputPath, sb.ToString(), Encoding.UTF8);
 
+        EditorUtility.RevealInFinder(outputPath);
         Debug.Log($"[hp55games] {scriptGuids.Length} scripts exported to: {outputPath}");
 
         EditorUtility.DisplayDialog(
