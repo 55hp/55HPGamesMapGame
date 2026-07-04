@@ -28,7 +28,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public Vector3 GetWorldPosition(HexCoord coord)
         {
             coord.ToOffsetOddQ(out int col, out int row);
-            Vector3 localPos = _unityGrid.GetCellCenterLocal(new Vector3Int(col, row, 0));
+            Vector3 localPos = _unityGrid.GetCellCenterLocal(new Vector3Int(row, col, 0));
             return transform.TransformPoint(localPos);
         }
 
