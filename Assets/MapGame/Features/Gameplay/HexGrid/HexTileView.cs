@@ -16,6 +16,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     {
         [Header("Riferimenti")]
         [SerializeField] private SpriteRenderer _background;
+        [SerializeField] private SpriteRenderer _icon;
+        [SerializeField] private SpriteRenderer _alpha;
 
         [Header("Sprite stato non-risolto (placeholder)")]
         [SerializeField] private Sprite _sconosciutaSprite;
@@ -41,10 +43,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Aggiorna lo sprite per lo stato di conoscenza.
-        /// Sconosciuta = nessuna informazione (nuvole). Conosciuta = posizione nota, contenuto non risolto.
-        /// Non gestisce Scoperta: usa Reveal() per quello.
-        /// Default case: fallback a _sconosciutaSprite.
+        /// Aggiorna lo sprite del background in base allo stato di conoscenza.
+        /// Sconosciuta → nuvole (nessuna informazione).
+        /// Conosciuta e Scoperta → arte del bioma (_conosciutaSprite, oggi un unico
+        /// placeholder; in futuro varierà per cluster/bioma). Il background NON
+        /// cambia mai al reveal: l'ambiente è il sistema di hint e resta lo stesso
+        /// prima e dopo aver giocato l'evento.
         /// </summary>
         public void ApplyState(TileState state)
         {
@@ -52,9 +56,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             _background.sprite = state switch
             {
-                TileState.Conosciuta => _conosciutaSprite,
-                _                    => _sconosciutaSprite,
+                TileState.Sconosciuta => _sconosciutaSprite,
+                _                     => _conosciutaSprite,
             };
+
+            _icon?.gameObject.SetActive(false);
+            _alpha?.gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -67,24 +74,31 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Mostra l'ambiente della tile rivelata. L'arte ambientale è il sistema di hint:
-        /// non esiste una sovrapposizione icona separata.
+        /// Mostra il record dell'evento risolto: attiva l'icona (tipo specifico)
+        /// e l'overlay alpha (marca la tile come parte del set già rivelato).
+        /// Non è un hint — arriva solo dopo l'interazione del giocatore.
+        /// Background invariato: l'ambiente resta quello del bioma già mostrato
+        /// da Conosciuta.
         /// </summary>
         public void Reveal(TileType type)
         {
-            if (_background == null) return;
-
-            _background.sprite = type switch
+            if (_icon != null)
             {
-                TileType.Strada    => _stradaSprite,
-                TileType.Battaglia => _battagliaSprite,
-                TileType.Trappola  => _trappolaSprite,
-                TileType.Risorsa   => _risorsaSprite,
-                TileType.NPC       => _npcSprite,
-                TileType.Mistery   => _misterySprite,
-                TileType.Boss      => _bossSprite,
-                _                  => null
-            };
+                _icon.sprite = type switch
+                {
+                    TileType.Strada    => _stradaSprite,
+                    TileType.Battaglia => _battagliaSprite,
+                    TileType.Trappola  => _trappolaSprite,
+                    TileType.Risorsa   => _risorsaSprite,
+                    TileType.NPC       => _npcSprite,
+                    TileType.Mistery   => _misterySprite,
+                    TileType.Boss      => _bossSprite,
+                    _                  => null
+                };
+            }
+
+            _icon?.gameObject.SetActive(true);
+            _alpha?.gameObject.SetActive(true);
         }
     }
 }

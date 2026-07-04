@@ -365,6 +365,8 @@ MonoBehaviour:
   _grid: {fileID: 1567416454}
   _unityGrid: {fileID: 1567416455}
   _camera: {fileID: 1296107420}
+  _cameraController: {fileID: 1296107422}
+  _doubleTapWindow: 0.4
 --- !u!4 &708546443
 Transform:
   m_ObjectHideFlags: 0
@@ -440,12 +442,12 @@ PrefabInstance:
     - target: {fileID: 3019847228863533073, guid: 48eefb09c423a724cbf79b74db65acb1,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 60
+      value: 44
       objectReference: {fileID: 0}
     - target: {fileID: 3019847228863533073, guid: 48eefb09c423a724cbf79b74db65acb1,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 70
+      value: 54
       objectReference: {fileID: 0}
     - target: {fileID: 3019847228863533073, guid: 48eefb09c423a724cbf79b74db65acb1,
         type: 3}
@@ -492,10 +494,19 @@ PrefabInstance:
       propertyPath: m_Name
       value: TempOrthoCamera
       objectReference: {fileID: 0}
+    - target: {fileID: 4219334370042204182, guid: 48eefb09c423a724cbf79b74db65acb1,
+        type: 3}
+      propertyPath: orthographic size
+      value: 80
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3575991126699884991, guid: 48eefb09c423a724cbf79b74db65acb1,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1296107422}
   m_SourcePrefab: {fileID: 100100000, guid: 48eefb09c423a724cbf79b74db65acb1, type: 3}
 --- !u!20 &1296107420 stripped
 Camera:
@@ -503,6 +514,30 @@ Camera:
     type: 3}
   m_PrefabInstance: {fileID: 1296107419}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1296107421 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3575991126699884991, guid: 48eefb09c423a724cbf79b74db65acb1,
+    type: 3}
+  m_PrefabInstance: {fileID: 1296107419}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1296107422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1296107421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0889348113effc54883426ae4c8993d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _grid: {fileID: 1567416454}
+  _spawner: {fileID: 1567416452}
+  _scopertaOffset: 8
+  _minOrthoSize: 2
+  _positionSmoothTime: 0.35
+  _sizeSmoothTime: 0.45
 --- !u!1 &1504290695
 GameObject:
   m_ObjectHideFlags: 0

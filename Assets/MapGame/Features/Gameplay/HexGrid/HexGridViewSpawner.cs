@@ -21,6 +21,17 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         public IReadOnlyDictionary<HexCoord, HexTileView> Views => _views;
 
+        /// <summary>
+        /// Returns the world-space center of the cell at <paramref name="coord"/>,
+        /// derived from the same placement logic used in OnGridInitialized.
+        /// </summary>
+        public Vector3 GetWorldPosition(HexCoord coord)
+        {
+            coord.ToOffsetOddR(out int col, out int row);
+            Vector3 localPos = _unityGrid.GetCellCenterLocal(new Vector3Int(col, row, 0));
+            return transform.TransformPoint(localPos);
+        }
+
         private void Awake()
         {
             if (_grid == null || _tileViewPrefab == null || _unityGrid == null)

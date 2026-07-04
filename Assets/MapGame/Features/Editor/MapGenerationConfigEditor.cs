@@ -15,21 +15,18 @@ namespace hp55games.MapGame.Editor
         private const int CellGap =  1;
 
         // ── Color palette: one distinct color per TileType ───────────────────
-        // Choice rationale (flagged as design decision):
-        //   Strada = mid-grey (neutral path), Battaglia = red (combat),
-        //   Trappola = orange (danger-but-no-loot), Risorsa = green (healing),
-        //   NPC = blue (information), Mistery = purple (unknown), Boss = gold.
+        // Colors sourced from the Isle of Lore 2 official asset pack palette.
         //   Start marker: white inner square. End marker: black inner square.
 
         private static readonly Dictionary<TileType, Color> TileColors = new()
         {
-            { TileType.Strada,    new Color(0.55f, 0.55f, 0.55f) },
-            { TileType.Battaglia, new Color(0.85f, 0.20f, 0.20f) },
-            { TileType.Trappola,  new Color(0.90f, 0.55f, 0.10f) },
-            { TileType.Risorsa,   new Color(0.20f, 0.75f, 0.30f) },
-            { TileType.NPC,       new Color(0.20f, 0.45f, 0.85f) },
-            { TileType.Mistery,   new Color(0.70f, 0.20f, 0.80f) },
-            { TileType.Boss,      new Color(1.00f, 0.85f, 0.00f) },
+            { TileType.Strada,    new Color(0.863f, 0.725f, 0.373f) },  // #dcb95f
+            { TileType.Battaglia, new Color(0.612f, 0.278f, 0.255f) },  // #9c4741
+            { TileType.Trappola,  new Color(0.729f, 0.263f, 0.227f) },  // #ba433a
+            { TileType.Risorsa,   new Color(0.537f, 0.600f, 0.329f) },  // #889954
+            { TileType.NPC,       new Color(0.314f, 0.694f, 0.847f) },  // #50b1d8
+            { TileType.Mistery,   new Color(0.369f, 0.251f, 0.639f) },  // #5e40a3
+            { TileType.Boss,      new Color(0.086f, 0.086f, 0.086f) },  // #161616
         };
 
         // Alpha multiplier per TileState (flagged as design decision):

@@ -44,13 +44,13 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public HexCoord ObjectiveCoord => _objectiveCoord;
         public IReadOnlyDictionary<HexCoord, HexTileData> Tiles => _tiles;
 
-        /// <summary>La griglia è stata generata ed è pronta (setup iniziale o rigenerazione).</summary>
+        /// <summary>La griglia è stata generata e tutte le tile sono nello stato iniziale (Sconosciuta, o Conosciuta se adiacenti alla partenza). Setup iniziale o rigenerazione.</summary>
         public event Action GridInitialized;
 
         /// <summary>Una tile è passata a Scoperta. Include i vicini per aggiornarne gli hint.</summary>
         public event Action<HexTileData, IReadOnlyList<HexTileData>> TileRevealed;
 
-        /// <summary>La reachability (Coperta vs CopertaBloccata) è stata ricalcolata.</summary>
+        /// <summary>La reachability è stata ricalcolata: le tile Sconosciuta adiacenti a una Scoperta sono promosse a Conosciuta (IsClickable aggiornato di conseguenza).</summary>
         public event Action ReachabilityChanged;
 
         private void Awake()
@@ -175,8 +175,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Tenta di rivelare una tile. Ritorna false se non in griglia o non Coperta.
-        /// Se la tile è Strada, esegue un flood-fill BFS su tutte le Strada Coperta connesse.
+        /// Tenta di rivelare una tile. Ritorna false se non in griglia o non cliccabile (IsClickable).
+        /// Se la tile è Strada, esegue un flood-fill BFS su tutte le Strada non ancora Scoperta connesse.
         /// HP e Monete aggiornati per ogni tile rivelata; HpChangedEvent e ScoreChangedEvent
         /// pubblicati una sola volta al termine dell'intera azione (tap + cascade).
         /// PlayerDeathEvent emesso una sola volta se HP raggiunge 0.
@@ -236,7 +236,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// BFS flood-fill: rivela automaticamente tutte le tile Strada Coperta
+        /// BFS flood-fill: rivela automaticamente tutte le tile Strada non ancora Scoperta
         /// raggiungibili dalla coordinata di partenza, senza emettere eventi di reveal.
         /// Accumula HP per ogni tile rivelata; il publish è responsabilità di TryRevealTile.
         /// </summary>
