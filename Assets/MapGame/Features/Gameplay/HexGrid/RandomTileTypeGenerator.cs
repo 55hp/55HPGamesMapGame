@@ -33,7 +33,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             {
                 for (int col = 0; col < width; col++)
                 {
-                    var coord = HexCoord.FromOffsetOddR(col, row);
+                    var coord = HexCoord.FromOffsetOddQ(col, row);
                     var tile = new HexTileData(coord);
 
                     var type = RandomPool[rng.Next(RandomPool.Length)];
@@ -60,7 +60,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
 
             // Start tile: center of the grid, always Strada and already revealed.
-            var startCoord = HexCoord.FromOffsetOddR(width / 2, height / 2);
+            var startCoord = HexCoord.FromOffsetOddQ(width / 2, height / 2);
             var startTile = tiles[startCoord];
             startTile.Type = TileType.Strada;
             startTile.State = TileState.Scoperta;

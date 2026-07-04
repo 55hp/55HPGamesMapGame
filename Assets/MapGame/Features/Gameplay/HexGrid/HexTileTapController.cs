@@ -57,7 +57,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             Vector3 worldPos = _camera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, distanceToPlane));
 
             Vector3Int cell = _unityGrid.WorldToCell(worldPos);
-            var coord = HexCoord.FromOffsetOddR(cell.x, cell.y);
+            var coord = HexCoord.FromOffsetOddQ(cell.y, cell.x);
 
             float now = Time.unscaledTime;
             bool isDoubleTap = coord.Equals(_lastTapCoord) && (now - _lastTapTime) <= _doubleTapWindow;

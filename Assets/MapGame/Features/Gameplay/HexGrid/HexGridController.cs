@@ -145,9 +145,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Action axis: a tile is clickable if it exists, has not yet been resolved
+        /// A tile is clickable if it exists, has not yet been resolved
         /// (State != Scoperta), and has at least one Scoperta neighbor.
-        /// This replaces the old State == Coperta check.
         /// </summary>
         public bool IsClickable(HexCoord coord)
         {

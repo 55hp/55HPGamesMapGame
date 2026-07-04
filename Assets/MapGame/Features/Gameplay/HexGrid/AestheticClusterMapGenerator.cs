@@ -45,7 +45,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             for (int row = 0; row < height; row++)
             for (int col = 0; col < width; col++)
             {
-                var coord = HexCoord.FromOffsetOddR(col, row);
+                var coord = HexCoord.FromOffsetOddQ(col, row);
                 tiles[coord] = BuildFillerTile(coord, rng);
             }
 
@@ -104,7 +104,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             var candidates = new List<HexCoord>();
             foreach (var coord in tiles.Keys)
             {
-                coord.ToOffsetOddR(out int col, out int row);
+                coord.ToOffsetOddQ(out int col, out int row);
                 if (col < StartMinBorderDistance || col >= width - StartMinBorderDistance) continue;
                 if (row < StartMinBorderDistance || row >= height - StartMinBorderDistance) continue;
                 candidates.Add(coord);
@@ -112,7 +112,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             // Griglia troppo piccola per il margine richiesto: fallback al centro.
             return candidates.Count == 0
-                ? HexCoord.FromOffsetOddR(width / 2, height / 2)
+                ? HexCoord.FromOffsetOddQ(width / 2, height / 2)
                 : candidates[rng.Next(candidates.Count)];
         }
 
@@ -160,7 +160,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         {
             for (int attempt = 0; attempt < ClusterPlacementMaxAttempts; attempt++)
             {
-                var center = HexCoord.FromOffsetOddR(rng.Next(width), rng.Next(height));
+                var center = HexCoord.FromOffsetOddQ(rng.Next(width), rng.Next(height));
 
                 if (center.Equals(start) || center.Equals(end)) continue;
                 if (center.DistanceTo(start) < ClusterMinDistanceFromStartEnd) continue;

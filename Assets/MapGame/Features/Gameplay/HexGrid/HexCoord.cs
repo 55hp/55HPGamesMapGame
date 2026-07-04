@@ -43,23 +43,23 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public HexCoord GetNeighbor(int direction) => this + Directions[((direction % 6) + 6) % 6];
 
         public static HexCoord operator +(HexCoord a, HexCoord b) => new HexCoord(a.Q + b.Q, a.R + b.R);
-
+        
         /// <summary>
-        /// Converte coordinate offset "odd-r" (colonna, riga) in assiali.
-        /// Layout scelto per generare griglie rettangolari NxN come richiesto dal GDD (10x10-12x12,
-        /// 6x6 per la scena di test isolata).
+        /// Converts offset "odd-q" (col, row) to axial coordinates.
+        /// For flat-top hex grids: odd columns are shifted down by half a cell
+        /// (consistent with Unity Grid Cell Layout = Hexagon, Cell Swizzle = YXZ = flat-top).
         /// </summary>
-        public static HexCoord FromOffsetOddR(int col, int row)
+        public static HexCoord FromOffsetOddQ(int col, int row)
         {
-            int q = col - (row - (row & 1)) / 2;
-            int r = row;
+            int q = col;
+            int r = row - (col - (col & 1)) / 2;
             return new HexCoord(q, r);
         }
-        
-        public void ToOffsetOddR(out int col, out int row)
+
+        public void ToOffsetOddQ(out int col, out int row)
         {
-            row = R;
-            col = Q + (R - (R & 1)) / 2;
+            col = Q;
+            row = R + (Q - (Q & 1)) / 2;
         }
 
         public bool Equals(HexCoord other) => Q == other.Q && R == other.R;

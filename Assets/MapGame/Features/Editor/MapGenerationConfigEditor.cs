@@ -79,8 +79,8 @@ namespace hp55games.MapGame.Editor
 
             int    stride   = CellPx + CellGap;
             float  halfCell = CellPx * 0.5f;
-            float  totalW   = w * stride + halfCell + 4f;
-            float  totalH   = h * stride + 4f;
+            float  totalW   = w * stride + 4f;
+            float  totalH   = h * stride + halfCell + 4f;  // extra half-cell for odd-column vertical shift
 
             // Reserve space for the whole grid in the inspector layout.
             Rect area = GUILayoutUtility.GetRect(totalW, totalH, GUILayout.ExpandWidth(false));
@@ -92,12 +92,12 @@ namespace hp55games.MapGame.Editor
                 var coord = kvp.Key;
                 var tile  = kvp.Value;
 
-                coord.ToOffsetOddR(out int col, out int row);
+                coord.ToOffsetOddQ(out int col, out int row);
 
-                // Odd rows are shifted right by half a cell to mimic hex layout.
-                float xOffset = (row % 2 == 1) ? halfCell : 0f;
-                float x = area.x + col * stride + xOffset + 2f;
-                float y = area.y + row * stride + 2f;
+                // Odd columns are shifted down by half a cell to mimic flat-top hex layout.
+                float yOffset = (col % 2 == 1) ? halfCell : 0f;
+                float x = area.x + col * stride + 2f;
+                float y = area.y + row * stride + yOffset + 2f;
 
                 Color baseColor = TileColors.TryGetValue(tile.Type, out var c) ? c : Color.white;
                 float alpha     = StateAlpha(tile.State);

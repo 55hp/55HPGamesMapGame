@@ -27,7 +27,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// </summary>
         public Vector3 GetWorldPosition(HexCoord coord)
         {
-            coord.ToOffsetOddR(out int col, out int row);
+            coord.ToOffsetOddQ(out int col, out int row);
             Vector3 localPos = _unityGrid.GetCellCenterLocal(new Vector3Int(col, row, 0));
             return transform.TransformPoint(localPos);
         }
@@ -65,8 +65,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 var tile = kvp.Value;
 
                 var view = Instantiate(_tileViewPrefab, transform);
-                coord.ToOffsetOddR(out int col, out int row);
-                view.transform.localPosition = _unityGrid.GetCellCenterLocal(new Vector3Int(col, row, 0));                view.Setup(coord);
+                coord.ToOffsetOddQ(out int col, out int row);
+                view.transform.localPosition = _unityGrid.GetCellCenterLocal(new Vector3Int(row, col, 0));                view.Setup(coord);
                 view.ApplyState(tile.State);
                 view.SetClickable(_grid.IsClickable(coord));
                 if (tile.State == TileState.Scoperta)
