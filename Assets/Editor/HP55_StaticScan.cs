@@ -1,3 +1,7 @@
+// Assets/Editor/HP55_StaticScan.cs
+// Scans all runtime C# scripts under Assets/ for common anti-patterns.
+// Exports a Markdown report to StaticScan.md at the project root.
+
 using System;
 using System.IO;
 using System.Linq;

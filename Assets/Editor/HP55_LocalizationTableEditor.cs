@@ -1,4 +1,6 @@
-// Assets/Core/Editor/Localization/LocalizationTableEditor.cs
+// Assets/Editor/HP55_LocalizationTableEditor.cs
+// Editor window for viewing and editing the localization TSV file.
+// Displays all key/value rows with per-language columns and supports live filtering.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,13 +12,13 @@ namespace hp55games.Editor.Tools
 {
     public class HP55_LocalizationTableEditor : EditorWindow
     {
-        // Percorso del TSV nel progetto
+        // Path to the TSV file within the project
         private const string TsvAssetPath = "Assets/Resources/Localization/localization_master.txt";
 
         private class Row
         {
             public string Key;
-            public string[] Values; // una per lingua
+            public string[] Values; // one per language
         }
 
         private string[] _headers;    // es: key, en, it, ...
@@ -71,7 +73,7 @@ namespace hp55games.Editor.Tools
             foreach (var row in GetFilteredRows())
             {
                 EditorGUILayout.BeginHorizontal();
-                // key non la facciamo cambiare per evitare casini coi prefab
+                // key is read-only to avoid breaking prefab references
                 EditorGUILayout.LabelField(row.Key, GUILayout.Width(220));
 
                 for (int i = 1; i < _headers.Length; i++)
@@ -123,14 +125,14 @@ namespace hp55games.Editor.Tools
                 return;
             }
 
-            // Prima linea: header
+            // First line: header
             _headers = allLines[0].Split('\t');
 
             for (int i = 1; i < allLines.Length; i++)
             {
                 var line = allLines[i];
                 if (string.IsNullOrWhiteSpace(line)) continue;
-                if (line.StartsWith("#")) continue; // salta commenti
+                if (line.StartsWith("#")) continue; // skip comment lines
 
                 var parts = line.Split('\t');
                 if (parts.Length == 0) continue;
@@ -138,7 +140,7 @@ namespace hp55games.Editor.Tools
                 var key = parts[0].Trim();
                 if (string.IsNullOrEmpty(key)) continue;
 
-                // il resto sono i valori delle lingue
+                // remaining columns are language values
                 var values = new string[_headers.Length - 1];
                 for (int c = 1; c < _headers.Length; c++)
                 {
@@ -162,10 +164,10 @@ namespace hp55games.Editor.Tools
 
             var lines = new List<string>();
 
-            // header
+            // header row
             lines.Add(string.Join("\t", _headers));
 
-            // rows
+            // data rows
             foreach (var row in _rows)
             {
                 var cols = new List<string> { row.Key };

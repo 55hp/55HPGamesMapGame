@@ -1,7 +1,7 @@
 // Assets/Editor/HP55_FileTreeScan.cs
-// Esporta un albero completo dei file del progetto in FileTree.md (root).
-// - Mostra struttura gerarchica directory/file.
-// - Aggiunge una sezione con conteggio file per estensione.
+// Exports a complete file tree of the project to FileTree.md (project root).
+// - Shows hierarchical directory/file structure.
+// - Adds a section with file count by extension.
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace hp55games.Editor.Tools
 
 public static class HP55_FileTreeScan
 {
-    // Cartelle da ignorare nella root del progetto
+    // Folders to ignore at the project root
     private static readonly string[] IgnoredFolders =
     {
         "Library",
@@ -32,7 +32,7 @@ public static class HP55_FileTreeScan
     [MenuItem("hp55games Tools/File Tree/Export")]
     public static void Run()
     {
-        // Root del progetto = cartella che contiene "Assets"
+        // Project root = folder containing "Assets"
         var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
         var outPath = Path.Combine(projectRoot, "FileTree.md");
 
@@ -43,13 +43,13 @@ public static class HP55_FileTreeScan
         sb.AppendLine($"Project root: `{projectRoot}`");
         sb.AppendLine();
 
-        // Mappa estensione -> conteggio
+        // Extension -> count map
         var extCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         sb.AppendLine("## Directory Tree");
         sb.AppendLine();
 
-        // Scansione ricorsiva partendo dalla root
+        // Recursive scan starting from the project root
         var rootDir = new DirectoryInfo(projectRoot);
         AppendDirectoryTree(sb, rootDir, "", extCounts);
 
@@ -81,11 +81,11 @@ public static class HP55_FileTreeScan
         string indent,
         Dictionary<string, int> extCounts)
     {
-        // Salta alcune cartelle “di sistema” in root
+        // Skip system folders at root level
         if (IsIgnored(dir))
             return;
 
-        // Nome directory
+        // Directory name
         sb.AppendLine($"{indent}- 📁 **{dir.Name}**");
 
         string childIndent = indent + "  ";
@@ -111,7 +111,7 @@ public static class HP55_FileTreeScan
             sb.AppendLine($"{childIndent}- ⚠️ <error reading subdirs> ({e.Message})");
         }
 
-        // File della directory corrente
+        // Files in current directory
         foreach (var file in files.OrderBy(f => f.Name))
         {
             var ext = file.Extension ?? "";
@@ -122,7 +122,7 @@ public static class HP55_FileTreeScan
             sb.AppendLine($"{childIndent}- 📄 {file.Name}");
         }
 
-        // Sottodirectory
+        // Subdirectories
         foreach (var sub in subDirs.OrderBy(d => d.Name))
         {
             AppendDirectoryTree(sb, sub, childIndent, extCounts);

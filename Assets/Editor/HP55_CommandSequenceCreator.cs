@@ -1,3 +1,7 @@
+// Assets/Editor/HP55_CommandSequenceCreator.cs
+// Editor window for creating and saving CommandSequenceAsset ScriptableObjects.
+// Supports both catalog-driven generation and manual beat-by-beat authoring.
+
 using System;
 using System.Collections.Generic;
 using hp55games.Mobile.Core.CommandSequence;
@@ -55,7 +59,7 @@ namespace hp55games.Editor.Tools
         
         private void LoadPrefs()
         {
-            // Se è la prima volta (chiave assente) resta il default già presente in _savePath
+            // If the key is absent (first run), the default value already set in _savePath is kept
             if (EditorPrefs.HasKey(PrefsKeySavePath))
                 _savePath = EditorPrefs.GetString(PrefsKeySavePath, _savePath);
         }

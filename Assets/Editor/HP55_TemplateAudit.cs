@@ -1,11 +1,14 @@
-using System.IO;
-using System.Linq;
-using UnityEditor;
-using UnityEngine;
+// Assets/Editor/HP55_TemplateAudit.cs
+// Audits the project template against expected architecture conventions.
+// Exports a Markdown report to TemplateAudit.md at the project root.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
+using UnityEditor;
+using UnityEngine;
 
 namespace hp55games.Editor.Tools
 {
@@ -68,11 +71,11 @@ namespace hp55games.Editor.Tools
                 if (!uiPrefabs.Any()) w.WriteLine("- (none)");
                 w.WriteLine();
 
-                // Presence checks (class names you abbiamo definito)
+                // Presence checks (core class names expected in the project)
                 w.WriteLine("## Presence checks (core roles with aliases)");
                 var roleMap = new Dictionary<string, string[]>
                 {
-                    // Role → candidati (metti prima i tuoi)
+                    // Role → candidates (list preferred type names first)
                     ["UiManager"] = new[] {
                         "hp55games.Ui.UiManager",                      // standard audit
                         "hp55games.Mobile.Core.Architecture.UIManager"// se in futuro lo chiami così
@@ -124,10 +127,6 @@ namespace hp55games.Editor.Tools
             Debug.Log($"[hp55games] Template audit exported to: {outPath}");
         }
     }
-}
-
-namespace hp55games.Editor.Tools
-{
 
 static class TypeFinder
 {
