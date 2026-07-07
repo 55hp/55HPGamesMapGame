@@ -56,7 +56,7 @@ namespace hp55games.MapGame.Editor
             if (GUILayout.Button("Genera Preview"))
             {
                 var cfg = (MapGenerationConfig)target;
-                _preview = new AestheticClusterMapGenerator().Generate(cfg.Width, cfg.Height, cfg.Seed);
+                _preview = new MapGenerationService().GenerateMap(cfg, cfg.Seed);
                 Repaint();
             }
 

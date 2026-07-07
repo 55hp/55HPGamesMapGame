@@ -6,7 +6,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
     /// Istanzia e posiziona una HexTileView per ogni tile della griglia, usando il
-    /// componente Grid nativo di Unity (Cell Layout: Hexagon, Point Top) per il
+    /// componente Grid nativo di Unity (Cell Layout: Hexagon, Flat) per il
     /// posizionamento world. Aggiorna anche lo sfondo in base allo stato.
     /// Layer puramente visivo: non decide contenuti.
     /// L'ambiente stesso (vedi HexTileView.Reveal) è il sistema di hint.

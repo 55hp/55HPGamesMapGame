@@ -30,7 +30,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         [Header("Sopravvivenza")]
         [SerializeField] private int _maxHp = 20;
 
-        private IMapGenerator        _mapGenerator;
+        private IMapGenerationService _mapGenerationService;
         private IGameContextService  _context;
         private IEventBus            _bus;
         private IFeedbackService     _feedbackService;
@@ -57,7 +57,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         {
             _context      = ServiceRegistry.Resolve<IGameContextService>();
             _bus          = ServiceRegistry.Resolve<IEventBus>();
-            _mapGenerator = new AestheticClusterMapGenerator();
+            _mapGenerationService = ServiceRegistry.Resolve<IMapGenerationService>();
             BuildGrid();
         }
 
@@ -110,7 +110,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
 
             int seed = (_context?.CurrentRunSeed != 0) ? _context.CurrentRunSeed : _config.Seed;
-            var result = _mapGenerator.Generate(_config.Width, _config.Height, seed);
+            var result = _mapGenerationService.GenerateMap(_config, seed);
 
             _tiles.Clear();
             foreach (var kvp in result.Tiles)
