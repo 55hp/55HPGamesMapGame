@@ -5,20 +5,17 @@ using hp55games.MapGame.Features.Configs;
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
-    /// Generatore di mappa, pipeline GDD v2.2:
-    /// 1. Riempimento procedurale di base (lo "spazio negativo" tra i cluster)
+    /// Generatore di mappa, pipeline "macchie di leopardo" (GDD, rev. 2026-07-07):
+    /// 1. Riempimento procedurale di base — TEMPORANEO: verrà rimosso in fase 5 quando
+    ///    la mesh Strada coprirà per intero le tessere non occupate da EventCluster/singole.
     /// 2. Piazzamento Start/End (weighted distance)
-    /// 3. Piazzamento cluster estetico (l'hint implicito)
-    /// 3b. Rete Strada auto-generata dal bordo del cluster (incroci, budget fisso)
+    /// 3. Piazzamento EventCluster (forme dal catalogo) e tessere singole via rejection
+    ///    sampling, con almeno una tessera di distacco tra due piazzamenti qualunque.
     /// 4. Rivelazione iniziale (Start ed End già Scoperte)
     ///
-    /// Nessun golden path: con movimento gratuito ogni tile è raggiungibile
-    /// per definizione, e il contrasto cluster/riempimento crea già un percorso
-    /// leggibile senza bisogno di disegnarlo esplicitamente (decisione di sessione).
-    ///
-    /// Parametri di piazzamento/bilanciamento/rete Strada ricevuti dal costruttore
-    /// (letti da MapGenerationConfig tramite MapGenerationService) — non hardcoded,
-    /// per restare configurabili da Editor senza ricompilare.
+    /// Mesh Strada (fase 5) non ancora ricablata su questo sistema — i metodi esistenti
+    /// (GenerateStradaNetwork e affini) restano nel file ma non sono chiamati, verranno
+    /// riscritti per attraversare più EventCluster invece di uno singolo.
     /// </summary>
     public sealed class AestheticClusterMapGenerator : IMapGenerator
     {
@@ -28,27 +25,36 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             TileType.Risorsa, TileType.NPC, TileType.Mistery,
         };
 
+        /// <summary>
+        /// Tipi ammessi per le tessere singole (variante di un EventCluster da 1 tessera).
+        /// Niente Strada: la Strada è la mesh separata, non un contenuto di singola.
+        /// </summary>
+        private static readonly TileType[] SingleTilePool =
+        {
+            TileType.Battaglia, TileType.Trappola, TileType.Risorsa, TileType.NPC, TileType.Mistery,
+        };
+
         private readonly DistanceWeight[] _endDistanceWeights;
         private readonly int _startMinBorderDistance;
         private readonly int _clusterMinDistanceFromStartEnd;
-        private readonly int _clusterPlacementMaxAttempts;
         private readonly PlaceholderBalanceSettings _balance;
         private readonly StradaNetworkSettings _strada;
+        private readonly EventClusterPlacementSettings _eventClusters;
 
         public AestheticClusterMapGenerator(
             DistanceWeight[] endDistanceWeights,
             int startMinBorderDistance,
             int clusterMinDistanceFromStartEnd,
-            int clusterPlacementMaxAttempts,
             PlaceholderBalanceSettings balance,
-            StradaNetworkSettings strada)
+            StradaNetworkSettings strada,
+            EventClusterPlacementSettings eventClusters)
         {
             _endDistanceWeights = endDistanceWeights;
             _startMinBorderDistance = startMinBorderDistance;
             _clusterMinDistanceFromStartEnd = clusterMinDistanceFromStartEnd;
-            _clusterPlacementMaxAttempts = clusterPlacementMaxAttempts;
             _balance = balance;
             _strada = strada;
+            _eventClusters = eventClusters;
         }
 
         public MapGenerationResult Generate(int width, int height, int seed)
@@ -72,11 +78,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             ResetTile(tiles[endCoord], TileType.Boss, hpRestore: 0, moneteGained: 0);
             tiles[endCoord].IsObjective = true;
 
-            var clusterPlacement = PlaceAestheticCluster(tiles, width, height, ClusterPatternCatalog.Foresta, startCoord, endCoord, rng);
-            if (clusterPlacement.HasValue)
-            {
-                GenerateStradaNetwork(tiles, clusterPlacement.Value.center, clusterPlacement.Value.petals, startCoord, endCoord, rng);
-            }
+            PlaceEventClusters(tiles, width, height, startCoord, endCoord, rng);
 
             RevealInitialTiles(tiles[startCoord], tiles[endCoord]);
 
@@ -165,63 +167,106 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             return table[^1].Distance;
         }
 
-        private (HexCoord center, HexCoord[] petals)? PlaceAestheticCluster(
+        /// <summary>
+        /// Piazza EventCluster (forme dal catalogo) e tessere singole via rejection
+        /// sampling: tenta una posizione e una forma a caso, verifica i vincoli (dentro
+        /// griglia, lontano da Start/End, almeno una tessera di distacco da ogni altro
+        /// EventCluster/singola già piazzato), se valida la piazza, altrimenti riprova.
+        /// Si ferma dopo _eventClusters.MaxConsecutiveFailures tentativi falliti di fila
+        /// consecutivi — segnale che la griglia è piena. Il rapporto cluster:singola nasce
+        /// da un contatore che si rigenera a ogni singola piazzata con un nuovo target
+        /// casuale tra ClusterToSingleRatioMin/Max, non è imposto rigidamente sul totale.
+        /// </summary>
+        private void PlaceEventClusters(
             Dictionary<HexCoord, HexTileData> tiles, int width, int height,
-            ClusterPatternDefinition pattern, HexCoord start, HexCoord end, Random rng)
+            HexCoord start, HexCoord end, Random rng)
         {
-            for (int attempt = 0; attempt < _clusterPlacementMaxAttempts; attempt++)
+            var occupied = new HashSet<HexCoord>();
+            var catalog = _eventClusters.Catalog;
+            bool hasShapes = catalog != null && catalog.Shapes != null && catalog.Shapes.Length > 0;
+
+            int clustersUntilNextSingle = rng.Next(_eventClusters.ClusterToSingleRatioMin, _eventClusters.ClusterToSingleRatioMax + 1);
+            int consecutiveFailures = 0;
+
+            while (consecutiveFailures < _eventClusters.MaxConsecutiveFailures)
             {
-                var center = HexCoord.FromOffsetOddQ(rng.Next(width), rng.Next(height));
+                bool wantCluster = hasShapes && clustersUntilNextSingle > 0;
 
-                if (center.Equals(start) || center.Equals(end)) continue;
-                if (center.DistanceTo(start) < _clusterMinDistanceFromStartEnd) continue;
-                if (center.DistanceTo(end) < _clusterMinDistanceFromStartEnd) continue;
+                var origin = HexCoord.FromOffsetOddQ(rng.Next(width), rng.Next(height));
+                EventClusterShape shape = wantCluster ? catalog.Shapes[rng.Next(catalog.Shapes.Length)] : null;
 
-                var petalCoords = new HexCoord[6];
-                bool allValid = true;
-                for (int dir = 0; dir < 6; dir++)
+                var footprint = wantCluster
+                    ? ComputeFootprint(origin, shape)
+                    : new List<HexCoord> { origin };
+
+                if (!IsValidEventClusterPlacement(footprint, tiles, start, end, occupied))
                 {
-                    var neighbor = center.GetNeighbor(dir);
-                    if (!tiles.ContainsKey(neighbor) || neighbor.Equals(start) || neighbor.Equals(end))
-                    {
-                        allValid = false;
-                        break;
-                    }
-                    petalCoords[dir] = neighbor;
+                    consecutiveFailures++;
+                    continue;
                 }
 
-                if (!allValid) continue;
+                if (wantCluster)
+                {
+                    ApplyEventClusterShape(tiles, origin, shape, rng);
+                    clustersUntilNextSingle--;
+                }
+                else
+                {
+                    ApplyPlaceholderBalance(tiles[origin], SingleTilePool[rng.Next(SingleTilePool.Length)], rng);
+                    clustersUntilNextSingle = rng.Next(_eventClusters.ClusterToSingleRatioMin, _eventClusters.ClusterToSingleRatioMax + 1);
+                }
 
-                ApplyPattern(tiles, center, petalCoords, pattern);
-                return (center, petalCoords);
+                foreach (var coord in footprint) occupied.Add(coord);
+                consecutiveFailures = 0;
             }
-
-            return null;
         }
 
-        private void ApplyPattern(
-            Dictionary<HexCoord, HexTileData> tiles, HexCoord center,
-            HexCoord[] petalCoords, ClusterPatternDefinition pattern)
+        private List<HexCoord> ComputeFootprint(HexCoord origin, EventClusterShape shape)
         {
-            ResetTile(tiles[center], pattern.Center.Type, pattern.Center.HpRestore, pattern.Center.MoneteGained);
-
-            for (int dir = 0; dir < 6; dir++)
+            var footprint = new List<HexCoord>(shape.Tiles.Length);
+            foreach (var tileSpec in shape.Tiles)
             {
-                var spec = pattern.Petals[dir];
-                ResetTile(tiles[petalCoords[dir]], spec.Type, spec.HpRestore, spec.MoneteGained);
+                footprint.Add(origin + new HexCoord(tileSpec.RelativeQ, tileSpec.RelativeR));
+            }
+            return footprint;
+        }
+
+        private bool IsValidEventClusterPlacement(
+            List<HexCoord> footprint, Dictionary<HexCoord, HexTileData> tiles,
+            HexCoord start, HexCoord end, HashSet<HexCoord> occupied)
+        {
+            foreach (var coord in footprint)
+            {
+                if (!tiles.ContainsKey(coord)) return false;
+                if (coord.Equals(start) || coord.Equals(end)) return false;
+                if (coord.DistanceTo(start) < _clusterMinDistanceFromStartEnd) return false;
+                if (coord.DistanceTo(end) < _clusterMinDistanceFromStartEnd) return false;
+                if (occupied.Contains(coord)) return false;
+
+                for (int dir = 0; dir < 6; dir++)
+                {
+                    var neighbor = coord.GetNeighbor(dir);
+                    if (occupied.Contains(neighbor) && !footprint.Contains(neighbor)) return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void ApplyEventClusterShape(Dictionary<HexCoord, HexTileData> tiles, HexCoord origin, EventClusterShape shape, Random rng)
+        {
+            foreach (var tileSpec in shape.Tiles)
+            {
+                var coord = origin + new HexCoord(tileSpec.RelativeQ, tileSpec.RelativeR);
+                ApplyPlaceholderBalance(tiles[coord], tileSpec.Type, rng);
             }
         }
 
-        /// <summary>
-        /// Rete Strada automatica attorno al cluster: cresce come un piccolo albero a
-        /// incroci partendo da una tile di bordo (adiacente a un petalo, non parte del
-        /// cluster, non Start/End). Vincoli da Franci (sessione 2026-07-07): ogni ramo
-        /// tra _strada.MinBranchLength e _strada.MaxBranchLength tessere, al massimo
-        /// _strada.MaxBranches rami totali, _strada.MaxTotalTiles tessere complessive.
-        /// Solo tessere piane per ora — niente ponte rotto (deferito). Se il budget non
-        /// permette nemmeno il ramo minimo, quel ramo/quella biforcazione viene scartata
-        /// silenziosamente, stesso pattern di PlaceAestheticCluster.
-        /// </summary>
+        // ===== Mesh Strada (fase 5) — definizioni tenute, non ancora chiamate =====
+        // Pensate per un solo EventCluster a 6 posizioni fisse (vecchio fiore): andranno
+        // riscritte per attaccarsi al bordo di forme arbitrarie e attraversare più
+        // EventCluster incontrati lungo il cammino, come discusso.
+
         private void GenerateStradaNetwork(
             Dictionary<HexCoord, HexTileData> tiles, HexCoord clusterCenter, HexCoord[] clusterPetals,
             HexCoord start, HexCoord end, Random rng)
@@ -247,7 +292,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
                 int length = rng.Next(_strada.MinBranchLength, maxLenHere + 1);
                 var path = GrowBranch(tiles, origin, dir, length, includeOrigin, start, end, claimed, rng);
-                if (path.Count < _strada.MinBranchLength) continue;
+                if (path.Count == 0) continue;
 
                 foreach (var coord in path)
                     ResetTile(tiles[coord], TileType.Strada, hpRestore: 0, moneteGained: 0);
@@ -271,12 +316,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
         }
 
-        /// <summary>
-        /// Tile adiacenti ai petali del cluster ma non appartenenti al cluster stesso
-        /// (né Start/End): punto di attacco per la radice della rete Strada. La direzione
-        /// associata è quella del petalo di provenienza rispetto al centro — usata come
-        /// heading iniziale, così il ramo cresce "verso l'esterno" allontanandosi dal cluster.
-        /// </summary>
         private List<(HexCoord tile, int direction)> FindClusterBorder(
             Dictionary<HexCoord, HexTileData> tiles, HexCoord center, HexCoord[] petalCoords,
             HexCoord start, HexCoord end)
@@ -304,13 +343,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             return border;
         }
 
-        /// <summary>
-        /// Cresce un ramo tile per tile con leggera deviazione random (DeviateDirection),
-        /// fino a `length` tessere o finché non esce dalla griglia / tocca Start-End / tocca
-        /// una tessera già rivendicata da un altro ramo. Se includeOrigin è true, `origin`
-        /// stessa è la prima tessera del ramo (radice); se false, origin è solo il punto di
-        /// aggancio condiviso con il ramo padre (biforcazione) e non viene ricontata nel budget.
-        /// </summary>
         private List<HexCoord> GrowBranch(
             Dictionary<HexCoord, HexTileData> tiles, HexCoord origin, int heading, int length,
             bool includeOrigin, HexCoord start, HexCoord end, HashSet<HexCoord> claimed, Random rng)
@@ -343,10 +375,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             return path;
         }
 
-        /// <summary>
-        /// Applica una piccola probabilità di svolta rispetto alla direzione corrente, così
-        /// il ramo non risulta perfettamente rettilineo (pesi in MapGenerationConfig.StradaNetwork).
-        /// </summary>
         private int DeviateDirection(int dir, Random rng)
         {
             int total = _strada.KeepHeadingWeight + _strada.TurnWeight;
@@ -359,12 +387,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             return turnRight ? (dir + 1) % 6 : (dir + 5) % 6;
         }
 
-        /// <summary>
-        /// Sceglie un esito pesato tra le opzioni ancora possibili (STOP è sempre presente;
-        /// le biforcazioni entrano in lista solo se il budget residuo le può sostenere) —
-        /// così la probabilità si ridistribuisce automaticamente quando un esito non è
-        /// sostenibile, invece di forzare STOP.
-        /// </summary>
         private int WeightedPickOutcome(List<(int weight, int forkCount)> outcomes, Random rng)
         {
             int total = 0;
@@ -380,11 +402,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             return outcomes[^1].forkCount;
         }
 
-        /// <summary>
-        /// Mette in coda `count` nuovi rami dal punto di biforcazione, con direzioni
-        /// distribuite simmetricamente attorno alla direzione del ramo padre — evitando la
-        /// direzione opposta (parentDir + 3) per non ricrescere dentro il cluster.
-        /// </summary>
         private void EnqueueFork(
             Queue<(HexCoord origin, int dir, bool includeOrigin)> queue,
             HexCoord origin, int parentDir, int count, Random rng)
@@ -397,10 +414,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 queue.Enqueue((origin, ((parentDir + offset) % 6 + 6) % 6, false));
         }
 
-        /// <summary>
-        /// GDD fix: Start is Scoperta (player is here, content resolved).
-        /// End/Boss is Conosciuta (position known from mission brief, content NOT yet resolved).
-        /// </summary>
         private void RevealInitialTiles(HexTileData startTile, HexTileData endTile)
         {
             startTile.State = TileState.Scoperta;

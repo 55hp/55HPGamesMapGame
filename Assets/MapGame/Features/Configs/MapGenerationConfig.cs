@@ -29,9 +29,8 @@ namespace hp55games.MapGame.Features.Configs
     }
 
     /// <summary>
-    /// Vincoli struttura e pesi per la rete Strada auto-generata attorno al cluster
-    /// estetico (vedi Implementation Spec "Strada Network"). NON un cluster dedicato
-    /// classico (centro+petali) — cresce dal bordo del cluster con incroci.
+    /// Vincoli struttura e pesi per la mesh di Strada (fase 5, non ancora ricablata sul
+    /// nuovo sistema a EventCluster multipli — campo tenuto per non perdere i valori).
     /// </summary>
     [Serializable]
     public struct StradaNetworkSettings
@@ -52,6 +51,24 @@ namespace hp55games.MapGame.Features.Configs
         public int TurnWeight;
     }
 
+    /// <summary>
+    /// Parametri per il piazzamento degli EventCluster (forme dal catalogo) e delle
+    /// tessere singole via rejection sampling.
+    /// </summary>
+    [Serializable]
+    public struct EventClusterPlacementSettings
+    {
+        [Tooltip("Trascina qui l'asset EventClusterCatalog con le forme disponibili.")]
+        public hp55games.MapGame.Features.Gameplay.HexGrid.EventClusterCatalog Catalog;
+
+        [Tooltip("Tentativi consecutivi falliti prima di considerare la griglia piena e fermarsi.")]
+        public int MaxConsecutiveFailures;
+
+        [Header("Rapporto cluster : singola (es. 2-3 cluster per ogni singola)")]
+        public int ClusterToSingleRatioMin;
+        public int ClusterToSingleRatioMax;
+    }
+
     [CreateAssetMenu(menuName = "MapGame/Map Generation Config", fileName = "MapGenerationConfig")]
     public sealed class MapGenerationConfig : ScriptableObject
     {
@@ -64,7 +81,7 @@ namespace hp55games.MapGame.Features.Configs
         /// </summary>
         public int Seed = 12345;
 
-        [Header("Piazzamento Start/End/Cluster")]
+        [Header("Piazzamento Start/End")]
         public DistanceWeight[] EndDistanceWeights =
         {
             new DistanceWeight { Distance = 4, Weight = 1 },
@@ -76,7 +93,6 @@ namespace hp55games.MapGame.Features.Configs
 
         [Min(0)] public int StartMinBorderDistance = 3;
         [Min(0)] public int ClusterMinDistanceFromStartEnd = 2;
-        [Min(1)] public int ClusterPlacementMaxAttempts = 50;
 
         [Header("Bilanciamento placeholder (NON valori finali)")]
         public PlaceholderBalanceSettings PlaceholderBalance = new PlaceholderBalanceSettings
@@ -87,7 +103,16 @@ namespace hp55games.MapGame.Features.Configs
             TrappolaHpLossMin    = 2, TrappolaHpLossMax    = 6,
         };
 
-        [Header("Rete Strada attorno al cluster (auto-generata dopo il piazzamento cluster)")]
+        [Header("Piazzamento EventCluster e singole")]
+        public EventClusterPlacementSettings EventClusters = new EventClusterPlacementSettings
+        {
+            Catalog = null,
+            MaxConsecutiveFailures = 200,
+            ClusterToSingleRatioMin = 2,
+            ClusterToSingleRatioMax = 3,
+        };
+
+        [Header("Mesh Strada (fase 5, non ancora ricablata)")]
         public StradaNetworkSettings StradaNetwork = new StradaNetworkSettings
         {
             MinBranchLength = 3, MaxBranchLength = 7, MaxBranches = 5, MaxTotalTiles = 15,
