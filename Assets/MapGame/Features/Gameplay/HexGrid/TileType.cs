@@ -6,6 +6,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// </summary>
     public enum TileType
     {
+        Neutra,
         Strada,
         Battaglia,
         Trappola,

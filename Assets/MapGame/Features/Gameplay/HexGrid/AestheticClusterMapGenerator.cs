@@ -247,7 +247,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
                 int length = rng.Next(_strada.MinBranchLength, maxLenHere + 1);
                 var path = GrowBranch(tiles, origin, dir, length, includeOrigin, start, end, claimed, rng);
-                if (path.Count == 0) continue;
+                if (path.Count < _strada.MinBranchLength) continue;
 
                 foreach (var coord in path)
                     ResetTile(tiles[coord], TileType.Strada, hpRestore: 0, moneteGained: 0);
