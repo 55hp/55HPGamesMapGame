@@ -1,0 +1,20 @@
+{
+    "name": "MapGame.Features.Debug.Editor",
+    "rootNamespace": "hp55games.MapGame.Features.Debug.Editor",
+    "references": [
+        "MapGame.Features.Debug",
+        "hp55games.FranzTools.HexDebugFramework.Editor",
+        "hp55games.FranzTools.HexDebugFramework"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
