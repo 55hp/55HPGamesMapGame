@@ -51,16 +51,8 @@ MonoBehaviour:
   _background: {fileID: 6819849053835450949}
   _icon: {fileID: 367911427137787612}
   _alpha: {fileID: 8343452065531178688}
-  _sconosciutaSprite: {fileID: 21300000, guid: d99a74ff2c6e8a94e8c4c17fb946c44f, type: 3}
-  _conosciutaSprite: {fileID: 21300000, guid: ac0995ccfc6a6d84fbf276fd74d1ec1c, type: 3}
+  _visualConfig: {fileID: 11400000, guid: 4a087bb18153f0e45b4c88403ddbba53, type: 2}
   _clickableIndicator: {fileID: 6635290070272975877}
-  _stradaSprite: {fileID: 21300000, guid: acc3b2665e1a37142a6cc9bcad4204bf, type: 3}
-  _battagliaSprite: {fileID: 21300000, guid: d283d08e206e8bb47ac0b8c0eb5fbfb3, type: 3}
-  _trappolaSprite: {fileID: 21300000, guid: 808aedd7ae611ee4a8ca9d31c8642f55, type: 3}
-  _risorsaSprite: {fileID: 21300000, guid: a0670d3aa313e6b47ace70a60874f199, type: 3}
-  _npcSprite: {fileID: 21300000, guid: b6269c7cd0ac41042a22eda368608e28, type: 3}
-  _misterySprite: {fileID: 21300000, guid: 7940f573c5558ee4cb616674167ab291, type: 3}
-  _bossSprite: {fileID: 21300000, guid: 1d8ca8c8b4e160f419deff9a2afb3848, type: 3}
 --- !u!1 &4246884242235401504
 GameObject:
   m_ObjectHideFlags: 0
@@ -134,7 +126,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: ac0995ccfc6a6d84fbf276fd74d1ec1c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 20241609a6f1b1744bb654debf5a8afc, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -302,7 +294,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: 21300000, guid: 90949d8c177fdda40a6877ed341677d8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8c7c956d4ba7a0d409d2b12b71f924b5, type: 3}
   m_Color: {r: 1, g: 0.977699, b: 0.5503144, a: 1}
   m_FlipX: 0
   m_FlipY: 0
