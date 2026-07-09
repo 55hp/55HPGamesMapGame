@@ -4,7 +4,8 @@
     "references": [
         "MapGame.Features.Debug",
         "hp55games.FranzTools.HexDebugFramework.Editor",
-        "hp55games.FranzTools.HexDebugFramework"
+        "hp55games.FranzTools.HexDebugFramework",
+        "Game.Features"
     ],
     "includePlatforms": [
         "Editor"

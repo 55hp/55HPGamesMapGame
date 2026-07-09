@@ -7,10 +7,11 @@ namespace hp55games.FranzTools.HexDebugFramework.Editor
     [InitializeOnLoad]
     public class HexDebugWindow : EditorWindow
     {
+        // Opzione 0 = RoadAnalyzer built-in; opzioni 1+ = analyzer registrati da MapGame.
         private int _maxRoadLength = 15;
+        private int _analyzerSelectionIndex = 0;
         private Vector2 _scrollPos;
 
-        // Registra la callback SceneView al caricamento dell'editor, senza aprire la finestra.
         static HexDebugWindow()
         {
             SceneView.duringSceneGui += OnSceneGUI;
@@ -24,7 +25,7 @@ namespace hp55games.FranzTools.HexDebugFramework.Editor
 
         private void OnGUI()
         {
-            // Stato topology
+            // Topology status
             string topologyLabel = HexDebugSession.Topology != null
                 ? HexDebugSession.Topology.GetType().Name
                 : "<nessuna topology registrata>";
@@ -32,7 +33,16 @@ namespace hp55games.FranzTools.HexDebugFramework.Editor
 
             EditorGUILayout.Space();
 
-            _maxRoadLength = EditorGUILayout.IntField("Max Road Length", _maxRoadLength);
+            // Selezione analyzer
+            var analyzerNames = BuildAnalyzerNames();
+            _analyzerSelectionIndex = Mathf.Clamp(_analyzerSelectionIndex, 0, analyzerNames.Length - 1);
+            _analyzerSelectionIndex = EditorGUILayout.Popup("Analyzer", _analyzerSelectionIndex, analyzerNames);
+
+            // MaxRoadLength solo quando è selezionato il built-in RoadAnalyzer
+            if (_analyzerSelectionIndex == 0)
+                _maxRoadLength = EditorGUILayout.IntField("Max Road Length", _maxRoadLength);
+
+            EditorGUILayout.Space();
 
             GUI.enabled = HexDebugSession.Topology != null;
             if (GUILayout.Button("Populate & Analyze"))
@@ -45,10 +55,10 @@ namespace hp55games.FranzTools.HexDebugFramework.Editor
             EditorGUILayout.Space();
 
             // Statistiche
-            int totalCells  = HexDebugSession.Clusters.Sum(c => c.Cells.Count);
-            int errorCount  = HexDebugSession.Clusters.Count(c => c.Severity == DebugSeverity.Error);
+            int totalCells = HexDebugSession.Clusters.Sum(c => c.Cells.Count);
+            int errorCount = HexDebugSession.Clusters.Count(c => c.Severity == DebugSeverity.Error);
             EditorGUILayout.LabelField(
-                $"Clusters: {HexDebugSession.Clusters.Length}   Cells: {totalCells}   Errors: {errorCount}",
+                $"Clusters: {HexDebugSession.Clusters.Length}   Celle: {totalCells}   Errori: {errorCount}",
                 EditorStyles.miniLabel);
 
             EditorGUILayout.Space();
@@ -76,12 +86,33 @@ namespace hp55games.FranzTools.HexDebugFramework.Editor
 
         private void RunAnalysis()
         {
-            var analyzer = new RoadAnalyzer(_maxRoadLength);
-            HexDebugSession.Registry.PopulateFromScene();
+            // Populate
+            if (HexDebugSession.PopulateStrategy != null)
+                HexDebugSession.PopulateStrategy(HexDebugSession.Registry);
+            else
+                HexDebugSession.Registry.PopulateFromScene();
+
+            // Scegli analyzer
+            IHexAnalyzer analyzer;
+            if (_analyzerSelectionIndex == 0)
+                analyzer = new RoadAnalyzer(_maxRoadLength);
+            else
+                analyzer = HexDebugSession.RegisteredAnalyzers[_analyzerSelectionIndex - 1];
+
             HexDebugSession.Clusters = analyzer.Analyze(HexDebugSession.Registry, HexDebugSession.Topology);
             HexDebugSession.SelectedClusterIndex = -1;
             SceneView.RepaintAll();
             Repaint();
+        }
+
+        private static string[] BuildAnalyzerNames()
+        {
+            var registered = HexDebugSession.RegisteredAnalyzers;
+            var names = new string[1 + registered.Count];
+            names[0] = "Road Analyzer (built-in)";
+            for (int i = 0; i < registered.Count; i++)
+                names[i + 1] = registered[i].Name;
+            return names;
         }
 
         private static void OnSceneGUI(SceneView sceneView)

@@ -1,11 +1,13 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace hp55games.FranzTools.HexDebugFramework.Editor
 {
     /// <summary>
     /// Stato condiviso tra Editor Window, Scene Drawer e Scene Toolbar.
-    /// La topology viene iniettata dal progetto consumer via RegisterTopology,
-    /// poiché il framework non conosce le classi concrete del progetto.
+    /// La topology e la populate strategy vengono iniettate dal progetto consumer.
+    /// Gli analyzer registrati appaiono nel dropdown della Editor Window.
     /// </summary>
     public static class HexDebugSession
     {
@@ -15,7 +17,16 @@ namespace hp55games.FranzTools.HexDebugFramework.Editor
         public static int SelectedClusterIndex { get; set; } = -1;
         public static HexDrawSettings DrawSettings { get; } = new HexDrawSettings();
 
+        // Strategia di populate iniettata dal progetto consumer.
+        // Se null, la Editor Window usa PopulateFromScene() come fallback.
+        public static Action<HexGridRegistry> PopulateStrategy { get; set; }
+
+        // Analyzer registrati dal progetto consumer (es. MapGame Phase 5).
+        private static readonly List<IHexAnalyzer> _registeredAnalyzers = new List<IHexAnalyzer>();
+        public static IReadOnlyList<IHexAnalyzer> RegisteredAnalyzers => _registeredAnalyzers;
+
         public static void RegisterTopology(IHexTopology topology) => Topology = topology;
+        public static void RegisterAnalyzer(IHexAnalyzer analyzer) => _registeredAnalyzers.Add(analyzer);
 
         public static void ClearClusters()
         {
