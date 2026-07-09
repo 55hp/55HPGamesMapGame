@@ -75,9 +75,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             ResetTile(tiles[endCoord], TileType.Boss, hpRestore: 0, moneteGained: 0);
             tiles[endCoord].IsObjective = true;
 
-            var eventOccupied = PlaceEventClusters(tiles, width, height, startCoord, endCoord, rng);
+            var eventOccupied = PlaceEventClusters(tiles, width, height, startCoord, endCoord, rng, out int nextEventId);
             GeneratePathClusterMesh(tiles, startCoord, endCoord, eventOccupied, rng, out var globalClaimed, out var tileOwner);
-            PatchResidualGaps(tiles, startCoord, endCoord, eventOccupied, globalClaimed, tileOwner, rng);
+            PatchResidualGaps(tiles, startCoord, endCoord, eventOccupied, globalClaimed, tileOwner, rng, nextEventId);
 
             RevealInitialTiles(tiles[startCoord], tiles[endCoord]);
 
@@ -162,11 +162,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// <summary>
         /// Piazza EventCluster (forme dal catalogo) e tessere singole via rejection
         /// sampling. Ritorna l'insieme di tutte le tessere occupate, usato dalla mesh
-        /// PathCluster come muro invalicabile.
+        /// PathCluster come muro invalicabile. nextEventId è l'indice progressivo da usare
+        /// per i piazzamenti successivi (es. PatchResidualGaps) per garantire ID unici.
         /// </summary>
         private HashSet<HexCoord> PlaceEventClusters(
             Dictionary<HexCoord, HexTileData> tiles, int width, int height,
-            HexCoord start, HexCoord end, Random rng)
+            HexCoord start, HexCoord end, Random rng, out int nextEventId)
         {
             var occupied = new HashSet<HexCoord>();
             var catalog = _eventClusters.Catalog;
@@ -174,6 +175,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             int clustersUntilNextSingle = rng.Next(_eventClusters.ClusterToSingleRatioMin, _eventClusters.ClusterToSingleRatioMax + 1);
             int consecutiveFailures = 0;
+            int eventPlacementIndex = 0;
 
             while (consecutiveFailures < _eventClusters.MaxConsecutiveFailures)
             {
@@ -203,10 +205,16 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     clustersUntilNextSingle = rng.Next(_eventClusters.ClusterToSingleRatioMin, _eventClusters.ClusterToSingleRatioMax + 1);
                 }
 
-                foreach (var coord in footprint) occupied.Add(coord);
+                foreach (var coord in footprint)
+                {
+                    occupied.Add(coord);
+                    tiles[coord].EventPlacementId = eventPlacementIndex;
+                }
+                eventPlacementIndex++;
                 consecutiveFailures = 0;
             }
 
+            nextEventId = eventPlacementIndex;
             return occupied;
         }
 
@@ -301,6 +309,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     ResetTile(tiles[coord], type, hpRestore: 0, moneteGained: 0);
                     globalClaimed.Add(coord);
                     tileOwner[coord] = pathClusterIndex;
+                    tiles[coord].PathClusterId = pathClusterIndex;
                 }
 
                 pathClusterIndex++;
@@ -318,7 +327,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private void PatchResidualGaps(
             Dictionary<HexCoord, HexTileData> tiles, HexCoord start, HexCoord end,
             HashSet<HexCoord> eventOccupied, HashSet<HexCoord> globalClaimed,
-            Dictionary<HexCoord, int> tileOwner, Random rng)
+            Dictionary<HexCoord, int> tileOwner, Random rng, int nextEventId)
         {
             const int maxPatchPerPathCluster = 2;
             var patchCountPerPathCluster = new Dictionary<int, int>();
@@ -347,12 +356,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     ResetTile(tiles[coord], TileType.Strada, hpRestore: 0, moneteGained: 0);
                     globalClaimed.Add(coord);
                     tileOwner[coord] = extendOwner.Value;
+                    tiles[coord].PathClusterId = extendOwner.Value;
                     patchCountPerPathCluster[extendOwner.Value] =
                         (patchCountPerPathCluster.TryGetValue(extendOwner.Value, out int u2) ? u2 : 0) + 1;
                 }
                 else
                 {
                     ApplyPlaceholderBalance(tiles[coord], SingleTilePool[rng.Next(SingleTilePool.Length)], rng);
+                    tiles[coord].EventPlacementId = nextEventId++;
                     eventOccupied.Add(coord);
                 }
             }

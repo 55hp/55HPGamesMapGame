@@ -71,7 +71,7 @@ namespace hp55games.MapGame.Features.Debug
             List<IHexCell> cells,
             List<HexGraphEdge> edges)
         {
-            var queue = new Queue<HexDebugData>();
+            var queue = new Queue<IHexCell>();
             visited.Add(start);
             registry.TryGetTile(start, out var startTile);
             queue.Enqueue(startTile);

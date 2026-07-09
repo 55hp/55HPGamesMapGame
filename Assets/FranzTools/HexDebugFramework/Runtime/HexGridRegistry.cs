@@ -5,8 +5,8 @@ namespace hp55games.FranzTools.HexDebugFramework
 {
     public sealed class HexGridRegistry
     {
-        private readonly Dictionary<Vector2Int, HexDebugData> _cells =
-            new Dictionary<Vector2Int, HexDebugData>();
+        private readonly Dictionary<Vector2Int, IHexCell> _cells =
+            new Dictionary<Vector2Int, IHexCell>();
 
         /// <summary>
         /// Scansiona la scena attiva e raccoglie tutti i MonoBehaviour che implementano IHexCell.
@@ -25,7 +25,7 @@ namespace hp55games.FranzTools.HexDebugFramework
 
         /// <summary>
         /// Popola il registry direttamente da una sequenza di IHexCell.
-        /// Usa questo percorso quando le celle esistono solo in memoria (pipeline procedurale).
+        /// Conserva l'istanza originale così com'è — nessun wrap in HexDebugData.
         /// </summary>
         public void Populate(IEnumerable<IHexCell> cells)
         {
@@ -34,17 +34,16 @@ namespace hp55games.FranzTools.HexDebugFramework
                 Add(cell);
         }
 
-        public bool TryGetTile(Vector2Int position, out HexDebugData data) =>
+        public bool TryGetTile(Vector2Int position, out IHexCell data) =>
             _cells.TryGetValue(position, out data);
 
-        public IReadOnlyCollection<HexDebugData> AllTiles => _cells.Values;
+        public IReadOnlyCollection<IHexCell> AllTiles => _cells.Values;
 
         // ---
 
         private void Add(IHexCell cell)
         {
-            var data = new HexDebugData(cell.Coordinates, cell.WorldPosition, cell.Flags);
-            _cells[cell.Coordinates] = data;
+            _cells[cell.Coordinates] = cell;
         }
     }
 }

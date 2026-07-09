@@ -35,7 +35,7 @@ namespace hp55games.FranzTools.HexDebugFramework
 
                 var clusterCells = new List<IHexCell>();
                 var clusterEdges = new List<HexGraphEdge>();
-                var queue = new Queue<HexDebugData>();
+                var queue = new Queue<IHexCell>();
 
                 visited.Add(tile.Coordinates);
                 queue.Enqueue(tile);
