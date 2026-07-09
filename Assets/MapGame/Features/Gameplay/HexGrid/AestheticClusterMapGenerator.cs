@@ -5,26 +5,23 @@ using hp55games.MapGame.Features.Configs;
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
-    /// Generatore di mappa, pipeline "macchie di leopardo" (GDD, rev. 2026-07-07):
-    /// 1. Riempimento procedurale di base — TEMPORANEO: verrà rimosso in fase 5 quando
-    ///    la mesh Strada coprirà per intero le tessere non occupate da EventCluster/singole.
-    /// 2. Piazzamento Start/End (weighted distance)
-    /// 3. Piazzamento EventCluster (forme dal catalogo) e tessere singole via rejection
+    /// Generatore di mappa, pipeline "macchie di leopardo" (GDD, rev. 2026-07-07), completa:
+    /// 1. Piazzamento Start/End (weighted distance)
+    /// 2. Piazzamento EventCluster (forme dal catalogo) e tessere singole via rejection
     ///    sampling, con almeno una tessera di distacco tra due piazzamenti qualunque.
-    /// 4. Rivelazione iniziale (Start ed End già Scoperte)
-    ///
-    /// Mesh Strada (fase 5) non ancora ricablata su questo sistema — i metodi esistenti
-    /// (GenerateStradaNetwork e affini) restano nel file ma non sono chiamati, verranno
-    /// riscritti per attraversare più EventCluster invece di uno singolo.
+    /// 3. Mesh di PathCluster: parte da ogni bordo di ogni EventCluster/singola piazzata,
+    ///    cresce a budget (15 tessere / 5 rami / rami 3-7) per ciascun PathCluster, si
+    ///    ferma sui bordi degli EventCluster (fanno da muro, nessuna Neutra necessaria lì)
+    ///    e diventa Neutra dove tocca un PathCluster diverso già piazzato (per non farli
+    ///    fondere in un'unica cascata).
+    /// 4. Rammendo: ogni tessera ancora priva di contenuto a questo punto diventa Strada
+    ///    extra su un PathCluster confinante (massimo 2 per PathCluster) oppure, se non
+    ///    c'è un PathCluster a cui attaccarsi, una tessera singola. Nessuna tessera resta
+    ///    senza contenuto esplicito — niente più riempimento casuale di base.
+    /// 5. Rivelazione iniziale (Start ed End già Scoperte)
     /// </summary>
     public sealed class AestheticClusterMapGenerator : IMapGenerator
     {
-        private static readonly TileType[] FillerPool =
-        {
-            TileType.Strada, TileType.Battaglia, TileType.Trappola,
-            TileType.Risorsa, TileType.NPC, TileType.Mistery,
-        };
-
         /// <summary>
         /// Tipi ammessi per le tessere singole (variante di un EventCluster da 1 tessera).
         /// Niente Strada: la Strada è la mesh separata, non un contenuto di singola.
@@ -66,7 +63,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             for (int col = 0; col < width; col++)
             {
                 var coord = HexCoord.FromOffsetOddQ(col, row);
-                tiles[coord] = BuildFillerTile(coord, rng);
+                tiles[coord] = new HexTileData(coord);
             }
 
             var startCoord = PlaceStart(tiles, width, height, rng);
@@ -78,7 +75,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             ResetTile(tiles[endCoord], TileType.Boss, hpRestore: 0, moneteGained: 0);
             tiles[endCoord].IsObjective = true;
 
-            PlaceEventClusters(tiles, width, height, startCoord, endCoord, rng);
+            var eventOccupied = PlaceEventClusters(tiles, width, height, startCoord, endCoord, rng);
+            GeneratePathClusterMesh(tiles, startCoord, endCoord, eventOccupied, rng, out var globalClaimed, out var tileOwner);
+            PatchResidualGaps(tiles, startCoord, endCoord, eventOccupied, globalClaimed, tileOwner, rng);
 
             RevealInitialTiles(tiles[startCoord], tiles[endCoord]);
 
@@ -89,13 +88,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 ObjectiveCoord = endCoord,
                 SeedUsed = seed,
             };
-        }
-
-        private HexTileData BuildFillerTile(HexCoord coord, Random rng)
-        {
-            var tile = new HexTileData(coord);
-            ApplyPlaceholderBalance(tile, FillerPool[rng.Next(FillerPool.Length)], rng);
-            return tile;
         }
 
         private void ApplyPlaceholderBalance(HexTileData tile, TileType type, Random rng)
@@ -169,15 +161,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Piazza EventCluster (forme dal catalogo) e tessere singole via rejection
-        /// sampling: tenta una posizione e una forma a caso, verifica i vincoli (dentro
-        /// griglia, lontano da Start/End, almeno una tessera di distacco da ogni altro
-        /// EventCluster/singola già piazzato), se valida la piazza, altrimenti riprova.
-        /// Si ferma dopo _eventClusters.MaxConsecutiveFailures tentativi falliti di fila
-        /// consecutivi — segnale che la griglia è piena. Il rapporto cluster:singola nasce
-        /// da un contatore che si rigenera a ogni singola piazzata con un nuovo target
-        /// casuale tra ClusterToSingleRatioMin/Max, non è imposto rigidamente sul totale.
+        /// sampling. Ritorna l'insieme di tutte le tessere occupate, usato dalla mesh
+        /// PathCluster come muro invalicabile.
         /// </summary>
-        private void PlaceEventClusters(
+        private HashSet<HexCoord> PlaceEventClusters(
             Dictionary<HexCoord, HexTileData> tiles, int width, int height,
             HexCoord start, HexCoord end, Random rng)
         {
@@ -219,6 +206,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 foreach (var coord in footprint) occupied.Add(coord);
                 consecutiveFailures = 0;
             }
+
+            return occupied;
         }
 
         private List<HexCoord> ComputeFootprint(HexCoord origin, EventClusterShape shape)
@@ -262,41 +251,175 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
         }
 
-        // ===== Mesh Strada (fase 5) — definizioni tenute, non ancora chiamate =====
-        // Pensate per un solo EventCluster a 6 posizioni fisse (vecchio fiore): andranno
-        // riscritte per attaccarsi al bordo di forme arbitrarie e attraversare più
-        // EventCluster incontrati lungo il cammino, come discusso.
+        // ===== Mesh PathCluster =====
 
-        private void GenerateStradaNetwork(
-            Dictionary<HexCoord, HexTileData> tiles, HexCoord clusterCenter, HexCoord[] clusterPetals,
+        /// <summary>
+        /// Punto di partenza: ogni tessera di bordo di ogni EventCluster/singola piazzata
+        /// (adiacente a una tessera occupata, non occupata essa stessa, non Start/End),
+        /// mescolate in ordine casuale. Da ognuna, se ancora libera al suo turno, cresce
+        /// un intero PathCluster a budget. Nessuna soglia di tentativi da tarare: la lista
+        /// di partenza è finita per costruzione, quindi il processo termina da sé.
+        /// </summary>
+        private void GeneratePathClusterMesh(
+            Dictionary<HexCoord, HexTileData> tiles, HexCoord start, HexCoord end,
+            HashSet<HexCoord> eventOccupied, Random rng,
+            out HashSet<HexCoord> globalClaimed, out Dictionary<HexCoord, int> tileOwner)
+        {
+            var origins = CollectClusterBorders(tiles, eventOccupied, start, end, rng);
+
+            globalClaimed = new HashSet<HexCoord>();
+            tileOwner = new Dictionary<HexCoord, int>();
+            int pathClusterIndex = 0;
+
+            foreach (var (originTile, originDir) in origins)
+            {
+                if (eventOccupied.Contains(originTile) || globalClaimed.Contains(originTile)) continue;
+
+                var pathTiles = GrowOnePathCluster(tiles, originTile, originDir, start, end, eventOccupied, globalClaimed, rng);
+                if (pathTiles.Count == 0) continue;
+
+                // Separazione da un PathCluster diverso già piazzato: se una tessera di
+                // questo PathCluster confina con una tessera di un altro, diventa Neutra
+                // invece di Strada, così CascadeStrada non li fonde in un'unica cascata.
+                var neutraOverride = new HashSet<HexCoord>();
+                foreach (var coord in pathTiles)
+                {
+                    for (int dir = 0; dir < 6; dir++)
+                    {
+                        var neighbor = coord.GetNeighbor(dir);
+                        if (tileOwner.TryGetValue(neighbor, out int ownerIdx) && ownerIdx != pathClusterIndex)
+                        {
+                            neutraOverride.Add(coord);
+                            break;
+                        }
+                    }
+                }
+
+                foreach (var coord in pathTiles)
+                {
+                    var type = neutraOverride.Contains(coord) ? TileType.Neutra : TileType.Strada;
+                    ResetTile(tiles[coord], type, hpRestore: 0, moneteGained: 0);
+                    globalClaimed.Add(coord);
+                    tileOwner[coord] = pathClusterIndex;
+                }
+
+                pathClusterIndex++;
+            }
+        }
+
+        /// <summary>
+        /// Ogni tessera ancora priva di contenuto dopo EventCluster e mesh PathCluster
+        /// (né Start, né End, né occupata, né già Strada/Neutra) viene risolta qui:
+        /// se confina con un PathCluster che non ha ancora esaurito la sua quota di 2
+        /// tessere extra, diventa Strada e si aggiunge a quel PathCluster; altrimenti
+        /// diventa una tessera singola. Con questa passata nessuna tessera della griglia
+        /// resta senza contenuto esplicito.
+        /// </summary>
+        private void PatchResidualGaps(
+            Dictionary<HexCoord, HexTileData> tiles, HexCoord start, HexCoord end,
+            HashSet<HexCoord> eventOccupied, HashSet<HexCoord> globalClaimed,
+            Dictionary<HexCoord, int> tileOwner, Random rng)
+        {
+            const int maxPatchPerPathCluster = 2;
+            var patchCountPerPathCluster = new Dictionary<int, int>();
+
+            foreach (var coord in tiles.Keys)
+            {
+                if (coord.Equals(start) || coord.Equals(end)) continue;
+                if (eventOccupied.Contains(coord) || globalClaimed.Contains(coord)) continue;
+
+                int? extendOwner = null;
+                for (int dir = 0; dir < 6; dir++)
+                {
+                    var neighbor = coord.GetNeighbor(dir);
+                    if (!tileOwner.TryGetValue(neighbor, out int ownerIdx)) continue;
+
+                    int used = patchCountPerPathCluster.TryGetValue(ownerIdx, out int u) ? u : 0;
+                    if (used < maxPatchPerPathCluster)
+                    {
+                        extendOwner = ownerIdx;
+                        break;
+                    }
+                }
+
+                if (extendOwner.HasValue)
+                {
+                    ResetTile(tiles[coord], TileType.Strada, hpRestore: 0, moneteGained: 0);
+                    globalClaimed.Add(coord);
+                    tileOwner[coord] = extendOwner.Value;
+                    patchCountPerPathCluster[extendOwner.Value] =
+                        (patchCountPerPathCluster.TryGetValue(extendOwner.Value, out int u2) ? u2 : 0) + 1;
+                }
+                else
+                {
+                    ApplyPlaceholderBalance(tiles[coord], SingleTilePool[rng.Next(SingleTilePool.Length)], rng);
+                    eventOccupied.Add(coord);
+                }
+            }
+        }
+
+        private List<(HexCoord tile, int direction)> CollectClusterBorders(
+            Dictionary<HexCoord, HexTileData> tiles, HashSet<HexCoord> eventOccupied,
             HexCoord start, HexCoord end, Random rng)
         {
-            var border = FindClusterBorder(tiles, clusterCenter, clusterPetals, start, end);
-            if (border.Count == 0) return;
+            var seen = new HashSet<HexCoord>();
+            var borders = new List<(HexCoord, int)>();
 
-            var claimed = new HashSet<HexCoord>();
-            var (rootTile, rootDir) = border[rng.Next(border.Count)];
+            foreach (var occupiedCoord in eventOccupied)
+            {
+                for (int dir = 0; dir < 6; dir++)
+                {
+                    var neighbor = occupiedCoord.GetNeighbor(dir);
+                    if (!tiles.ContainsKey(neighbor)) continue;
+                    if (eventOccupied.Contains(neighbor)) continue;
+                    if (neighbor.Equals(start) || neighbor.Equals(end)) continue;
+                    if (!seen.Add(neighbor)) continue;
+                    borders.Add((neighbor, dir));
+                }
+            }
+
+            // Fisher-Yates: ordine di elaborazione casuale, non l'ordine di scoperta.
+            for (int i = borders.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (borders[i], borders[j]) = (borders[j], borders[i]);
+            }
+
+            return borders;
+        }
+
+        /// <summary>
+        /// Cresce un intero PathCluster (budget 15 tessere / 5 rami / rami 3-7, gli stessi
+        /// pesi STOP/fork-3/fork-5 e di deviazione di prima) a partire da una singola
+        /// origine. Si blocca su: bordi griglia, Start/End, tessere di un EventCluster
+        /// (muro fisso), tessere già usate da un altro PathCluster (muro che cresce).
+        /// </summary>
+        private List<HexCoord> GrowOnePathCluster(
+            Dictionary<HexCoord, HexTileData> tiles, HexCoord originTile, int originDir,
+            HexCoord start, HexCoord end, HashSet<HexCoord> eventOccupied, HashSet<HexCoord> globalClaimed, Random rng)
+        {
+            var localClaimed = new HashSet<HexCoord>();
+            var allTiles = new List<HexCoord>();
 
             int tilesBudget = _strada.MaxTotalTiles;
             int branchBudget = _strada.MaxBranches;
 
             var queue = new Queue<(HexCoord origin, int dir, bool includeOrigin)>();
-            queue.Enqueue((rootTile, rootDir, true));
+            queue.Enqueue((originTile, originDir, true));
 
             while (queue.Count > 0 && tilesBudget >= _strada.MinBranchLength && branchBudget > 0)
             {
                 var (origin, dir, includeOrigin) = queue.Dequeue();
+                if (includeOrigin && IsBlocked(origin, tiles, start, end, eventOccupied, globalClaimed, localClaimed)) continue;
 
                 int maxLenHere = Math.Min(_strada.MaxBranchLength, tilesBudget);
                 if (maxLenHere < _strada.MinBranchLength) continue;
 
                 int length = rng.Next(_strada.MinBranchLength, maxLenHere + 1);
-                var path = GrowBranch(tiles, origin, dir, length, includeOrigin, start, end, claimed, rng);
-                if (path.Count == 0) continue;
+                var path = GrowBranch(tiles, origin, dir, length, includeOrigin, start, end, eventOccupied, globalClaimed, localClaimed, rng);
+                if (path.Count < _strada.MinBranchLength) continue;
 
-                foreach (var coord in path)
-                    ResetTile(tiles[coord], TileType.Strada, hpRestore: 0, moneteGained: 0);
-
+                allTiles.AddRange(path);
                 tilesBudget -= path.Count;
                 branchBudget -= 1;
 
@@ -314,38 +437,26 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     branchBudget -= forkCount;
                 }
             }
+
+            return allTiles;
         }
 
-        private List<(HexCoord tile, int direction)> FindClusterBorder(
-            Dictionary<HexCoord, HexTileData> tiles, HexCoord center, HexCoord[] petalCoords,
-            HexCoord start, HexCoord end)
+        private bool IsBlocked(
+            HexCoord coord, Dictionary<HexCoord, HexTileData> tiles, HexCoord start, HexCoord end,
+            HashSet<HexCoord> eventOccupied, HashSet<HexCoord> globalClaimed, HashSet<HexCoord> localClaimed)
         {
-            var clusterSet = new HashSet<HexCoord> { center };
-            foreach (var p in petalCoords) clusterSet.Add(p);
-
-            var seen = new HashSet<HexCoord>();
-            var border = new List<(HexCoord, int)>();
-
-            for (int dir = 0; dir < 6; dir++)
-            {
-                var petal = petalCoords[dir];
-                for (int nDir = 0; nDir < 6; nDir++)
-                {
-                    var neighbor = petal.GetNeighbor(nDir);
-                    if (!tiles.ContainsKey(neighbor)) continue;
-                    if (clusterSet.Contains(neighbor)) continue;
-                    if (neighbor.Equals(start) || neighbor.Equals(end)) continue;
-                    if (!seen.Add(neighbor)) continue;
-                    border.Add((neighbor, dir));
-                }
-            }
-
-            return border;
+            if (!tiles.ContainsKey(coord)) return true;
+            if (coord.Equals(start) || coord.Equals(end)) return true;
+            if (eventOccupied.Contains(coord)) return true;
+            if (globalClaimed.Contains(coord)) return true;
+            if (localClaimed.Contains(coord)) return true;
+            return false;
         }
 
         private List<HexCoord> GrowBranch(
-            Dictionary<HexCoord, HexTileData> tiles, HexCoord origin, int heading, int length,
-            bool includeOrigin, HexCoord start, HexCoord end, HashSet<HexCoord> claimed, Random rng)
+            Dictionary<HexCoord, HexTileData> tiles, HexCoord origin, int heading, int length, bool includeOrigin,
+            HexCoord start, HexCoord end, HashSet<HexCoord> eventOccupied, HashSet<HexCoord> globalClaimed,
+            HashSet<HexCoord> localClaimed, Random rng)
         {
             var path = new List<HexCoord>();
             var current = origin;
@@ -355,7 +466,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (includeOrigin)
             {
                 path.Add(origin);
-                claimed.Add(origin);
+                localClaimed.Add(origin);
                 steps -= 1;
             }
 
@@ -363,12 +474,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             {
                 dir = DeviateDirection(dir, rng);
                 var next = current.GetNeighbor(dir);
-                if (!tiles.ContainsKey(next)) break;
-                if (next.Equals(start) || next.Equals(end)) break;
-                if (claimed.Contains(next)) break;
+                if (IsBlocked(next, tiles, start, end, eventOccupied, globalClaimed, localClaimed)) break;
 
                 path.Add(next);
-                claimed.Add(next);
+                localClaimed.Add(next);
                 current = next;
             }
 

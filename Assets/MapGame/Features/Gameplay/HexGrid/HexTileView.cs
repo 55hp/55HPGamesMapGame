@@ -9,8 +9,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// SetClickable attiva/disattiva l'indicatore di clickability.
     /// Nessuna logica di gameplay qui: solo rendering.
     ///
-    /// Gli sprite assegnati in Inspector sono PLACEHOLDER — verranno
-    /// sostituiti con gli asset Isle of Lore 2 quando si passa al prototipo reale.
+    /// Gli sprite sono centralizzati in TileVisualConfig (asset condiviso) invece che
+    /// assegnati per-istanza qui — un solo posto da aggiornare quando cambia un tipo o
+    /// se ne aggiunge uno nuovo, anche con più varianti di prefab in futuro.
     /// </summary>
     public sealed class HexTileView : MonoBehaviour
     {
@@ -19,21 +20,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         [SerializeField] private SpriteRenderer _icon;
         [SerializeField] private SpriteRenderer _alpha;
 
-        [Header("Sprite stato non-risolto (placeholder)")]
-        [SerializeField] private Sprite _sconosciutaSprite;
-        [SerializeField] private Sprite _conosciutaSprite;
+        [Header("Configurazione visiva condivisa")]
+        [SerializeField] private TileVisualConfig _visualConfig;
 
         [Header("Indicatore clickability (child GameObject, wired in prefab)")]
         [SerializeField] private GameObject _clickableIndicator;
-
-        [Header("Sprite ambiente scoperto (placeholder)")]
-        [SerializeField] private Sprite _stradaSprite;
-        [SerializeField] private Sprite _battagliaSprite;
-        [SerializeField] private Sprite _trappolaSprite;
-        [SerializeField] private Sprite _risorsaSprite;
-        [SerializeField] private Sprite _npcSprite;
-        [SerializeField] private Sprite _misterySprite;
-        [SerializeField] private Sprite _bossSprite;
 
         public HexCoord Coord { get; private set; }
 
@@ -45,19 +36,18 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// <summary>
         /// Aggiorna lo sprite del background in base allo stato di conoscenza.
         /// Sconosciuta → nuvole (nessuna informazione).
-        /// Conosciuta e Scoperta → arte del bioma (_conosciutaSprite, oggi un unico
-        /// placeholder; in futuro varierà per cluster/bioma). Il background NON
-        /// cambia mai al reveal: l'ambiente è il sistema di hint e resta lo stesso
-        /// prima e dopo aver giocato l'evento.
+        /// Conosciuta e Scoperta → arte del bioma. Il background NON cambia mai al
+        /// reveal: l'ambiente è il sistema di hint e resta lo stesso prima e dopo aver
+        /// giocato l'evento.
         /// </summary>
         public void ApplyState(TileState state)
         {
-            if (_background == null) return;
+            if (_background == null || _visualConfig == null) return;
 
             _background.sprite = state switch
             {
-                TileState.Sconosciuta => _sconosciutaSprite,
-                _                     => _conosciutaSprite,
+                TileState.Sconosciuta => _visualConfig.SconosciutaSprite,
+                _                     => _visualConfig.ConosciutaSprite,
             };
 
             _icon?.gameObject.SetActive(false);
@@ -74,27 +64,17 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Mostra il record dell'evento risolto: attiva l'icona (tipo specifico)
-        /// e l'overlay alpha (marca la tile come parte del set già rivelato).
-        /// Non è un hint — arriva solo dopo l'interazione del giocatore.
-        /// Background invariato: l'ambiente resta quello del bioma già mostrato
-        /// da Conosciuta.
+        /// Mostra il record dell'evento risolto: attiva l'icona (tipo specifico, presa
+        /// da TileVisualConfig) e l'overlay alpha (marca la tile come parte del set già
+        /// rivelato). Non è un hint — arriva solo dopo l'interazione del giocatore.
+        /// Background invariato: l'ambiente resta quello del bioma già mostrato da
+        /// Conosciuta.
         /// </summary>
         public void Reveal(TileType type)
         {
-            if (_icon != null)
+            if (_icon != null && _visualConfig != null)
             {
-                _icon.sprite = type switch
-                {
-                    TileType.Strada    => _stradaSprite,
-                    TileType.Battaglia => _battagliaSprite,
-                    TileType.Trappola  => _trappolaSprite,
-                    TileType.Risorsa   => _risorsaSprite,
-                    TileType.NPC       => _npcSprite,
-                    TileType.Mistery   => _misterySprite,
-                    TileType.Boss      => _bossSprite,
-                    _                  => null
-                };
+                _icon.sprite = _visualConfig.GetIcon(type);
             }
 
             _icon?.gameObject.SetActive(true);
