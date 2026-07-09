@@ -1,0 +1,14 @@
+{
+    "name": "hp55games.Tools.HexDebugFramework",
+    "rootNamespace": "hp55games.Tools.HexDebugFramework",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
