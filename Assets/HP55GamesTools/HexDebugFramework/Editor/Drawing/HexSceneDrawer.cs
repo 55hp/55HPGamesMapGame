@@ -10,6 +10,13 @@ namespace hp55games.Tools.HexDebugFramework.Editor
 
         public static void Draw(DebugCluster[] clusters, HexDrawSettings settings, int selectedIndex)
         {
+            int baseSize = GUI.skin.label.fontSize > 0 ? GUI.skin.label.fontSize : 11;
+            var labelStyle = new GUIStyle(GUI.skin.label)
+            {
+                normal    = { textColor = settings.LabelColor },
+                fontSize  = Mathf.RoundToInt(baseSize * settings.LabelFontScale)
+            };
+
             for (int i = 0; i < clusters.Length; i++)
             {
                 var cluster = clusters[i];
@@ -26,7 +33,7 @@ namespace hp55games.Tools.HexDebugFramework.Editor
                     Handles.DrawSolidDisc(cell.WorldPosition, Vector3.up, DiscRadius);
 
                     if (settings.ShowLabels)
-                        Handles.Label(cell.WorldPosition + Vector3.up * LabelVerticalOffset, cluster.Name);
+                        Handles.Label(cell.WorldPosition + Vector3.up * LabelVerticalOffset, cluster.Name, labelStyle);
                 }
 
                 if (settings.ShowConnections)

@@ -69,15 +69,24 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// rivelato). Non è un hint — arriva solo dopo l'interazione del giocatore.
         /// Background invariato: l'ambiente resta quello del bioma già mostrato da
         /// Conosciuta.
+        ///
+        /// Strada e Neutra non hanno contenuto evento: l'alpha viene attivato (tile
+        /// già percorsa) ma l'icona resta nascosta. Solo i tipi evento la mostrano.
         /// </summary>
         public void Reveal(TileType type)
         {
-            if (_icon != null && _visualConfig != null)
+            bool isEventType = type != TileType.Strada && type != TileType.Neutra;
+
+            if (isEventType && _icon != null && _visualConfig != null)
             {
                 _icon.sprite = _visualConfig.GetIcon(type);
+                _icon?.gameObject.SetActive(true);
+            }
+            else
+            {
+                _icon?.gameObject.SetActive(false);
             }
 
-            _icon?.gameObject.SetActive(true);
             _alpha?.gameObject.SetActive(true);
         }
     }

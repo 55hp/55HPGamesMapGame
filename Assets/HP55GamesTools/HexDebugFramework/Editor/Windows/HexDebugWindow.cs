@@ -117,7 +117,7 @@ namespace hp55games.Tools.HexDebugFramework.Editor
 
         private static void OnSceneGUI(SceneView sceneView)
         {
-            HexDebugOverlay.DrawSceneGUI();
+            HexDebugOverlay.DrawSceneGUI(sceneView);
 
             if (HexDebugSession.DrawSettings.Enabled && HexDebugSession.Clusters != null)
             {

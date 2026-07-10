@@ -40,5 +40,7 @@ namespace hp55games.Tools.HexDebugFramework.Editor
         public bool Enabled = true;
         public bool ShowLabels = true;
         public bool ShowConnections = true;
+        public Color LabelColor = Color.black;
+        public float LabelFontScale = 1f;
     }
 }
