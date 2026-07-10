@@ -1,0 +1,21 @@
+{
+    "name": "MapGame.Features.HexDebugAdapter.Editor",
+    "rootNamespace": "hp55games.MapGame.Features.HexDebugAdapter.Editor",
+    "references": [
+        "MapGame.Features.HexDebugAdapter",
+        "hp55games.Tools.HexDebugFramework.Editor",
+        "hp55games.Tools.HexDebugFramework",
+        "Game.Features"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -64,21 +64,22 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Mostra il record dell'evento risolto: attiva l'icona (tipo specifico, presa
-        /// da TileVisualConfig) e l'overlay alpha (marca la tile come parte del set già
-        /// rivelato). Non è un hint — arriva solo dopo l'interazione del giocatore.
-        /// Background invariato: l'ambiente resta quello del bioma già mostrato da
-        /// Conosciuta.
+        /// Mostra l'icona del tipo per qualsiasi tile visibile (Conosciuta o Scoperta).
+        /// showAlpha attiva l'overlay "già giocata" — true solo per le tile Scoperta.
+        /// L'icona viene mostrata per qualsiasi tipo che abbia una voce in TypeIcons;
+        /// se GetIcon ritorna null l'icon GameObject resta nascosto senza errori.
         /// </summary>
-        public void Reveal(TileType type)
+        public void Reveal(TileType type, bool showAlpha = false)
         {
             if (_icon != null && _visualConfig != null)
             {
-                _icon.sprite = _visualConfig.GetIcon(type);
+                var icon = _visualConfig.GetIcon(type);
+                _icon.sprite = icon;
+                _icon.gameObject.SetActive(icon != null);
             }
 
-            _icon?.gameObject.SetActive(true);
-            _alpha?.gameObject.SetActive(true);
+            if (showAlpha)
+                _alpha?.gameObject.SetActive(true);
         }
     }
 }

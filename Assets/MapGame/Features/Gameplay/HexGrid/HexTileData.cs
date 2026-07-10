@@ -28,6 +28,18 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// </summary>
         public bool IsObjective;
 
+        /// <summary>
+        /// Indice del PathCluster a cui appartiene questa tile (assegnato da AestheticClusterMapGenerator).
+        /// -1 significa che la tile non appartiene a nessun PathCluster.
+        /// </summary>
+        public int PathClusterId = -1;
+
+        /// <summary>
+        /// Indice del piazzamento EventCluster o tessera singola a cui appartiene questa tile.
+        /// -1 significa che la tile non appartiene a nessun EventPlacement.
+        /// </summary>
+        public int EventPlacementId = -1;
+
         public HexTileData(HexCoord coord)
         {
             Coord = coord;
@@ -35,6 +47,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             Type = TileType.Strada;
             HpRestore = 0;
             IsObjective = false;
+            PathClusterId = -1;
+            EventPlacementId = -1;
         }
     }
 }
