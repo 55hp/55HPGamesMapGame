@@ -353,7 +353,23 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
                 if (extendOwner.HasValue)
                 {
-                    ResetTile(tiles[coord], TileType.Strada, hpRestore: 0, moneteGained: 0);
+                    // Stessa logica di separazione di GeneratePathClusterMesh (neutraOverride):
+                    // se questa tessera confina su qualsiasi lato con un PathCluster diverso
+                    // dall'extendOwner, va assegnata come Neutra per non fare da ponte tra i
+                    // due cluster (CascadeStrada li fonderebbe in un'unica cascata al click).
+                    bool touchesOtherCluster = false;
+                    for (int dir = 0; dir < 6; dir++)
+                    {
+                        var nb = coord.GetNeighbor(dir);
+                        if (tileOwner.TryGetValue(nb, out int nbOwner) && nbOwner != extendOwner.Value)
+                        {
+                            touchesOtherCluster = true;
+                            break;
+                        }
+                    }
+
+                    var patchType = touchesOtherCluster ? TileType.Neutra : TileType.Strada;
+                    ResetTile(tiles[coord], patchType, hpRestore: 0, moneteGained: 0);
                     globalClaimed.Add(coord);
                     tileOwner[coord] = extendOwner.Value;
                     tiles[coord].PathClusterId = extendOwner.Value;
