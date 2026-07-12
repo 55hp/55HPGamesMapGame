@@ -655,7 +655,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _config: {fileID: 11400000, guid: 56f56c815eeba6a41a930e2aea078517, type: 2}
-  _maxHp: 20
+  _maxHp: 5
 --- !u!156049354 &1567416455
 Grid:
   m_ObjectHideFlags: 0

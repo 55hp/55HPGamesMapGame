@@ -29,7 +29,16 @@ namespace hp55games.Mobile.Core.Context
         int Lives { get; set; }
 
         /// <summary>
-        /// Resets all run-related transient data (score, lives, level, seed).
+        /// Current food/hunger stock for this run (optional, can be 0 or -1 if unused).
+        /// Aggiunto 2026-07-10 per il costo movimento di MapGame (1 cibo per click, HP se
+        /// il cibo è a 0). Stesso pattern di Lives: -1 = "sistema non in uso" di default.
+        /// Nessun MaxFood qui, stessa scelta già fatta per Lives/MaxHp: il massimo resta
+        /// locale a chi possiede la regola di gioco (in MapGame, HexGridController._maxFood).
+        /// </summary>
+        int Food { get; set; }
+
+        /// <summary>
+        /// Resets all run-related transient data (score, lives, food, level, seed).
         /// Does NOT touch ProfileId or IsDebug.
         /// </summary>
         void ResetRun();

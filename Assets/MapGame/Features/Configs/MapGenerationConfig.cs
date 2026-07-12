@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace hp55games.MapGame.Features.Configs
 {
@@ -13,16 +14,19 @@ namespace hp55games.MapGame.Features.Configs
     /// <summary>
     /// Revisione 2026-07-10: Battaglia -> Enemy (rename, TileType refactor). I campi
     /// Trappola* sono stati rimossi: Trappola non e' piu' un TileType a se', confluisce
-    /// in Mistery come uno dei possibili esiti — tabella esiti non ancora definita.
+    /// in Chance come uno dei possibili esiti — tabella esiti non ancora definita.
     /// Valori originali per riferimento futuro se servono per quella tabella:
     /// TrappolaHpLossMin = 2, TrappolaHpLossMax = 6.
+    /// Revisione 2026-07-10 bis: Risorsa (ora Goods) non cura piu' HP direttamente,
+    /// rifornisce Cibo — RisorsaHpRestoreMin/Max rinominati in GoodsFoodRestoreMin/Max,
+    /// stessi valori numerici di prima (1..6, si clampano a MaxFood a runtime).
     /// </summary>
     [Serializable]
     public struct PlaceholderBalanceSettings
     {
-        [Header("Risorsa — ripristino HP")]
-        public int RisorsaHpRestoreMin;
-        public int RisorsaHpRestoreMax;
+        [Header("Goods — rifornimento Cibo (era Risorsa, cura HP diretta)")]
+        [FormerlySerializedAs("RisorsaHpRestoreMin")] public int GoodsFoodRestoreMin;
+        [FormerlySerializedAs("RisorsaHpRestoreMax")] public int GoodsFoodRestoreMax;
 
         [Header("Enemy — perdita HP / Monete guadagnate")]
         public int EnemyHpLossMin;
@@ -103,7 +107,7 @@ namespace hp55games.MapGame.Features.Configs
         [Header("Bilanciamento placeholder (NON valori finali)")]
         public PlaceholderBalanceSettings PlaceholderBalance = new PlaceholderBalanceSettings
         {
-            RisorsaHpRestoreMin  = 1, RisorsaHpRestoreMax  = 6,
+            GoodsFoodRestoreMin  = 1, GoodsFoodRestoreMax  = 6,
             EnemyHpLossMin       = 1, EnemyHpLossMax       = 4,
             EnemyMoneteMin       = 1, EnemyMoneteMax       = 5,
         };

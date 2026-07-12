@@ -540,6 +540,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _scoreLabel: {fileID: 4296746762574009008}
   _bestScoreLabel: {fileID: 4034104123010371655}
+  _statusLabel: {fileID: 8726725417000410405}
   _retryButton: {fileID: 2010616346656092546}
   _menuButton: {fileID: 7278600809024751516}
 --- !u!1 &5482922415324729887

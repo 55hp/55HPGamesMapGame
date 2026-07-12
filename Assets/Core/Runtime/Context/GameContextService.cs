@@ -14,6 +14,7 @@ namespace hp55games.Mobile.Core.Context
         public int Score { get; set; }
         public int BestScore { get; set; }
         public int Lives { get; set; } = -1; // -1 = "no lives system" by default
+        public int Food  { get; set; } = -1; // -1 = "no food system" by default
 
         public void ResetRun()
         {
@@ -21,6 +22,7 @@ namespace hp55games.Mobile.Core.Context
             CurrentRunSeed = 0;
             Score          = 0;
             Lives          = -1;
+            Food           = -1;
         }
     }
 }

@@ -95,16 +95,21 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private void ApplyPlaceholderBalance(HexTileData tile, TileType type, Random rng)
         {
             tile.Type = type;
+            // Goods non cura più HP direttamente dal 2026-07-10 (introduzione del costo
+            // movimento): rifornisce la scorta di Cibo, che il costo movimento consuma,
+            // invece di curare sul colpo. Vedi FoodRestore sotto.
             tile.HpRestore = type switch
             {
-                TileType.Goods => rng.Next(_balance.RisorsaHpRestoreMin, _balance.RisorsaHpRestoreMax + 1),
-                TileType.Enemy   => -rng.Next(_balance.EnemyHpLossMin, _balance.EnemyHpLossMax + 1),
-                // Mistery assorbe il vecchio Trappola come uno dei possibili esiti (GDD
+                TileType.Enemy => -rng.Next(_balance.EnemyHpLossMin, _balance.EnemyHpLossMax + 1),
+                // Chance assorbe il vecchio Trappola come uno dei possibili esiti (GDD
                 // 2026-07-10), ma la tabella esiti non e' ancora definita — resta a impatto
                 // zero finche' non viene disegnata esplicitamente (bilanciamento, non
                 // decidibile qui). Shop e Miniboss: bilanciamento non ancora definito.
                 _ => 0,
             };
+            tile.FoodRestore = type == TileType.Goods
+                ? rng.Next(_balance.GoodsFoodRestoreMin, _balance.GoodsFoodRestoreMax + 1)
+                : 0;
             tile.MoneteGained = type == TileType.Enemy
                 ? rng.Next(_balance.EnemyMoneteMin, _balance.EnemyMoneteMax + 1)
                 : 0;

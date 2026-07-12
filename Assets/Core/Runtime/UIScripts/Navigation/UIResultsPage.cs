@@ -12,6 +12,7 @@ namespace hp55games.Mobile.Game.UI
     /// <summary>
     /// Generic Results page:
     /// - Shows final score from GameContext.
+    /// - Shows a win/lose status (2026-07-10, PLACEHOLDER non localizzato — vedi _statusLabel).
     /// - Retry -> go back to Gameplay via SceneFlowService.
     /// - Main Menu -> go back to Menu via SceneFlowService.
     /// </summary>
@@ -20,6 +21,10 @@ namespace hp55games.Mobile.Game.UI
         [Header("UI")]
         [SerializeField] private UILocalizedText _scoreLabel;
         [SerializeField] private UILocalizedText _bestScoreLabel;
+
+        [Tooltip("PLACEHOLDER, non localizzato: testo diretto invece di UILocalizedText perché non esistono ancora due chiavi di localizzazione (vittoria/sconfitta) da scambiare. -- Franci TASK -- sostituire con due UILocalizedText (o due chiavi) quando la localizzazione del risultato viene definita davvero.")]
+        [SerializeField] private TextMeshProUGUI _statusLabel;
+
         [SerializeField] private Button _retryButton;
         [SerializeField] private Button _menuButton;
 
@@ -40,6 +45,8 @@ namespace hp55games.Mobile.Game.UI
                 _scoreLabel.SetSuffix(" :" + score.ToString());
                 _scoreLabel.Refresh();
             }
+
+            UpdateStatusLabel();
 
             if (_retryButton != null)
                 _retryButton.onClick.AddListener(OnRetryClicked);
@@ -64,6 +71,23 @@ namespace hp55games.Mobile.Game.UI
                 _bestScoreLabel.SetSuffix(" :" + bestScore);
                 _bestScoreLabel.Refresh();
             }
+        }
+
+        /// <summary>
+        /// Nessuna condizione di vittoria è ancora wired da nessuna parte del gioco
+        /// (2026-07-10): l'unico modo di arrivare qui oggi è PlayerDeathEvent, quindi
+        /// Lives &lt;= 0 è già un'inferenza corretta di "sconfitta" senza bisogno di un
+        /// flag esplicito passato a questa pagina. Quando verrà wired anche una vittoria
+        /// (es. raggiungere la tile Boss), quel percorso dovrà arrivare qui con Lives
+        /// ancora positivo perché questa inferenza resti valida — se invece preferisci un
+        /// flag esplicito invece di dedurlo da Lives, è una modifica piccola quando serve.
+        /// </summary>
+        private void UpdateStatusLabel()
+        {
+            if (_statusLabel == null) return;
+
+            bool lost = _context != null && _context.Lives <= 0;
+            _statusLabel.text = lost ? "Hai perso" : "Hai vinto";
         }
 
         private void OnDestroy()

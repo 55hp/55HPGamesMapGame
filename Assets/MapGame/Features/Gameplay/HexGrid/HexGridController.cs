@@ -14,11 +14,17 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// Nessuna logica di rendering: notifica gli ascoltatori con eventi C# puri.
     ///
     /// HP correnti: _context.Lives (clamped 0.._maxHp).
+    /// Cibo corrente: _context.Food (clamped 0.._maxFood).
     /// Monete correnti: _context.Score (accumulate per run).
-    /// _maxHp è locale perché IGameContextService non ha il concetto di massimo.
+    /// _maxHp e _maxFood sono locali perché IGameContextService non ha il concetto di massimo.
+    ///
+    /// Costo movimento (2026-07-10, Dragonsweeper-style): ogni click costa 1 Cibo se
+    /// disponibile, altrimenti NoFoodHpPenalty (2) HP diretti. Si applica una sola volta
+    /// per click, PRIMA dell'effetto della tessera — la cascata Strada che segue un click
+    /// resta gratuita, non paga il costo per ogni tessera che rivela.
     ///
     /// Dimensioni e seed provengono da MapGenerationConfig (ScriptableObject).
-    /// Inizializzazione HP/Monete avviene in OnGameStarted (via GameStartedEvent),
+    /// Inizializzazione HP/Cibo/Monete avviene in OnGameStarted (via GameStartedEvent),
     /// NON in BuildGrid(), per evitare la race con GameplayState.ResetRun().
     /// Fallback autonomo in Start() per sessioni standalone senza FSM attivo.
     /// </summary>
@@ -28,7 +34,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         [SerializeField] private MapGenerationConfig _config;
 
         [Header("Sopravvivenza")]
-        [SerializeField] private int _maxHp = 20;
+        [SerializeField] private int _maxHp = 5;
+        [SerializeField] private int _maxFood = 3;
+
+        [Tooltip("HP persi in un click quando il Cibo è già a 0.")]
+        [SerializeField] private int _noFoodHpPenalty = 2;
 
         private IMapGenerationService _mapGenerationService;
         private IGameContextService  _context;
@@ -68,7 +78,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             ServiceRegistry.TryResolve<IFeedbackService>(out _feedbackService);
 
             // Subscribe for FSM-driven sessions: GameplayState publishes GameStartedEvent
-            // after ResetRun() completes, giving us the correct moment to set HP/Monete.
+            // after ResetRun() completes, giving us the correct moment to set HP/Cibo/Monete.
             _gameStartedSub = _bus.Subscribe<GameStartedEvent>(OnGameStarted);
 
             // Standalone / prototype fallback: if no FSM is running, Lives is still at its
@@ -85,15 +95,17 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private void OnGameStarted(GameStartedEvent _) => InitializeSession();
 
         /// <summary>
-        /// Imposta HP e Monete a inizio sessione e pubblica i relativi eventi.
+        /// Imposta HP, Cibo e Monete a inizio sessione e pubblica i relativi eventi.
         /// Chiamato sia da GameStartedEvent (FSM path) sia da Start() come fallback
         /// standalone. Sicuro da invocare più volte: l'ultimo a farlo vince.
         /// </summary>
         private void InitializeSession()
         {
             _context.Lives = _maxHp;
+            _context.Food  = _maxFood;
             _context.Score = 0;
             _bus?.Publish(new HpChangedEvent());
+            _bus?.Publish(new FoodChangedEvent());
             _bus?.Publish(new ScoreChangedEvent());
         }
 
@@ -194,10 +206,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Tenta di rivelare una tile. Ritorna false se non in griglia o non cliccabile (IsClickable).
-        /// Se la tile è Strada, esegue un flood-fill BFS su tutte le Strada non ancora Scoperta connesse.
-        /// HP e Monete aggiornati per ogni tile rivelata; HpChangedEvent e ScoreChangedEvent
-        /// pubblicati una sola volta al termine dell'intera azione (tap + cascade).
-        /// PlayerDeathEvent emesso una sola volta se HP raggiunge 0.
+        /// Applica il costo movimento una sola volta (ApplyMovementCost), poi l'effetto
+        /// della tessera stessa (HP/Cibo/Monete). Se la tile è Strada, esegue un
+        /// flood-fill BFS su tutte le Strada non ancora Scoperta connesse — la cascata
+        /// non paga il costo movimento, solo il click che l'ha innescata.
+        /// HpChangedEvent/FoodChangedEvent/ScoreChangedEvent pubblicati una sola volta al
+        /// termine dell'intera azione (tap + cascade). PlayerDeathEvent emesso una sola
+        /// volta se HP raggiunge 0, indipendentemente dal fatto che sia stato il costo
+        /// movimento o l'effetto della tessera a portarlo a 0.
         /// </summary>
         public bool TryRevealTile(HexCoord target)
         {
@@ -206,7 +222,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             tile.State   = TileState.Scoperta;
             _playerCoord = target;
+
+            ApplyMovementCost();
             AccumulateHp(tile);
+            AccumulateFood(tile);
             bool moneteEarned = AccumulateMonete(tile);
 
             if (tile.Type == TileType.Path)
@@ -217,8 +236,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             var neighbors = GetNeighbors(target);
             TileRevealed?.Invoke(tile, neighbors);
 
-            // Publish once after all HP and Monete changes from this player action.
+            // Publish once after all HP, Cibo and Monete changes from this player action.
             _bus?.Publish(new HpChangedEvent());
+            _bus?.Publish(new FoodChangedEvent());
             _feedbackService?.Play("hp_changed");
 
             if (moneteEarned)
@@ -234,12 +254,33 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
+        /// Costo movimento: 1 Cibo se disponibile, altrimenti _noFoodHpPenalty HP diretti.
+        /// Si applica una sola volta per click, prima dell'effetto della tessera.
+        /// </summary>
+        private void ApplyMovementCost()
+        {
+            if (_context.Food > 0)
+                _context.Food -= 1;
+            else
+                _context.Lives = Mathf.Clamp(_context.Lives - _noFoodHpPenalty, 0, _maxHp);
+        }
+
+        /// <summary>
         /// Applica l'HpRestore di una tile appena rivelata a _context.Lives (clamped).
         /// Non pubblica eventi — il publish avviene una sola volta per azione in TryRevealTile.
         /// </summary>
         private void AccumulateHp(HexTileData tile)
         {
             _context.Lives = Mathf.Clamp(_context.Lives + tile.HpRestore, 0, _maxHp);
+        }
+
+        /// <summary>
+        /// Applica il FoodRestore di una tile appena rivelata a _context.Food (clamped).
+        /// Non pubblica eventi — il publish avviene una sola volta per azione in TryRevealTile.
+        /// </summary>
+        private void AccumulateFood(HexTileData tile)
+        {
+            _context.Food = Mathf.Clamp(_context.Food + tile.FoodRestore, 0, _maxFood);
         }
 
         /// <summary>
@@ -255,7 +296,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// BFS flood-fill: rivela automaticamente tutte le tile Strada non ancora Scoperta
-        /// raggiungibili dalla coordinata di partenza, senza emettere eventi di reveal.
+        /// raggiungibili dalla coordinata di partenza, senza emettere eventi di reveal e
+        /// senza applicare il costo movimento (gratis, fa parte della stessa azione).
         /// Accumula HP per ogni tile rivelata; il publish è responsabilità di TryRevealTile.
         /// </summary>
         private void CascadeStrada(HexCoord origin)
