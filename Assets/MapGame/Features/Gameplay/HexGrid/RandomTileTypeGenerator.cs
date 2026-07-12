@@ -4,7 +4,14 @@ using System.Collections.Generic;
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
-    /// Generatore di mappa per la fase prototipo.
+    /// Generatore di mappa per la fase prototipo, NON piu' usato dalla pipeline live
+    /// (MapGenerationService istanzia AestheticClusterMapGenerator). Aggiornato 2026-07-10
+    /// solo per restare compilabile dopo il refactor TileType — Trappola rimosso (era
+    /// TileType.Trappola, ora confluito in Mistery), Battaglia rinominato in Enemy.
+    /// Nessuna logica cambiata oltre ai nomi. -- Franci TASK -- se questo file e'
+    /// definitivamente superato, valuta di rimuoverlo, non l'ho cancellato di mia
+    /// iniziativa.
+    ///
     /// Assegna tipi casuali uniformi da un pool fisso (Boss escluso).
     /// Il tile di partenza è sempre Strada/Scoperta al centro della griglia.
     /// Il tile più lontano dalla partenza diventa Boss e obiettivo di missione.
@@ -15,12 +22,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     {
         private static readonly TileType[] RandomPool =
         {
-            TileType.Strada,
-            TileType.Battaglia,
-            TileType.Trappola,
-            TileType.Risorsa,
-            TileType.NPC,
-            TileType.Mistery,
+            TileType.Path,
+            TileType.Enemy,
+            TileType.Goods,
+            TileType.Npc,
+            TileType.Chance,
         };
 
         public MapGenerationResult Generate(int width, int height, int seed)
@@ -42,17 +48,16 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     // PLACEHOLDER balance ranges for the readability prototype — not final design.
                     tile.HpRestore = type switch
                     {
-                        TileType.Risorsa   =>  rng.Next(1, 7),   // +1..+6  heal
-                        TileType.Battaglia => -rng.Next(1, 5),   // -1..-4  combat damage
-                        TileType.Trappola  => -rng.Next(2, 7),   // -2..-6  trap damage (harsher: no loot)
-                        _                  =>  0,                 // Strada, NPC, Mistery, Boss: no effect yet
+                        TileType.Goods =>  rng.Next(1, 7),   // +1..+6  heal
+                        TileType.Enemy   => -rng.Next(1, 5),   // -1..-4  combat damage
+                        _                =>  0,                 // Strada, NPC, Mistery, Boss: no effect yet
                     };
 
                     // PLACEHOLDER Monete reward — balance is the designer's responsibility.
                     tile.MoneteGained = type switch
                     {
-                        TileType.Battaglia => rng.Next(1, 6),    // +1..+5 monete per kill
-                        _                  => 0,
+                        TileType.Enemy => rng.Next(1, 6),    // +1..+5 monete per kill
+                        _              => 0,
                     };
 
                     tiles[coord] = tile;
@@ -62,7 +67,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             // Start tile: center of the grid, always Strada and already revealed.
             var startCoord = HexCoord.FromOffsetOddQ(width / 2, height / 2);
             var startTile = tiles[startCoord];
-            startTile.Type = TileType.Strada;
+            startTile.Type = TileType.Path;
             startTile.State = TileState.Scoperta;
             startTile.HpRestore = 0;
 

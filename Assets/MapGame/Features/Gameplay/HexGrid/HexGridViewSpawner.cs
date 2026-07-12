@@ -70,7 +70,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 view.ApplyState(tile.State);
                 view.SetClickable(_grid.IsClickable(coord));
                 if (tile.State != TileState.Sconosciuta)
-                    view.Reveal(tile.Type, showAlpha: tile.State == TileState.Scoperta);
+                    view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: tile.State == TileState.Scoperta);
 
                 _views[coord] = view;
             }
@@ -85,9 +85,22 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     view.ApplyState(kvp.Value.State);
                     view.SetClickable(_grid.IsClickable(kvp.Key));
                     if (kvp.Value.State != TileState.Sconosciuta)
-                        view.Reveal(kvp.Value.Type, showAlpha: kvp.Value.State == TileState.Scoperta);
+                        view.Reveal(kvp.Value.Type, showIcon: ShouldShowIcon(kvp.Value), showAlpha: kvp.Value.State == TileState.Scoperta);
                 }
             }
+        }
+
+        /// <summary>
+        /// Scoperta: icona sempre visibile (contenuto gia' risolto).
+        /// Conosciuta: icona visibile solo quando il numero di vicini Scoperta raggiunge
+        /// il DifficultyLevel della tile — vedi HexGridController.CountScopertaNeighbors.
+        /// Strada e Void hanno DifficultyLevel 0, quindi la soglia e' sempre soddisfatta
+        /// (0 vicini Scoperta >= 0), coerente con l'assenza di gating per i tipi strutturali.
+        /// </summary>
+        private bool ShouldShowIcon(HexTileData tile)
+        {
+            if (tile.State == TileState.Scoperta) return true;
+            return _grid.CountScopertaNeighbors(tile.Coord) >= tile.DifficultyLevel;
         }
     }
 }

@@ -15,18 +15,24 @@ namespace hp55games.MapGame.Editor
         private const int CellGap =  1;
 
         // ── Color palette: one distinct color per TileType ───────────────────
-        // Colors sourced from the Isle of Lore 2 official asset pack palette.
+        // Revisione 2026-07-10 per il TileType refactor. Colori esistenti riusati dove il
+        // tipo e' equivalente al precedente (Enemy = ex Battaglia); Void, Shop, Miniboss
+        // sono nuovi, colori placeholder scelti per restare leggibili accanto agli altri,
+        // non presi dalla palette ufficiale Isle of Lore 2 come i precedenti — -- Franci
+        // TASK -- se vuoi allinearli alla palette asset pack, non l'ho fatto qui.
         //   Start marker: white inner square. End marker: black inner square.
 
         private static readonly Dictionary<TileType, Color> TileColors = new()
         {
-            { TileType.Strada,    new Color(0.863f, 0.725f, 0.373f) },  // #dcb95f
-            { TileType.Battaglia, new Color(0.612f, 0.278f, 0.255f) },  // #9c4741
-            { TileType.Trappola,  new Color(0.729f, 0.263f, 0.227f) },  // #ba433a
-            { TileType.Risorsa,   new Color(0.537f, 0.600f, 0.329f) },  // #889954
-            { TileType.NPC,       new Color(0.314f, 0.694f, 0.847f) },  // #50b1d8
-            { TileType.Mistery,   new Color(0.369f, 0.251f, 0.639f) },  // #5e40a3
-            { TileType.Boss,      new Color(0.086f, 0.086f, 0.086f) },  // #161616
+            { TileType.Void,     new Color(0.500f, 0.500f, 0.500f) },  // #808080 — placeholder, vero no-op
+            { TileType.Path,   new Color(0.863f, 0.725f, 0.373f) },  // #dcb95f
+            { TileType.Enemy,    new Color(0.612f, 0.278f, 0.255f) },  // #9c4741 — ex Battaglia
+            { TileType.Goods,  new Color(0.537f, 0.600f, 0.329f) },  // #889954
+            { TileType.Npc,      new Color(0.314f, 0.694f, 0.847f) },  // #50b1d8
+            { TileType.Shop,     new Color(0.847f, 0.694f, 0.314f) },  // #d8b150 — placeholder, ex sottotipo Mercante di NPC
+            { TileType.Chance,  new Color(0.369f, 0.251f, 0.639f) },  // #5e40a3
+            { TileType.Miniboss, new Color(0.400f, 0.176f, 0.153f) },  // #662d27 — placeholder, piu' scuro di Enemy
+            { TileType.Boss,     new Color(0.086f, 0.086f, 0.086f) },  // #161616
         };
 
         // Alpha multiplier per TileState (flagged as design decision):

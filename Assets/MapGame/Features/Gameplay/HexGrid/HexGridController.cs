@@ -147,6 +147,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// <summary>
         /// A tile is clickable if it exists, has not yet been resolved
         /// (State != Scoperta), and has at least one Scoperta neighbor.
+        /// Independent from DifficultyLevel / icon visibility (see CountScopertaNeighbors) —
+        /// clickability always uses the "at least 1" rule, unchanged by the 2026-07-10 revision.
         /// </summary>
         public bool IsClickable(HexCoord coord)
         {
@@ -160,6 +162,23 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Conta quanti vicini di coord sono attualmente Scoperta. Usato per il gate di
+        /// rivelazione icona guidato da DifficultyLevel (vedi HexGridViewSpawner): l'icona
+        /// di una tile Conosciuta diventa visibile solo quando questo conteggio raggiunge
+        /// il DifficultyLevel della tile. Indipendente da IsClickable, che resta a soglia 1.
+        /// </summary>
+        public int CountScopertaNeighbors(HexCoord coord)
+        {
+            int count = 0;
+            foreach (var neighbor in GetNeighbors(coord))
+            {
+                if (neighbor.State == TileState.Scoperta)
+                    count++;
+            }
+            return count;
         }
 
         public IReadOnlyList<HexTileData> GetNeighbors(HexCoord coord)
@@ -190,7 +209,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             AccumulateHp(tile);
             bool moneteEarned = AccumulateMonete(tile);
 
-            if (tile.Type == TileType.Strada)
+            if (tile.Type == TileType.Path)
                 CascadeStrada(target);
 
             RecomputeReachability();
@@ -249,7 +268,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 var coord = queue.Dequeue();
                 foreach (var neighbor in GetNeighbors(coord))
                 {
-                    if (neighbor.Type == TileType.Strada && neighbor.State != TileState.Scoperta)
+                    if (neighbor.Type == TileType.Path && neighbor.State != TileState.Scoperta)
                     {
                         neighbor.State = TileState.Scoperta;
                         AccumulateHp(neighbor);

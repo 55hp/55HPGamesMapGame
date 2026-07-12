@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1114901387547131994}
   - component: {fileID: 8255046519149310915}
   m_Layer: 0
-  m_Name: TileView
+  m_Name: HexTileViewPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -51,7 +51,7 @@ MonoBehaviour:
   _background: {fileID: 6819849053835450949}
   _icon: {fileID: 367911427137787612}
   _alpha: {fileID: 8343452065531178688}
-  _visualConfig: {fileID: 11400000, guid: 4a087bb18153f0e45b4c88403ddbba53, type: 2}
+  _visualConfig: {fileID: 11400000, guid: b285dd8d1fe33df4ebdc0f7bb1759208, type: 2}
   _clickableIndicator: {fileID: 6635290070272975877}
 --- !u!1 &4246884242235401504
 GameObject:

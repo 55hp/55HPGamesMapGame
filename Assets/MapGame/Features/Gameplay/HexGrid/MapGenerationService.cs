@@ -27,7 +27,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 config.ClusterMinDistanceFromStartEnd,
                 config.PlaceholderBalance,
                 config.StradaNetwork,
-                config.EventClusters);
+                config.EventClusters,
+                config.LevelConfig);
 
             return generator.Generate(config.Width, config.Height, seed);
         }

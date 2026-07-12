@@ -9,9 +9,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// SetClickable attiva/disattiva l'indicatore di clickability.
     /// Nessuna logica di gameplay qui: solo rendering.
     ///
-    /// Gli sprite sono centralizzati in TileVisualConfig (asset condiviso) invece che
-    /// assegnati per-istanza qui — un solo posto da aggiornare quando cambia un tipo o
-    /// se ne aggiunge uno nuovo, anche con più varianti di prefab in futuro.
+    /// Gli sprite sono centralizzati in HexTileConfigCatalog (asset condiviso, sostituisce
+    /// TileVisualConfig dal 2026-07-10) invece che assegnati per-istanza qui — un solo
+    /// posto da aggiornare quando cambia un tipo o se ne aggiunge uno nuovo, anche con
+    /// più varianti di prefab in futuro.
     /// </summary>
     public sealed class HexTileView : MonoBehaviour
     {
@@ -21,7 +22,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         [SerializeField] private SpriteRenderer _alpha;
 
         [Header("Configurazione visiva condivisa")]
-        [SerializeField] private TileVisualConfig _visualConfig;
+        [SerializeField] private HexTileConfigCatalog _visualConfig;
 
         [Header("Indicatore clickability (child GameObject, wired in prefab)")]
         [SerializeField] private GameObject _clickableIndicator;
@@ -64,18 +65,21 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Mostra l'icona del tipo per qualsiasi tile visibile (Conosciuta o Scoperta).
-        /// showAlpha attiva l'overlay "già giocata" — true solo per le tile Scoperta.
-        /// L'icona viene mostrata per qualsiasi tipo che abbia una voce in TypeIcons;
-        /// se GetIcon ritorna null l'icon GameObject resta nascosto senza errori.
+        /// Mostra l'icona del tipo per una tile visibile (Conosciuta o Scoperta).
+        /// showIcon è la soglia DifficultyLevel gia' valutata dal chiamante (vero sempre
+        /// per Scoperta, per Conosciuta solo quando il numero di vicini Scoperta raggiunge
+        /// il DifficultyLevel della tile — vedi HexGridController.CountScopertaNeighbors
+        /// e HexGridViewSpawner). showAlpha attiva l'overlay "già giocata" — true solo per
+        /// le tile Scoperta. Anche con showIcon true, l'icona resta nascosta se GetIcon
+        /// ritorna null (nessuna HexTileConfig assegnata per quel tipo ancora).
         /// </summary>
-        public void Reveal(TileType type, bool showAlpha = false)
+        public void Reveal(TileType type, bool showIcon, bool showAlpha = false)
         {
             if (_icon != null && _visualConfig != null)
             {
                 var icon = _visualConfig.GetIcon(type);
                 _icon.sprite = icon;
-                _icon.gameObject.SetActive(icon != null);
+                _icon.gameObject.SetActive(showIcon && icon != null);
             }
 
             if (showAlpha)

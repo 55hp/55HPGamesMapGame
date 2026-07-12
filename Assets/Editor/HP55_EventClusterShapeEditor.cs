@@ -3,6 +3,11 @@
 // Displays a 5x5 grid with odd-q hex stagger: odd columns are shifted down by half
 // a cell, matching the flat-top odd-q layout used by the game's hex map. Square
 // buttons are used; the visual offset ensures painted clusters are spatially correct.
+//
+// Revised 2026-07-10: painting now requires a LevelConfig reference. Paintable options
+// come from LevelConfig.EventClusterTilesList (TileType + DifficultyLevel pairs) instead
+// of the full TileType enum — each click cycles through eligible entries for that level,
+// authoring stays per-cell manual, the LevelConfig only filters what's available.
 using UnityEngine;
 using UnityEditor;
 using System;
@@ -24,12 +29,17 @@ namespace hp55games.Editor.Tools.MapGame
         private static readonly Color OffColor = Color.gray;
         private static readonly Color OriginTint = new Color(1f, 1f, 0.55f, 1f); // yellow tint for origin
 
-        private static readonly TileType[] ExcludedTypes = { TileType.Strada, TileType.Neutra, TileType.Boss };
+        // Tipi esclusi anche se comparissero per errore in EventClusterTilesList: Strada e
+        // Void sono strutturali (nessun DifficultyLevel), Boss e' piazzato deterministicamente
+        // su End, mai autorato qui.
+        private static readonly TileType[] ExcludedTypes = { TileType.Path, TileType.Void, TileType.Boss };
 
-        private TileType[] _paintableTypes;
-        private Color[] _typeColors;
+        [SerializeField] private LevelConfig _levelConfig;
 
-        private int[,] _cellState; // [row, col], -1 = empty
+        private LevelTileEntry[] _paintableEntries;
+        private Color[] _entryColors;
+
+        private int[,] _cellState; // [row, col], -1 = empty, altrimenti indice in _paintableEntries
         private string _shapeName = "NewEventCluster";
         private Vector2 _scroll;
 
@@ -41,19 +51,26 @@ namespace hp55games.Editor.Tools.MapGame
 
         private void OnEnable()
         {
-            _paintableTypes = ((TileType[])Enum.GetValues(typeof(TileType)))
-                .Where(t => !ExcludedTypes.Contains(t))
-                .ToArray();
-
-            _typeColors = new Color[_paintableTypes.Length];
-            for (int i = 0; i < _paintableTypes.Length; i++)
-            {
-                float hue = (i * 137.508f % 360f) / 360f;
-                _typeColors[i] = Color.HSVToRGB(hue, 0.65f, 0.95f);
-            }
+            RebuildPaintableEntries();
 
             if (_cellState == null)
                 ResetGrid();
+        }
+
+        private void RebuildPaintableEntries()
+        {
+            var source = _levelConfig != null ? _levelConfig.EventClusterTilesList : null;
+
+            _paintableEntries = source == null
+                ? Array.Empty<LevelTileEntry>()
+                : source.Where(e => !ExcludedTypes.Contains(e.Type)).ToArray();
+
+            _entryColors = new Color[_paintableEntries.Length];
+            for (int i = 0; i < _paintableEntries.Length; i++)
+            {
+                float hue = (i * 137.508f % 360f) / 360f;
+                _entryColors[i] = Color.HSVToRGB(hue, 0.65f, 0.95f);
+            }
         }
 
         private void ResetGrid()
@@ -69,6 +86,29 @@ namespace hp55games.Editor.Tools.MapGame
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
 
             GUILayout.Label("Event Cluster Shape Editor", EditorStyles.boldLabel);
+
+            EditorGUI.BeginChangeCheck();
+            _levelConfig = (LevelConfig)EditorGUILayout.ObjectField("Level Config", _levelConfig, typeof(LevelConfig), false);
+            if (EditorGUI.EndChangeCheck())
+            {
+                RebuildPaintableEntries();
+                ResetGrid();
+            }
+
+            if (_levelConfig == null)
+            {
+                EditorGUILayout.HelpBox("Assegna un LevelConfig per popolare le tipologie disponibili (EventClusterTilesList).", MessageType.Warning);
+                EditorGUILayout.EndScrollView();
+                return;
+            }
+
+            if (_paintableEntries.Length == 0)
+            {
+                EditorGUILayout.HelpBox("EventClusterTilesList e' vuota su questo LevelConfig. Aggiungi almeno una entry Type/DifficultyLevel per poter dipingere.", MessageType.Warning);
+                EditorGUILayout.EndScrollView();
+                return;
+            }
+
             _shapeName = EditorGUILayout.TextField("Nome forma", _shapeName);
 
             EditorGUILayout.Space();
@@ -117,14 +157,14 @@ namespace hp55games.Editor.Tools.MapGame
                     if (state == -1)
                         GUI.backgroundColor = isOrigin ? OriginTint : OffColor;
                     else
-                        GUI.backgroundColor = _typeColors[state];
+                        GUI.backgroundColor = _entryColors[state];
 
                     string label = state == -1
                         ? (isOrigin ? "○" : "")
-                        : _paintableTypes[state].ToString().Substring(0, 1);
+                        : _paintableEntries[state].Type.ToString().Substring(0, 1) + _paintableEntries[state].DifficultyLevel;
 
                     if (GUI.Button(cell, label))
-                        _cellState[r, c] = (state + 1 >= _paintableTypes.Length) ? -1 : state + 1;
+                        _cellState[r, c] = (state + 1 >= _paintableEntries.Length) ? -1 : state + 1;
                 }
             }
 
@@ -135,10 +175,10 @@ namespace hp55games.Editor.Tools.MapGame
         {
             GUILayout.Label("Legenda:");
             var prevBg = GUI.backgroundColor;
-            for (int i = 0; i < _paintableTypes.Length; i++)
+            for (int i = 0; i < _paintableEntries.Length; i++)
             {
-                GUI.backgroundColor = _typeColors[i];
-                GUILayout.Box(_paintableTypes[i].ToString(), GUILayout.Width(120), GUILayout.Height(18));
+                GUI.backgroundColor = _entryColors[i];
+                GUILayout.Box($"{_paintableEntries[i].Type} Lv{_paintableEntries[i].DifficultyLevel}", GUILayout.Width(120), GUILayout.Height(18));
             }
             GUI.backgroundColor = prevBg;
             EditorGUILayout.HelpBox("○ = cella di origine del cluster (Q=0, R=0)", MessageType.None);
@@ -158,11 +198,13 @@ namespace hp55games.Editor.Tools.MapGame
                 int relRow   = r - Center;
                 var relCoord = HexCoord.FromOffsetOddQ(relCol, relRow);
 
+                var entry = _paintableEntries[state];
                 tiles.Add(new EventClusterTileSpec
                 {
                     RelativeQ = relCoord.Q,
                     RelativeR = relCoord.R,
-                    Type      = _paintableTypes[state],
+                    Type      = entry.Type,
+                    DifficultyLevel = entry.DifficultyLevel,
                 });
             }
 

@@ -13,18 +13,22 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public TileType Type;
 
         /// <summary>
-        /// Delta HP applicato al reveal: positivo cura (Risorsa), negativo danneggia (Battaglia, Trappola), zero per gli altri tipi.
+        /// Delta HP applicato al reveal: positivo cura (Risorsa), negativo danneggia (Enemy),
+        /// zero per gli altri tipi. La tabella esiti di Mistery (che assorbe il vecchio
+        /// Trappola come uno dei possibili risultati) non e' ancora implementata: Mistery
+        /// resta a impatto zero finche' non viene definita — vedi nota in
+        /// AestheticClusterMapGenerator.ApplyPlaceholderBalance.
         /// </summary>
         public int HpRestore;
 
         /// <summary>
-        /// Monete guadagnate al reveal. Assegnate solo a Battaglia (combattimento vinto).
+        /// Monete guadagnate al reveal. Assegnate solo a Enemy (combattimento vinto).
         /// Zero per tutti gli altri tipi. Il valore balance è responsabilità del designer.
         /// </summary>
         public int MoneteGained;
 
         /// <summary>
-        /// True sulla tile Boss, l'obiettivo di missione generato da RandomTileTypeGenerator.
+        /// True sulla tile Boss, l'obiettivo di missione generato da PlaceEnd.
         /// </summary>
         public bool IsObjective;
 
@@ -40,15 +44,26 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// </summary>
         public int EventPlacementId = -1;
 
+        /// <summary>
+        /// Livello di difficolta' 1-6, assegnato dalla entry LevelConfig scelta al momento
+        /// del piazzamento. Fa doppio lavoro: vincolo di piazzamento (una tile con
+        /// DifficultyLevel D richiede almeno D vicini validi in griglia, vedi
+        /// AestheticClusterMapGenerator.NeighborCount) e soglia di rivelazione icona (vedi
+        /// HexGridController.CountScopertaNeighbors / HexGridViewSpawner).
+        /// 0 per Strada e Void, che non hanno DifficultyLevel (strutturali, non content).
+        /// </summary>
+        public int DifficultyLevel;
+
         public HexTileData(HexCoord coord)
         {
             Coord = coord;
             State = TileState.Sconosciuta;
-            Type = TileType.Strada;
+            Type = TileType.Path;
             HpRestore = 0;
             IsObjective = false;
             PathClusterId = -1;
             EventPlacementId = -1;
+            DifficultyLevel = 0;
         }
     }
 }

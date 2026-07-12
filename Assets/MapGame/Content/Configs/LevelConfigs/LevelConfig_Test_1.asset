@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e298838c973c1d64491fa8c187b7d46b, type: 3}
+  m_Name: LevelConfig_Test_1
+  m_EditorClassIdentifier: 
+  EnvType: 
+  EventClusterTilesList:
+  - Type: 5
+    DifficultyLevel: 3
+  - Type: 7
+    DifficultyLevel: 2
+  - Type: 8
+    DifficultyLevel: 5
+  EventSingleTilesList:
+  - Type: 0
+    DifficultyLevel: 0
+  - Type: 3
+    DifficultyLevel: 4
+  - Type: 7
+    DifficultyLevel: 3
+  - Type: 5
+    DifficultyLevel: 3
+  - Type: 4
+    DifficultyLevel: 0
+  StopSingleTilesList:
+  - Type: 0
+    DifficultyLevel: 0

@@ -10,6 +10,13 @@ namespace hp55games.MapGame.Features.Configs
         public int Weight;
     }
 
+    /// <summary>
+    /// Revisione 2026-07-10: Battaglia -> Enemy (rename, TileType refactor). I campi
+    /// Trappola* sono stati rimossi: Trappola non e' piu' un TileType a se', confluisce
+    /// in Mistery come uno dei possibili esiti — tabella esiti non ancora definita.
+    /// Valori originali per riferimento futuro se servono per quella tabella:
+    /// TrappolaHpLossMin = 2, TrappolaHpLossMax = 6.
+    /// </summary>
     [Serializable]
     public struct PlaceholderBalanceSettings
     {
@@ -17,15 +24,11 @@ namespace hp55games.MapGame.Features.Configs
         public int RisorsaHpRestoreMin;
         public int RisorsaHpRestoreMax;
 
-        [Header("Battaglia — perdita HP / Monete guadagnate")]
-        public int BattagliaHpLossMin;
-        public int BattagliaHpLossMax;
-        public int BattagliaMoneteMin;
-        public int BattagliaMoneteMax;
-
-        [Header("Trappola — perdita HP")]
-        public int TrappolaHpLossMin;
-        public int TrappolaHpLossMax;
+        [Header("Enemy — perdita HP / Monete guadagnate")]
+        public int EnemyHpLossMin;
+        public int EnemyHpLossMax;
+        public int EnemyMoneteMin;
+        public int EnemyMoneteMax;
     }
 
     /// <summary>
@@ -81,6 +84,9 @@ namespace hp55games.MapGame.Features.Configs
         /// </summary>
         public int Seed = 12345;
 
+        [Tooltip("Livello attivo: fornisce EnvType (Bioma) e le tre liste di contenuto eleggibile (EventCluster/EventSingle/StopSingle). Vedi LevelConfig.")]
+        public hp55games.MapGame.Features.Gameplay.HexGrid.LevelConfig LevelConfig;
+
         [Header("Piazzamento Start/End")]
         public DistanceWeight[] EndDistanceWeights =
         {
@@ -98,9 +104,8 @@ namespace hp55games.MapGame.Features.Configs
         public PlaceholderBalanceSettings PlaceholderBalance = new PlaceholderBalanceSettings
         {
             RisorsaHpRestoreMin  = 1, RisorsaHpRestoreMax  = 6,
-            BattagliaHpLossMin   = 1, BattagliaHpLossMax   = 4,
-            BattagliaMoneteMin   = 1, BattagliaMoneteMax   = 5,
-            TrappolaHpLossMin    = 2, TrappolaHpLossMax    = 6,
+            EnemyHpLossMin       = 1, EnemyHpLossMax       = 4,
+            EnemyMoneteMin       = 1, EnemyMoneteMax       = 5,
         };
 
         [Header("Piazzamento EventCluster e singole")]

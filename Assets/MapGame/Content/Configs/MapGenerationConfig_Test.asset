@@ -15,40 +15,47 @@ MonoBehaviour:
   Width: 16
   Height: 16
   Seed: 12345
+  LevelConfig: {fileID: 11400000, guid: 158949a1d82d5d94cb90452ebd0107d0, type: 2}
   EndDistanceWeights:
-  - Distance: 4
-    Weight: 1
-  - Distance: 5
-    Weight: 2
-  - Distance: 6
-    Weight: 3
-  - Distance: 7
-    Weight: 2
   - Distance: 8
     Weight: 1
+  - Distance: 9
+    Weight: 4
+  - Distance: 10
+    Weight: 10
+  - Distance: 11
+    Weight: 20
+  - Distance: 12
+    Weight: 30
+  - Distance: 13
+    Weight: 40
+  - Distance: 14
+    Weight: 40
+  - Distance: 15
+    Weight: 40
+  - Distance: 16
+    Weight: 40
   StartMinBorderDistance: 3
-  ClusterMinDistanceFromStartEnd: 2
+  ClusterMinDistanceFromStartEnd: 1
   PlaceholderBalance:
     RisorsaHpRestoreMin: 1
     RisorsaHpRestoreMax: 6
-    BattagliaHpLossMin: 1
-    BattagliaHpLossMax: 4
-    BattagliaMoneteMin: 1
-    BattagliaMoneteMax: 5
-    TrappolaHpLossMin: 2
-    TrappolaHpLossMax: 6
+    EnemyHpLossMin: 1
+    EnemyHpLossMax: 4
+    EnemyMoneteMin: 1
+    EnemyMoneteMax: 5
   EventClusters:
     Catalog: {fileID: 11400000, guid: 789979cd866a8e0419cc4e0affd6482b, type: 2}
     MaxConsecutiveFailures: 200
     ClusterToSingleRatioMin: 2
-    ClusterToSingleRatioMax: 3
+    ClusterToSingleRatioMax: 4
   StradaNetwork:
     MinBranchLength: 3
     MaxBranchLength: 7
-    MaxBranches: 5
+    MaxBranches: 4
     MaxTotalTiles: 15
     StopWeight: 60
     Fork3Weight: 35
     Fork5Weight: 5
-    KeepHeadingWeight: 70
-    TurnWeight: 30
+    KeepHeadingWeight: 4
+    TurnWeight: 1
