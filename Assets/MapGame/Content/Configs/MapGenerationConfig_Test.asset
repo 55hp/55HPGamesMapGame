@@ -38,8 +38,8 @@ MonoBehaviour:
   StartMinBorderDistance: 3
   ClusterMinDistanceFromStartEnd: 1
   PlaceholderBalance:
-    RisorsaHpRestoreMin: 1
-    RisorsaHpRestoreMax: 6
+    GoodsFoodRestoreMin: 1
+    GoodsFoodRestoreMax: 3
     EnemyHpLossMin: 1
     EnemyHpLossMax: 4
     EnemyMoneteMin: 1
