@@ -16,32 +16,34 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// HP correnti: _context.Lives (clamped 0.._survival.MaxHp).
     /// Cibo corrente: _context.Food (clamped 0.._survival.MaxFood).
     /// Monete correnti: _context.Score (accumulate per run).
-    /// Start/Max/costi vivono in SurvivalConfig (ScriptableObject) per iterare sul design
-    /// senza toccare la scena — vedi _survival.
+    ///
+    /// Configurazione: nessun config serializzato in scena. In Awake risolve
+    /// IConfigCatalogService e pesca MapGenerationConfig, SurvivalConfig e il LevelConfig
+    /// attivo dal catalogo. Il LevelConfig e' risolto con Get&lt;LevelConfig&gt;(): finche'
+    /// esiste un solo livello autorato va bene; con piu' livelli servira' una selezione
+    /// esplicita del livello attivo (vedi nota -- Franci TASK -- nel report / roadmap).
     ///
     /// Costo movimento (2026-07-10, Dragonsweeper-style): ogni click costa
     /// _survival.FoodCostPerClick Cibo se disponibile, altrimenti _survival.NoFoodHpPenalty
     /// HP diretti. Si applica una sola volta per click, PRIMA dell'effetto della tessera —
     /// la cascata Strada che segue un click resta gratuita.
     ///
-    /// Dimensioni e seed provengono da MapGenerationConfig (ScriptableObject).
     /// Inizializzazione HP/Cibo/Monete avviene in OnGameStarted (via GameStartedEvent),
     /// NON in BuildGrid(), per evitare la race con GameplayState.ResetRun().
     /// Fallback autonomo in Start() per sessioni standalone senza FSM attivo.
     /// </summary>
     public sealed class HexGridController : MonoBehaviour
     {
-        [Header("Configurazione mappa")]
-        [SerializeField] private MapGenerationConfig _config;
-
-        [Header("Sopravvivenza")]
-        [SerializeField] private SurvivalConfig _survival;
-
         private IMapGenerationService _mapGenerationService;
-        private IGameContextService  _context;
-        private IEventBus            _bus;
-        private IFeedbackService     _feedbackService;
-        private IDisposable          _gameStartedSub;
+        private IConfigCatalogService _configs;
+        private IGameContextService   _context;
+        private IEventBus             _bus;
+        private IFeedbackService      _feedbackService;
+        private IDisposable           _gameStartedSub;
+
+        private MapGenerationConfig _mapConfig;
+        private SurvivalConfig      _survival;
+        private LevelConfig         _level;
 
         private readonly Dictionary<HexCoord, HexTileData> _tiles = new();
         private HexCoord _playerCoord;
@@ -62,9 +64,20 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         private void Awake()
         {
-            _context      = ServiceRegistry.Resolve<IGameContextService>();
-            _bus          = ServiceRegistry.Resolve<IEventBus>();
+            _context              = ServiceRegistry.Resolve<IGameContextService>();
+            _bus                  = ServiceRegistry.Resolve<IEventBus>();
             _mapGenerationService = ServiceRegistry.Resolve<IMapGenerationService>();
+
+            if (!ServiceRegistry.TryResolve(out _configs))
+            {
+                Debug.LogError("[HexGridController] IConfigCatalogService non risolto. Verifica che ConfigCatalogInstaller sia in una scena caricata prima di questa.", this);
+                return;
+            }
+
+            _mapConfig = _configs.Get<MapGenerationConfig>();
+            _survival  = _configs.Get<SurvivalConfig>();
+            _level     = _configs.Get<LevelConfig>();
+
             BuildGrid();
         }
 
@@ -100,7 +113,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         {
             if (_survival == null)
             {
-                Debug.LogError("[HexGridController] _survival non assegnato. Assegna un SurvivalConfig nell'Inspector.", this);
+                Debug.LogError("[HexGridController] SurvivalConfig non risolto dal catalogo. Impossibile inizializzare HP/Cibo.", this);
                 return;
             }
 
@@ -114,13 +127,13 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Rigenera la griglia da zero.
-        /// Seed: da IGameContextService.CurrentRunSeed se != 0, altrimenti da _config.Seed.
+        /// Seed: da IGameContextService.CurrentRunSeed se != 0, altrimenti da _mapConfig.Seed.
         /// </summary>
         public void BuildGrid()
         {
-            if (_config == null)
+            if (_mapConfig == null)
             {
-                Debug.LogError("[HexGridController] _config non assegnato. Assegna un MapGenerationConfig nell'Inspector.", this);
+                Debug.LogError("[HexGridController] MapGenerationConfig non risolto dal catalogo. Impossibile generare la mappa.", this);
                 return;
             }
 
@@ -130,8 +143,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 return;
             }
 
-            int seed = (_context?.CurrentRunSeed != 0) ? _context.CurrentRunSeed : _config.Seed;
-            var result = _mapGenerationService.GenerateMap(_config, seed);
+            int seed = (_context?.CurrentRunSeed != 0) ? _context.CurrentRunSeed : _mapConfig.Seed;
+            var result = _mapGenerationService.GenerateMap(_mapConfig, _level, seed);
 
             _tiles.Clear();
             foreach (var kvp in result.Tiles)

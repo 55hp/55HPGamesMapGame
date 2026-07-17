@@ -1,4 +1,5 @@
 using System;
+using hp55games.Mobile.Core.Config;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -20,13 +21,6 @@ namespace hp55games.MapGame.Features.Configs
     /// Revisione 2026-07-10 bis: Risorsa (ora Goods) non cura piu' HP direttamente,
     /// rifornisce Cibo — RisorsaHpRestoreMin/Max rinominati in GoodsFoodRestoreMin/Max,
     /// stessi valori numerici di prima (1..6, si clampano a MaxFood a runtime).
-    /// Revisione 2026-07-10 ter (sistema XP/livello): EnemyHpLossMin/Max e
-    /// EnemyMoneteMin/Max rimossi. Enemy fa ora danno diretto uguale al proprio
-    /// DifficultyLevel (nessun campo di config necessario, vedi
-    /// AestheticClusterMapGenerator.ApplyPlaceholderBalance) e non da' piu' Monete, da'
-    /// XP (= DifficultyLevel) invece — economia Shop in pausa per ora. Valori originali
-    /// per riferimento futuro se l'economia Shop torna in gioco: EnemyHpLossMin = 1,
-    /// EnemyHpLossMax = 4, EnemyMoneteMin = 1, EnemyMoneteMax = 5.
     /// </summary>
     [Serializable]
     public struct PlaceholderBalanceSettings
@@ -34,6 +28,12 @@ namespace hp55games.MapGame.Features.Configs
         [Header("Goods — rifornimento Cibo (era Risorsa, cura HP diretta)")]
         [FormerlySerializedAs("RisorsaHpRestoreMin")] public int GoodsFoodRestoreMin;
         [FormerlySerializedAs("RisorsaHpRestoreMax")] public int GoodsFoodRestoreMax;
+
+        [Header("Enemy — perdita HP / Monete guadagnate")]
+        public int EnemyHpLossMin;
+        public int EnemyHpLossMax;
+        public int EnemyMoneteMin;
+        public int EnemyMoneteMax;
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ namespace hp55games.MapGame.Features.Configs
     }
 
     [CreateAssetMenu(menuName = "MapGame/Map Generation Config", fileName = "MapGenerationConfig")]
-    public sealed class MapGenerationConfig : ScriptableObject
+    public sealed class MapGenerationConfig : ScriptableObject, IConfigAsset
     {
         [Min(1)] public int Width  = 10;
         [Min(1)] public int Height = 10;
@@ -88,9 +88,6 @@ namespace hp55games.MapGame.Features.Configs
         /// A runtime viene sovrascritto da IGameContextService.CurrentRunSeed se != 0.
         /// </summary>
         public int Seed = 12345;
-
-        [Tooltip("Livello attivo: fornisce EnvType (Bioma) e le tre liste di contenuto eleggibile (EventCluster/EventSingle/StopSingle). Vedi LevelConfig.")]
-        public hp55games.MapGame.Features.Gameplay.HexGrid.LevelConfig LevelConfig;
 
         [Header("Piazzamento Start/End")]
         public DistanceWeight[] EndDistanceWeights =
@@ -109,6 +106,8 @@ namespace hp55games.MapGame.Features.Configs
         public PlaceholderBalanceSettings PlaceholderBalance = new PlaceholderBalanceSettings
         {
             GoodsFoodRestoreMin  = 1, GoodsFoodRestoreMax  = 6,
+            EnemyHpLossMin       = 1, EnemyHpLossMax       = 4,
+            EnemyMoneteMin       = 1, EnemyMoneteMax       = 5,
         };
 
         [Header("Piazzamento EventCluster e singole")]

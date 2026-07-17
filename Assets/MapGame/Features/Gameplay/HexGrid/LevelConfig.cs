@@ -1,4 +1,5 @@
 using System;
+using hp55games.Mobile.Core.Config;
 using UnityEngine;
 
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
@@ -34,7 +35,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// un LevelConfig parzialmente autorato resta comunque generabile.
     /// </summary>
     [CreateAssetMenu(menuName = "MapGame/Level Config", fileName = "LevelConfig")]
-    public sealed class LevelConfig : ScriptableObject
+    public sealed class LevelConfig : ScriptableObject, IConfigAsset
     {
         [Tooltip("Bioma del livello. Testo libero finche' non esiste un catalogo/enum Bioma formale (Three-Axis Visual Model, design-only ad oggi).")]
         public string EnvType;

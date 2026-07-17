@@ -51,6 +51,11 @@ namespace hp55games.MapGame.Editor
 
         private MapGenerationResult _preview;
 
+        // LevelConfig e' stato tolto da MapGenerationConfig (ora vive nel ConfigCatalog
+        // ed e' passato a GenerateMap come parametro). La preview quindi ne ha bisogno
+        // di uno esplicito: assegnabile qui, con default al primo LevelConfig trovato.
+        private LevelConfig _previewLevel;
+
         // ── Inspector GUI ────────────────────────────────────────────────────
 
         public override void OnInspectorGUI()
@@ -59,10 +64,21 @@ namespace hp55games.MapGame.Editor
 
             EditorGUILayout.Space(6);
 
+            if (_previewLevel == null)
+                _previewLevel = FindFirstLevelConfig();
+
+            _previewLevel = (LevelConfig)EditorGUILayout.ObjectField(
+                "Level (preview)", _previewLevel, typeof(LevelConfig), false);
+
+            if (_previewLevel == null)
+                EditorGUILayout.HelpBox(
+                    "Nessun LevelConfig assegnato: la preview genera con contenuto di default (nessuna lista eleggibile). Assegnane uno per una preview realistica.",
+                    MessageType.Warning);
+
             if (GUILayout.Button("Genera Preview"))
             {
                 var cfg = (MapGenerationConfig)target;
-                _preview = new MapGenerationService().GenerateMap(cfg, cfg.Seed);
+                _preview = new MapGenerationService().GenerateMap(cfg, _previewLevel, cfg.Seed);
                 Repaint();
             }
 
@@ -173,5 +189,14 @@ namespace hp55games.MapGame.Editor
             GUILayout.Label(label, EditorStyles.miniLabel);
             GUILayout.Space(12f);
         }
-    }
+    
+        private static LevelConfig FindFirstLevelConfig()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:LevelConfig");
+            if (guids.Length == 0) return null;
+            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+            return AssetDatabase.LoadAssetAtPath<LevelConfig>(path);
+        }
+
+}
 }

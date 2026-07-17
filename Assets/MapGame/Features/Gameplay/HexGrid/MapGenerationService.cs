@@ -14,12 +14,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// </summary>
     public interface IMapGenerationService
     {
-        MapGenerationResult GenerateMap(MapGenerationConfig config, int seed);
+        MapGenerationResult GenerateMap(MapGenerationConfig config, LevelConfig level, int seed);
     }
 
     public sealed class MapGenerationService : IMapGenerationService
     {
-        public MapGenerationResult GenerateMap(MapGenerationConfig config, int seed)
+        public MapGenerationResult GenerateMap(MapGenerationConfig config, LevelConfig level, int seed)
         {
             IMapGenerator generator = new AestheticClusterMapGenerator(
                 config.EndDistanceWeights,
@@ -28,7 +28,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 config.PlaceholderBalance,
                 config.StradaNetwork,
                 config.EventClusters,
-                config.LevelConfig);
+                level);
 
             return generator.Generate(config.Width, config.Height, seed);
         }
