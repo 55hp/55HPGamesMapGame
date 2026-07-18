@@ -28,6 +28,12 @@ namespace hp55games.Mobile.Core.Context
         /// <summary>Current lives for this run (optional, can be 0 or -1 if unused).</summary>
         int Lives { get; set; }
 
+        /// <summary>
+        /// Current food/hunger stock for this run (optional, can be 0 or -1 if unused).
+        /// Usato dal costo movimento di MapGame. Stesso pattern di Lives: -1 = "sistema non
+        /// in uso". Nessun MaxFood qui: il cap vive in SurvivalConfig e nel cap runtime di
+        /// HexGridController, che il level up puo' alzare.
+        /// </summary>
         int Food { get; set; }
 
         /// <summary>

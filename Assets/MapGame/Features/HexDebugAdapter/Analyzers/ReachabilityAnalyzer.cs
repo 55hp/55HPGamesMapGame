@@ -8,7 +8,7 @@ namespace hp55games.MapGame.Features.HexDebugAdapter
 {
     /// <summary>
     /// Esegue una BFS a movimento libero adiacente dalla tile Start verso End e verso
-    /// ogni Risorsa, NPC, Boss, per confermare che tutta la mappa generata sia
+    /// ogni Goods, NPC, Boss, per confermare che tutta la mappa generata sia
     /// effettivamente raggiungibile. Requisito diretto dei pillar P2 e P3.
     /// Accede a HexGridController dalla scena per recuperare le coordinate di Start.
     /// </summary>
@@ -16,7 +16,7 @@ namespace hp55games.MapGame.Features.HexDebugAdapter
     {
         private static readonly HexDebugFlags KeyTileFlags =
             MapGameDebugFlags.Boss          |
-            MapGameDebugFlags.Risorsa       |
+            MapGameDebugFlags.Goods       |
             MapGameDebugFlags.Npc           |
             HexDebugFlags.PointOfInterest;  // IsObjective
 

@@ -9,10 +9,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// Tutti gli altri tipi ricevono un DifficultyLevel (1-6) per-istanza da LevelConfig,
     /// vedi HexTileData.DifficultyLevel e AestheticClusterMapGenerator.
     ///
-    /// Trappola non e' piu' un tipo a se', confluisce in Mistery come uno dei possibili
-    /// esiti (tabella esiti non ancora implementata, vedi Mistery in HexTileData/generator).
+    /// Chance assorbe il vecchio Trappola come uno dei suoi possibili esiti; la tabella
+    /// esiti non e' ancora implementata, quindi oggi Chance ha impatto zero.
     /// Shop era un sottotipo di dialogo di NPC (Mercante), ora e' un TileType a se stante.
-    /// Miniboss e' nuovo, bilanciamento non ancora definito.
+    /// Miniboss: bilanciamento non ancora definito.
     /// </summary>
     public enum TileType
     {

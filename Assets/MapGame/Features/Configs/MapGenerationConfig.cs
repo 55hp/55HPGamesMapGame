@@ -13,30 +13,24 @@ namespace hp55games.MapGame.Features.Configs
     }
 
     /// <summary>
-    /// Revisione 2026-07-10: Battaglia -> Enemy (rename, TileType refactor). I campi
-    /// Trappola* sono stati rimossi: Trappola non e' piu' un TileType a se', confluisce
-    /// in Chance come uno dei possibili esiti — tabella esiti non ancora definita.
-    /// Valori originali per riferimento futuro se servono per quella tabella:
-    /// TrappolaHpLossMin = 2, TrappolaHpLossMax = 6.
-    /// Revisione 2026-07-10 bis: Risorsa (ora Goods) non cura piu' HP direttamente,
-    /// rifornisce Cibo — RisorsaHpRestoreMin/Max rinominati in GoodsFoodRestoreMin/Max,
-    /// stessi valori numerici di prima (1..6, si clampano a MaxFood a runtime).
+    /// Valori placeholder di bilanciamento, non definitivi.
+    /// Oggi copre solo Goods (rifornimento Cibo, clampato a MaxFood a runtime).
     /// </summary>
     [Serializable]
     public struct PlaceholderBalanceSettings
     {
-        [Header("Goods — rifornimento Cibo (era Risorsa, cura HP diretta)")]
+        [Header("Goods — rifornimento Cibo")]
         [FormerlySerializedAs("RisorsaHpRestoreMin")] public int GoodsFoodRestoreMin;
         [FormerlySerializedAs("RisorsaHpRestoreMax")] public int GoodsFoodRestoreMax;
 
-        // Enemy: danno e reward NON sono piu' qui (2026-07-17). Il danno = DifficultyLevel
-        // e l'XP = DifficultyLevel sono applicati al reveal in HexGridController. I vecchi
-        // campi EnemyHpLossMin/Max e EnemyMoneteMin/Max sono stati rimossi.
+        // Enemy non ha campi qui: danno e XP derivano dal DifficultyLevel della tile e
+        // sono applicati al reveal in HexGridController.
     }
 
     /// <summary>
-    /// Vincoli struttura e pesi per la mesh di Strada (fase 5, non ancora ricablata sul
-    /// nuovo sistema a EventCluster multipli — campo tenuto per non perdere i valori).
+    /// Vincoli struttura e pesi per la rete di Strada (PathCluster): budget di tile totali,
+    /// numero e lunghezza dei rami, pesi di biforcazione e deviazione. Letti sia dal
+    /// generatore live sia dal PathClusterBudgetAnalyzer del Hex Debug Framework.
     /// </summary>
     [Serializable]
     public struct StradaNetworkSettings
@@ -115,7 +109,7 @@ namespace hp55games.MapGame.Features.Configs
             ClusterToSingleRatioMax = 3,
         };
 
-        [Header("Mesh Strada (fase 5, non ancora ricablata)")]
+        [Header("Rete Strada (PathCluster)")]
         public StradaNetworkSettings StradaNetwork = new StradaNetworkSettings
         {
             MinBranchLength = 3, MaxBranchLength = 7, MaxBranches = 5, MaxTotalTiles = 15,

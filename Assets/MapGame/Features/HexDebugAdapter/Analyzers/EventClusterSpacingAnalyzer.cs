@@ -8,17 +8,17 @@ namespace hp55games.MapGame.Features.HexDebugAdapter
     /// Usa EventPlacementId assegnato da AestheticClusterMapGenerator — nessun BFS interno,
     /// nessun rischio di fondere placement prima del controllo.
     /// Segnala come Error ogni tile evento il cui vicino evento appartiene a un placement diverso.
-    /// EventFlags aggiornato 2026-07-10 per il TileType refactor: Battaglia -> Enemy,
-    /// Trappola rimosso (confluito in Mistery), aggiunti Shop e Miniboss.
+    /// EventFlags copre tutti i TileType che contano come "evento" ai fini della
+    /// spaziatura: ogni content tile, escluse Void e Path che sono strutturali.
     /// </summary>
     public sealed class EventClusterSpacingAnalyzer : IHexAnalyzer
     {
         private static readonly HexDebugFlags EventFlags =
             MapGameDebugFlags.Enemy    |
             MapGameDebugFlags.Shop     |
-            MapGameDebugFlags.Risorsa  |
+            MapGameDebugFlags.Goods  |
             MapGameDebugFlags.Npc      |
-            MapGameDebugFlags.Mistery  |
+            MapGameDebugFlags.Chance  |
             MapGameDebugFlags.Miniboss |
             MapGameDebugFlags.Boss;
 
