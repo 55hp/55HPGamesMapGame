@@ -15,7 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using hp55games.MapGame.Features.Gameplay.HexGrid;
 
-namespace hp55games.Editor.Tools.MapGame
+namespace hp55games.MapGame.Features.Editor
 {
     public class HP55_EventClusterShapeEditor : EditorWindow
     {

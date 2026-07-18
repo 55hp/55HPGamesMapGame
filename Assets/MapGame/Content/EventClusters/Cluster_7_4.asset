@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ba4aa5b79e3083640b7265da7c7b2737, type: 3}
-  m_Name: Cluster_7_semplice4
+  m_Name: Cluster_7_4
   m_EditorClassIdentifier: 
   ShapeName: Cluster_7_semplice4
   Tiles:

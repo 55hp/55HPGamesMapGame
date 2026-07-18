@@ -10,35 +10,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ba4aa5b79e3083640b7265da7c7b2737, type: 3}
-  m_Name: NewEventCluster
+  m_Name: Cluster_7_1
   m_EditorClassIdentifier: 
-  ShapeName: NewEventCluster
+  ShapeName: Cluster_7_semplice1
   Tiles:
   - RelativeQ: -1
     RelativeR: 0
-    Type: 8
-    DifficultyLevel: 5
+    Type: 3
   - RelativeQ: 0
     RelativeR: -1
-    Type: 7
-    DifficultyLevel: 2
+    Type: 5
   - RelativeQ: 1
     RelativeR: -1
-    Type: 8
-    DifficultyLevel: 5
+    Type: 5
   - RelativeQ: -1
     RelativeR: 1
-    Type: 7
-    DifficultyLevel: 2
+    Type: 4
   - RelativeQ: 0
     RelativeR: 0
-    Type: 5
-    DifficultyLevel: 3
+    Type: 2
   - RelativeQ: 1
     RelativeR: 0
-    Type: 7
-    DifficultyLevel: 2
+    Type: 3
   - RelativeQ: 0
     RelativeR: 1
-    Type: 7
-    DifficultyLevel: 2
+    Type: 5

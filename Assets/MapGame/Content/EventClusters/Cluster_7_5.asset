@@ -10,64 +10,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ba4aa5b79e3083640b7265da7c7b2737, type: 3}
-  m_Name: Cluster_19_thenpc
+  m_Name: Cluster_7_5
   m_EditorClassIdentifier: 
-  ShapeName: Cluster_19_thenpc
+  ShapeName: Cluster_7_semplice5
   Tiles:
   - RelativeQ: -1
-    RelativeR: -1
-    Type: 3
-  - RelativeQ: 0
-    RelativeR: -2
-    Type: 3
-  - RelativeQ: 1
-    RelativeR: -2
-    Type: 3
-  - RelativeQ: -2
-    RelativeR: 0
-    Type: 3
-  - RelativeQ: -1
     RelativeR: 0
     Type: 2
   - RelativeQ: 0
     RelativeR: -1
-    Type: 2
+    Type: 6
   - RelativeQ: 1
     RelativeR: -1
     Type: 2
-  - RelativeQ: 2
-    RelativeR: -2
-    Type: 3
-  - RelativeQ: -2
-    RelativeR: 1
-    Type: 3
   - RelativeQ: -1
     RelativeR: 1
-    Type: 2
-  - RelativeQ: 0
-    RelativeR: 0
     Type: 5
+  - RelativeQ: 0
+    RelativeR: 0
+    Type: 4
   - RelativeQ: 1
     RelativeR: 0
-    Type: 2
-  - RelativeQ: 2
-    RelativeR: -1
-    Type: 3
-  - RelativeQ: -2
-    RelativeR: 2
-    Type: 3
-  - RelativeQ: -1
-    RelativeR: 2
     Type: 3
   - RelativeQ: 0
     RelativeR: 1
-    Type: 2
-  - RelativeQ: 1
-    RelativeR: 1
-    Type: 3
-  - RelativeQ: 2
-    RelativeR: 0
-    Type: 3
-  - RelativeQ: 0
-    RelativeR: 2
     Type: 3
