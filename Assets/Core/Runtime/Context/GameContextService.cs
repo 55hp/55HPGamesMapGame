@@ -15,8 +15,8 @@ namespace hp55games.Mobile.Core.Context
         public int BestScore { get; set; }
         public int Lives { get; set; } = -1; // -1 = "no lives system" by default
         public int Food  { get; set; } = -1; // -1 = "no food system" by default
-        public int PlayerLevel { get; set; } = -1; // -1 = "no level system" by default
-        public int Xp    { get; set; } = -1; // -1 = "no xp system" by default
+        public int Xp    { get; set; } = 0;
+        public int Level { get; set; } = 1;  // il personaggio parte al livello 1
 
         public void ResetRun()
         {
@@ -25,8 +25,8 @@ namespace hp55games.Mobile.Core.Context
             Score          = 0;
             Lives          = -1;
             Food           = -1;
-            PlayerLevel    = -1;
-            Xp             = -1;
+            Xp             = 0;
+            Level          = 1;
         }
     }
 }

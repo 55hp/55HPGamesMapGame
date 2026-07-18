@@ -92,33 +92,25 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             };
         }
 
-        /// <summary>
-        /// Revisione 2026-07-10 (sistema XP/livello): Enemy fa danno diretto uguale al suo
-        /// DifficultyLevel, non piu' un range casuale (EnemyHpLossMin/Max rimossi). Non da'
-        /// piu' Monete (economia Shop in pausa per ora, vedi Architecture Decisions Log) —
-        /// da' XP invece, letta direttamente da tile.DifficultyLevel in
-        /// HexGridController.AccumulateXp, nessun campo nuovo su HexTileData.
-        /// difficultyLevel va passato gia' risolto (dopo ResolveDifficulty): questo metodo
-        /// assegna tile.DifficultyLevel insieme al resto in un colpo solo, cosi' HpRestore
-        /// puo' dipendere dal valore finale invece che da quello richiesto prima del
-        /// vincolo di piazzamento.
-        /// </summary>
-        private void ApplyPlaceholderBalance(HexTileData tile, TileType type, int difficultyLevel, Random rng)
+        private void ApplyPlaceholderBalance(HexTileData tile, TileType type, Random rng)
         {
             tile.Type = type;
-            tile.DifficultyLevel = difficultyLevel;
-
-            // Chance assorbe il vecchio Trappola come uno dei possibili esiti (GDD
-            // 2026-07-10), ma la tabella esiti non e' ancora definita — resta a impatto
-            // zero finche' non viene disegnata esplicitamente (bilanciamento, non
-            // decidibile qui). Shop e Miniboss: bilanciamento non ancora definito.
-            tile.HpRestore = type == TileType.Enemy ? -difficultyLevel : 0;
-
+            // Goods non cura più HP direttamente dal 2026-07-10 (introduzione del costo
+            // movimento): rifornisce la scorta di Cibo, che il costo movimento consuma,
+            // invece di curare sul colpo. Vedi FoodRestore sotto.
+            // Enemy (2026-07-17, reintegrazione XP): il danno NON viene piu' bruciato qui.
+            // Effetto Enemy = perdita HP pari al DifficultyLevel + guadagno XP pari al
+            // DifficultyLevel, applicato al reveal in HexGridController dove il livello e'
+            // gia' risolto (ResolveDifficulty gira DOPO questo metodo, qui non e' ancora
+            // noto). Quindi HpRestore resta 0 per Enemy come per tutti gli altri content.
+            // Chance assorbe il vecchio Trappola (tabella esiti non ancora definita, impatto
+            // zero). Shop/Miniboss: bilanciamento non ancora definito.
+            tile.HpRestore = 0;
             tile.FoodRestore = type == TileType.Goods
                 ? rng.Next(_balance.GoodsFoodRestoreMin, _balance.GoodsFoodRestoreMax + 1)
                 : 0;
-
-            // Monete non piu' assegnate da nessun tipo (2026-07-10, economia Shop in pausa).
+            // Monete in pausa: l'economia Shop/Monete e' sospesa finche' non viene
+            // ridisegnata. Enemy da' XP, non Monete. Nessun tipo assegna Monete per ora.
             tile.MoneteGained = 0;
         }
 
@@ -184,8 +176,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             var pool = _levelConfig != null ? _levelConfig.EventSingleTilesList : null;
             if (TryPickEntry(pool, rng, out var entry))
             {
-                int resolvedLevel = ResolveDifficulty(entry.DifficultyLevel, coord, tiles);
-                ApplyPlaceholderBalance(tile, entry.Type, resolvedLevel, rng);
+                ApplyPlaceholderBalance(tile, entry.Type, rng);
+                tile.DifficultyLevel = ResolveDifficulty(entry.DifficultyLevel, coord, tiles);
             }
         }
 
@@ -202,8 +194,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             var pool = _levelConfig != null ? _levelConfig.StopSingleTilesList : null;
             if (TryPickEntry(pool, rng, out var entry))
             {
-                int resolvedLevel = ResolveDifficulty(entry.DifficultyLevel, coord, tiles);
-                ApplyPlaceholderBalance(tile, entry.Type, resolvedLevel, rng);
+                ApplyPlaceholderBalance(tile, entry.Type, rng);
+                tile.DifficultyLevel = ResolveDifficulty(entry.DifficultyLevel, coord, tiles);
             }
             else
             {
@@ -363,8 +355,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             foreach (var tileSpec in shape.Tiles)
             {
                 var coord = origin + new HexCoord(tileSpec.RelativeQ, tileSpec.RelativeR);
-                int resolvedLevel = ResolveDifficulty(tileSpec.DifficultyLevel, coord, tiles);
-                ApplyPlaceholderBalance(tiles[coord], tileSpec.Type, resolvedLevel, rng);
+                ApplyPlaceholderBalance(tiles[coord], tileSpec.Type, rng);
+                tiles[coord].DifficultyLevel = ResolveDifficulty(tileSpec.DifficultyLevel, coord, tiles);
             }
         }
 

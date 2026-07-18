@@ -10,30 +10,49 @@ using UnityEngine;
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
-    /// Controller di griglia esagonale. Gestisce stato tile, reachability e reveal.
-    /// Nessuna logica di rendering: notifica gli ascoltatori con eventi C# puri.
+    /// Controller di griglia esagonale. Gestisce stato tile, reachability, reveal e la
+    /// progressione XP/Livello del personaggio. Nessuna logica di rendering: notifica gli
+    /// ascoltatori con eventi C# puri.
     ///
-    /// HP correnti: _context.Lives (clamped 0.._survival.MaxHp).
-    /// Cibo corrente: _context.Food (clamped 0.._survival.MaxFood).
-    /// Monete correnti: _context.Score (accumulate per run).
+    /// HP correnti: _context.Lives (clamped 0.._currentMaxHp).
+    /// Cibo corrente: _context.Food (clamped 0.._currentMaxFood).
+    /// Monete correnti: _context.Score (in pausa: nessun tipo assegna Monete per ora).
+    /// XP corrente: _context.Xp (0..XpPerLevel). Livello: _context.Level (parte da 1).
     ///
     /// Configurazione: nessun config serializzato in scena. In Awake risolve
     /// IConfigCatalogService e pesca MapGenerationConfig, SurvivalConfig e il LevelConfig
-    /// attivo dal catalogo. Il LevelConfig e' risolto con Get&lt;LevelConfig&gt;(): finche'
-    /// esiste un solo livello autorato va bene; con piu' livelli servira' una selezione
-    /// esplicita del livello attivo (vedi nota -- Franci TASK -- nel report / roadmap).
+    /// attivo dal catalogo (Get&lt;LevelConfig&gt;() assume un solo livello autorato; con piu'
+    /// livelli servira' una selezione esplicita, vedi backlog).
     ///
-    /// Costo movimento (2026-07-10, Dragonsweeper-style): ogni click costa
-    /// _survival.FoodCostPerClick Cibo se disponibile, altrimenti _survival.NoFoodHpPenalty
-    /// HP diretti. Si applica una sola volta per click, PRIMA dell'effetto della tessera —
-    /// la cascata Strada che segue un click resta gratuita.
+    /// Cap runtime vs baseline: SurvivalConfig.MaxHp/MaxFood sono la BASELINE. Il cap
+    /// effettivo di questa run vive in _currentMaxHp/_currentMaxFood, inizializzati dalla
+    /// baseline a inizio sessione e alzati dal level up — NON si tocca l'asset SurvivalConfig
+    /// (condiviso, le modifiche persisterebbero tra sessioni). StartHp/StartFood restano il
+    /// punto di partenza, distinto dal cap.
     ///
-    /// Inizializzazione HP/Cibo/Monete avviene in OnGameStarted (via GameStartedEvent),
-    /// NON in BuildGrid(), per evitare la race con GameplayState.ResetRun().
-    /// Fallback autonomo in Start() per sessioni standalone senza FSM attivo.
+    /// Costo movimento (Dragonsweeper-style): ogni click costa _survival.FoodCostPerClick
+    /// Cibo se disponibile, altrimenti _survival.NoFoodHpPenalty HP diretti. Una sola volta
+    /// per click, PRIMA dell'effetto della tessera; la cascata Strada resta gratuita.
+    ///
+    /// Effetto Enemy (2026-07-17): al reveal, HP -= DifficultyLevel e XP += DifficultyLevel
+    /// (cappato a XpPerLevel, l'eccesso e' perso). Applicato qui, non in generazione, perche'
+    /// il DifficultyLevel finale e' noto solo dopo ResolveDifficulty.
+    ///
+    /// Level up (TryLevelUp): esplicito, non automatico. Serve XP == XpPerLevel; a ogni
+    /// level up: Livello +1, cap HP +1 sempre, cap Cibo +1 ogni 4 livelli, HP rifornito al
+    /// nuovo cap, XP azzerato.
+    ///
+    /// Inizializzazione avviene in OnGameStarted (GameStartedEvent), non in BuildGrid, per
+    /// evitare la race con GameplayState.ResetRun(). Fallback in Start() per standalone.
     /// </summary>
     public sealed class HexGridController : MonoBehaviour
     {
+        /// <summary>XP necessari per un level up. L'XP si cappa qui; l'eccesso è perso.</summary>
+        public const int XpPerLevel = 10;
+
+        /// <summary>Ogni quanti livelli il level up concede +1 al cap del Cibo.</summary>
+        private const int FoodSlotEveryLevels = 4;
+
         private IMapGenerationService _mapGenerationService;
         private IConfigCatalogService _configs;
         private IGameContextService   _context;
@@ -44,6 +63,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private MapGenerationConfig _mapConfig;
         private SurvivalConfig      _survival;
         private LevelConfig         _level;
+
+        // Cap runtime della run, inizializzati dalla baseline SurvivalConfig e alzati dal
+        // level up. Non modificano mai l'asset SurvivalConfig.
+        private int _currentMaxHp;
+        private int _currentMaxFood;
 
         private readonly Dictionary<HexCoord, HexTileData> _tiles = new();
         private HexCoord _playerCoord;
@@ -88,7 +112,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             ServiceRegistry.TryResolve<IFeedbackService>(out _feedbackService);
 
             // Subscribe for FSM-driven sessions: GameplayState publishes GameStartedEvent
-            // after ResetRun() completes, giving us the correct moment to set HP/Cibo/Monete.
+            // after ResetRun() completes, giving us the correct moment to set HP/Cibo/XP.
             _gameStartedSub = _bus.Subscribe<GameStartedEvent>(OnGameStarted);
 
             // Standalone / prototype fallback: if no FSM is running, Lives is still at its
@@ -105,24 +129,32 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private void OnGameStarted(GameStartedEvent _) => InitializeSession();
 
         /// <summary>
-        /// Imposta HP, Cibo e Monete a inizio sessione e pubblica i relativi eventi.
-        /// Chiamato sia da GameStartedEvent (FSM path) sia da Start() come fallback
-        /// standalone. Sicuro da invocare più volte: l'ultimo a farlo vince.
+        /// Imposta HP, Cibo, Monete, XP e Livello a inizio sessione, inizializza i cap
+        /// runtime dalla baseline SurvivalConfig e pubblica i relativi eventi. Chiamato sia
+        /// da GameStartedEvent (FSM) sia da Start() come fallback. Sicuro da invocare più
+        /// volte: l'ultimo a farlo vince.
         /// </summary>
         private void InitializeSession()
         {
             if (_survival == null)
             {
-                Debug.LogError("[HexGridController] SurvivalConfig non risolto dal catalogo. Impossibile inizializzare HP/Cibo.", this);
+                Debug.LogError("[HexGridController] SurvivalConfig non risolto dal catalogo. Impossibile inizializzare la sessione.", this);
                 return;
             }
+
+            _currentMaxHp   = _survival.MaxHp;
+            _currentMaxFood = _survival.MaxFood;
 
             _context.Lives = _survival.StartHp;
             _context.Food  = _survival.StartFood;
             _context.Score = 0;
+            _context.Xp    = 0;
+            _context.Level = 1;
+
             _bus?.Publish(new HpChangedEvent());
             _bus?.Publish(new FoodChangedEvent());
             _bus?.Publish(new ScoreChangedEvent());
+            _bus?.Publish(new XpChangedEvent());
         }
 
         /// <summary>
@@ -162,7 +194,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             foreach (var tile in _tiles.Values)
             {
                 // Knowledge never regresses: only promote Sconosciuta → Conosciuta.
-                // Tiles already Conosciuta or Scoperta are never touched here.
                 if (tile.State != TileState.Sconosciuta) continue;
 
                 foreach (var neighbor in GetNeighbors(tile.Coord))
@@ -180,9 +211,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// A tile is clickable if it exists, has not yet been resolved
-        /// (State != Scoperta), and has at least one Scoperta neighbor.
-        /// Independent from DifficultyLevel / icon visibility (see CountScopertaNeighbors) —
-        /// clickability always uses the "at least 1" rule, unchanged by the 2026-07-10 revision.
+        /// (State != Scoperta), and has at least one Scoperta neighbor. Independent from
+        /// DifficultyLevel / icon visibility — clickability always uses the "at least 1" rule.
         /// </summary>
         public bool IsClickable(HexCoord coord)
         {
@@ -200,9 +230,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Conta quanti vicini di coord sono attualmente Scoperta. Usato per il gate di
-        /// rivelazione icona guidato da DifficultyLevel (vedi HexGridViewSpawner): l'icona
-        /// di una tile Conosciuta diventa visibile solo quando questo conteggio raggiunge
-        /// il DifficultyLevel della tile. Indipendente da IsClickable, che resta a soglia 1.
+        /// rivelazione icona guidato da DifficultyLevel (vedi HexGridViewSpawner).
         /// </summary>
         public int CountScopertaNeighbors(HexCoord coord)
         {
@@ -227,15 +255,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Tenta di rivelare una tile. Ritorna false se non in griglia o non cliccabile (IsClickable).
-        /// Applica il costo movimento una sola volta (ApplyMovementCost), poi l'effetto
-        /// della tessera stessa (HP/Cibo/Monete). Se la tile è Strada, esegue un
-        /// flood-fill BFS su tutte le Strada non ancora Scoperta connesse — la cascata
-        /// non paga il costo movimento, solo il click che l'ha innescata.
-        /// HpChangedEvent/FoodChangedEvent/ScoreChangedEvent pubblicati una sola volta al
-        /// termine dell'intera azione (tap + cascade). PlayerDeathEvent emesso una sola
-        /// volta se HP raggiunge 0, indipendentemente dal fatto che sia stato il costo
-        /// movimento o l'effetto della tessera a portarlo a 0.
+        /// Tenta di rivelare una tile. Ritorna false se non in griglia o non cliccabile.
+        /// Ordine per click: costo movimento (una volta) → effetto Enemy (danno+XP da
+        /// DifficultyLevel) → HpRestore/FoodRestore/Monete della tessera → cascata Strada
+        /// gratuita se Strada. Eventi pubblicati una sola volta a fine azione.
+        /// PlayerDeathEvent una sola volta se HP arriva a 0.
         /// </summary>
         public bool TryRevealTile(HexCoord target)
         {
@@ -246,6 +270,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _playerCoord = target;
 
             ApplyMovementCost();
+            bool xpGained = ApplyEnemyOutcome(tile);
             AccumulateHp(tile);
             AccumulateFood(tile);
             bool moneteEarned = AccumulateMonete(tile);
@@ -258,13 +283,16 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             var neighbors = GetNeighbors(target);
             TileRevealed?.Invoke(tile, neighbors);
 
-            // Publish once after all HP, Cibo and Monete changes from this player action.
+            // Publish once after all changes from this player action.
             _bus?.Publish(new HpChangedEvent());
             _bus?.Publish(new FoodChangedEvent());
             _feedbackService?.Play("hp_changed");
 
             if (moneteEarned)
                 _bus?.Publish(new ScoreChangedEvent());
+
+            if (xpGained)
+                _bus?.Publish(new XpChangedEvent());
 
             if (_context.Lives <= 0)
             {
@@ -276,41 +304,48 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
+        /// Effetto Enemy: perdita HP pari al DifficultyLevel della tessera e guadagno XP
+        /// pari allo stesso valore (cappato a XpPerLevel, eccesso perso). No-op per i tipi
+        /// non-Enemy. Ritorna true se l'XP è cambiato (per pubblicare XpChangedEvent).
+        /// Non pubblica eventi direttamente — il publish è centralizzato in TryRevealTile.
+        /// </summary>
+        private bool ApplyEnemyOutcome(HexTileData tile)
+        {
+            if (tile.Type != TileType.Enemy) return false;
+
+            int level = Mathf.Max(0, tile.DifficultyLevel);
+            if (level <= 0) return false;
+
+            _context.Lives = Mathf.Clamp(_context.Lives - level, 0, _currentMaxHp);
+
+            int before = _context.Xp;
+            _context.Xp = Mathf.Min(_context.Xp + level, XpPerLevel);
+            return _context.Xp != before;
+        }
+
+        /// <summary>
         /// Costo movimento: _survival.FoodCostPerClick Cibo se disponibile, altrimenti
-        /// _survival.NoFoodHpPenalty HP diretti. Si applica una sola volta per click,
-        /// prima dell'effetto della tessera. Se il Cibo residuo non copre l'intero costo,
-        /// si paga in HP (nessun pagamento parziale in Cibo).
+        /// _survival.NoFoodHpPenalty HP diretti. Se il Cibo residuo non copre l'intero
+        /// costo, si paga in HP (nessun pagamento parziale in Cibo).
         /// </summary>
         private void ApplyMovementCost()
         {
             if (_context.Food >= _survival.FoodCostPerClick)
                 _context.Food -= _survival.FoodCostPerClick;
             else
-                _context.Lives = Mathf.Clamp(_context.Lives - _survival.NoFoodHpPenalty, 0, _survival.MaxHp);
+                _context.Lives = Mathf.Clamp(_context.Lives - _survival.NoFoodHpPenalty, 0, _currentMaxHp);
         }
 
-        /// <summary>
-        /// Applica l'HpRestore di una tile appena rivelata a _context.Lives (clamped).
-        /// Non pubblica eventi — il publish avviene una sola volta per azione in TryRevealTile.
-        /// </summary>
         private void AccumulateHp(HexTileData tile)
         {
-            _context.Lives = Mathf.Clamp(_context.Lives + tile.HpRestore, 0, _survival.MaxHp);
+            _context.Lives = Mathf.Clamp(_context.Lives + tile.HpRestore, 0, _currentMaxHp);
         }
 
-        /// <summary>
-        /// Applica il FoodRestore di una tile appena rivelata a _context.Food (clamped).
-        /// Non pubblica eventi — il publish avviene una sola volta per azione in TryRevealTile.
-        /// </summary>
         private void AccumulateFood(HexTileData tile)
         {
-            _context.Food = Mathf.Clamp(_context.Food + tile.FoodRestore, 0, _survival.MaxFood);
+            _context.Food = Mathf.Clamp(_context.Food + tile.FoodRestore, 0, _currentMaxFood);
         }
 
-        /// <summary>
-        /// Aggiunge le Monete della tile a _context.Score.
-        /// Ritorna true se il valore è cambiato (per decidere se pubblicare ScoreChangedEvent).
-        /// </summary>
         private bool AccumulateMonete(HexTileData tile)
         {
             if (tile.MoneteGained <= 0) return false;
@@ -319,10 +354,38 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// BFS flood-fill: rivela automaticamente tutte le tile Strada non ancora Scoperta
-        /// raggiungibili dalla coordinata di partenza, senza emettere eventi di reveal e
-        /// senza applicare il costo movimento (gratis, fa parte della stessa azione).
-        /// Accumula HP per ogni tile rivelata; il publish è responsabilità di TryRevealTile.
+        /// Level up esplicito. Richiede XP == XpPerLevel; altrimenti ritorna false senza
+        /// fare nulla (pensato per essere invocato da un bottone UI che si attiva solo
+        /// quando l'XP è pieno). A ogni level up riuscito: Livello +1, cap HP +1 sempre,
+        /// cap Cibo +1 ogni FoodSlotEveryLevels livelli, HP rifornito al nuovo cap, XP
+        /// azzerato. Pubblica gli eventi rilevanti.
+        /// </summary>
+        public bool TryLevelUp()
+        {
+            if (_context.Xp < XpPerLevel) return false;
+
+            _context.Level += 1;
+            _currentMaxHp  += 1;
+
+            bool foodCapRaised = (_context.Level % FoodSlotEveryLevels) == 0;
+            if (foodCapRaised)
+                _currentMaxFood += 1;
+
+            _context.Lives = _currentMaxHp; // refill completo al nuovo cap
+            _context.Xp    = 0;
+
+            _bus?.Publish(new HpChangedEvent());
+            if (foodCapRaised)
+                _bus?.Publish(new FoodChangedEvent());
+            _bus?.Publish(new XpChangedEvent());
+
+            return true;
+        }
+
+        /// <summary>
+        /// BFS flood-fill: rivela tutte le tile Strada non ancora Scoperta connesse, senza
+        /// eventi di reveal e senza costo movimento (gratis, stessa azione). Accumula HP per
+        /// ogni tile rivelata; il publish è responsabilità di TryRevealTile.
         /// </summary>
         private void CascadeStrada(HexCoord origin)
         {

@@ -29,11 +29,9 @@ namespace hp55games.MapGame.Features.Configs
         [FormerlySerializedAs("RisorsaHpRestoreMin")] public int GoodsFoodRestoreMin;
         [FormerlySerializedAs("RisorsaHpRestoreMax")] public int GoodsFoodRestoreMax;
 
-        [Header("Enemy — perdita HP / Monete guadagnate")]
-        public int EnemyHpLossMin;
-        public int EnemyHpLossMax;
-        public int EnemyMoneteMin;
-        public int EnemyMoneteMax;
+        // Enemy: danno e reward NON sono piu' qui (2026-07-17). Il danno = DifficultyLevel
+        // e l'XP = DifficultyLevel sono applicati al reveal in HexGridController. I vecchi
+        // campi EnemyHpLossMin/Max e EnemyMoneteMin/Max sono stati rimossi.
     }
 
     /// <summary>
@@ -106,8 +104,6 @@ namespace hp55games.MapGame.Features.Configs
         public PlaceholderBalanceSettings PlaceholderBalance = new PlaceholderBalanceSettings
         {
             GoodsFoodRestoreMin  = 1, GoodsFoodRestoreMax  = 6,
-            EnemyHpLossMin       = 1, EnemyHpLossMax       = 4,
-            EnemyMoneteMin       = 1, EnemyMoneteMax       = 5,
         };
 
         [Header("Piazzamento EventCluster e singole")]

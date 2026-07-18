@@ -28,34 +28,24 @@ namespace hp55games.Mobile.Core.Context
         /// <summary>Current lives for this run (optional, can be 0 or -1 if unused).</summary>
         int Lives { get; set; }
 
-        /// <summary>
-        /// Current food/hunger stock for this run (optional, can be 0 or -1 if unused).
-        /// Aggiunto 2026-07-10 per il costo movimento di MapGame (1 cibo per click, HP se
-        /// il cibo è a 0). Stesso pattern di Lives: -1 = "sistema non in uso" di default.
-        /// Nessun MaxFood qui, stessa scelta già fatta per Lives/MaxHp: il massimo resta
-        /// locale a chi possiede la regola di gioco (in MapGame, HexGridController._maxFood).
-        /// </summary>
         int Food { get; set; }
 
         /// <summary>
-        /// Current player character level for this run (optional, can be 0 or -1 if
-        /// unused). Aggiunto 2026-07-10 per il sistema XP di MapGame. Chiamato PlayerLevel
-        /// e non Level per non confondersi con CurrentLevelId, che è lo scene/map id, un
-        /// concetto completamente diverso.
-        /// </summary>
-        int PlayerLevel { get; set; }
-
-        /// <summary>
-        /// Current XP progress toward the next PlayerLevel (optional, can be 0 or -1 if
-        /// unused). In MapGame il level up NON è automatico al raggiungimento della
-        /// soglia: richiede un'azione esplicita del giocatore (vedi
-        /// HexGridController.TryLevelUp). Xp non supera mai la soglia (l'eccesso oltre la
-        /// soglia va perso, per design, non fa da riserva per il livello successivo).
+        /// Punti esperienza correnti del personaggio per questa run (0 = nessuno).
+        /// Reintrodotto 2026-07-17. Guadagnati sconfiggendo Enemy (XP = DifficultyLevel del
+        /// nemico), cappati a HexGridController.XpPerLevel; l'eccesso è perso. Il level up
+        /// esplicito (HexGridController.TryLevelUp) li riporta a 0.
         /// </summary>
         int Xp { get; set; }
 
         /// <summary>
-        /// Resets all run-related transient data (score, lives, food, level, xp, seed).
+        /// Livello corrente del personaggio (parte da 1). Ogni level up: +1 e alza il cap
+        /// runtime di HP (sempre) e di Cibo (ogni 4 livelli). Vedi HexGridController.
+        /// </summary>
+        int Level { get; set; }
+
+        /// <summary>
+        /// Resets all run-related transient data (score, lives, food, xp, character level, seed).
         /// Does NOT touch ProfileId or IsDebug.
         /// </summary>
         void ResetRun();
