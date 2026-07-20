@@ -34,9 +34,22 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// Cibo se disponibile, altrimenti _survival.NoFoodHpPenalty HP diretti. Una sola volta
     /// per click, PRIMA dell'effetto della tessera; la cascata Strada resta gratuita.
     ///
-    /// Effetto Enemy (2026-07-17): al reveal, HP -= DifficultyLevel e XP += DifficultyLevel
-    /// (cappato a XpPerLevel, l'eccesso e' perso). Applicato qui, non in generazione, perche'
-    /// il DifficultyLevel finale e' noto solo dopo ResolveDifficulty.
+    /// Incontro Enemy/Miniboss (2026-07-20, revisione Combat & NPC 2026-07-19): NON piu'
+    /// istantaneo. Il click su Enemy/Miniboss applica il costo movimento ma NON marca la
+    /// tile Scoperta ne' risolve il combattimento: apre un incontro pending
+    /// (HasPendingEncounter/PendingEncounterTile) e pubblica EncounterStarted. Il popup di
+    /// Combattimento (feature Combattimento) deve poi chiamare ResolveEncounterFight() o
+    /// ResolveEncounterFlee(). Mentre un incontro e' pending, TryRevealTile ignora ogni
+    /// altro click. Fuga: costo fisso FleeFoodCost in Cibo (clamp a 0, mai HP), la tile
+    /// resta/torna Conosciuta (non e' mai stata marcata Scoperta) e il giocatore non si
+    /// sposta — "l'informazione va persa" e' un fatto di UI (popup chiuso), non di dati
+    /// (HexTileData non cambia, un nuovo tentativo mostra le stesse info).
+    ///
+    /// Effetto Enemy al combattimento: HP -= DifficultyLevel e XP += DifficultyLevel
+    /// (cappato a XpPerLevel, l'eccesso e' perso). No-op per Miniboss finche' il suo
+    /// bilanciamento non e' definito (vedi Combattimento, backlog). Applicato in
+    /// ResolveEncounterFight, non in generazione, perche' il DifficultyLevel finale e'
+    /// noto solo dopo ResolveDifficulty.
     ///
     /// Level up (TryLevelUp): esplicito, non automatico. Serve XP == XpPerLevel; a ogni
     /// level up: Livello +1, cap HP +1 sempre, cap Cibo +1 ogni 4 livelli, HP rifornito al
@@ -52,6 +65,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>Ogni quanti livelli il level up concede +1 al cap del Cibo.</summary>
         private const int FoodSlotEveryLevels = 4;
+
+        /// <summary>
+        /// Costo fisso in Cibo per fuggire da un incontro Enemy/Miniboss pending. Valore di
+        /// design confermato 2026-07-19, distinto da FoodCostPerClick/NoFoodHpPenalty
+        /// (SurvivalConfig): specifico dell'azione fuga, non un parametro di sopravvivenza
+        /// generico. Se il Cibo residuo non copre il costo si clampa a 0 — a differenza del
+        /// costo movimento normale, la fuga NON ricade mai su HP.
+        /// </summary>
+        private const int FleeFoodCost = 2;
 
         private IMapGenerationService _mapGenerationService;
         private IConfigCatalogService _configs;
@@ -73,9 +95,22 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private HexCoord _playerCoord;
         private HexCoord _objectiveCoord;
 
+        /// <summary>
+        /// Coordinata dell'incontro Enemy/Miniboss in attesa di risoluzione (combatti/fuggi),
+        /// null se nessun incontro e' pending. Vedi ResolveEncounterFight/ResolveEncounterFlee.
+        /// </summary>
+        private HexCoord? _pendingEncounterCoord;
+
         public HexCoord PlayerCoord    => _playerCoord;
         public HexCoord ObjectiveCoord => _objectiveCoord;
         public IReadOnlyDictionary<HexCoord, HexTileData> Tiles => _tiles;
+
+        /// <summary>True se un incontro Enemy/Miniboss e' in attesa di combatti/fuggi. Mentre e' true, TryRevealTile ignora ogni click.</summary>
+        public bool HasPendingEncounter => _pendingEncounterCoord.HasValue;
+
+        /// <summary>Dati della tile dell'incontro pending, null se nessun incontro e' in corso.</summary>
+        public HexTileData PendingEncounterTile =>
+            _pendingEncounterCoord.HasValue && _tiles.TryGetValue(_pendingEncounterCoord.Value, out var tile) ? tile : null;
 
         /// <summary>La griglia è stata generata e tutte le tile sono nello stato iniziale (Sconosciuta, o Conosciuta se adiacenti alla partenza). Setup iniziale o rigenerazione.</summary>
         public event Action GridInitialized;
@@ -85,6 +120,22 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>La reachability è stata ricalcolata: le tile Sconosciuta adiacenti a una Scoperta sono promosse a Conosciuta (IsClickable aggiornato di conseguenza).</summary>
         public event Action ReachabilityChanged;
+
+        /// <summary>
+        /// Click su una tile Enemy/Miniboss: costo movimento gia' applicato, ma la tile NON
+        /// e' ancora Scoperta e il combattimento non e' ancora risolto. Il popup di
+        /// Combattimento deve ascoltare questo evento, mostrare le info nemico (tile.Type,
+        /// tile.DifficultyLevel) e poi chiamare ResolveEncounterFight() o
+        /// ResolveEncounterFlee() in base alla scelta del giocatore.
+        /// </summary>
+        public event Action<HexTileData> EncounterStarted;
+
+        /// <summary>
+        /// L'incontro pending e' stato risolto. wasFought: true se combattuto (tile ora
+        /// Scoperta), false se si e' fuggiti (tile invariata). Il popup deve chiudersi a
+        /// questo evento.
+        /// </summary>
+        public event Action<HexTileData, bool> EncounterResolved;
 
         private void Awake()
         {
@@ -255,22 +306,30 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Tenta di rivelare una tile. Ritorna false se non in griglia o non cliccabile.
-        /// Ordine per click: costo movimento (una volta) → effetto Enemy (danno+XP da
-        /// DifficultyLevel) → HpRestore/FoodRestore/Monete della tessera → cascata Strada
-        /// gratuita se Strada. Eventi pubblicati una sola volta a fine azione.
-        /// PlayerDeathEvent una sola volta se HP arriva a 0.
+        /// Tenta di rivelare una tile. Ritorna false se non in griglia, non cliccabile, o se
+        /// un incontro e' gia' pending. Per Enemy/Miniboss non risolve subito: applica il
+        /// costo movimento e apre un incontro pending (vedi StartEncounter). Per tutti gli
+        /// altri tipi risolve come sempre: costo movimento (una volta) → HpRestore/
+        /// FoodRestore/Monete della tessera → cascata Strada gratuita se Strada. Eventi
+        /// pubblicati una sola volta a fine azione. PlayerDeathEvent una sola volta se HP
+        /// arriva a 0.
         /// </summary>
         public bool TryRevealTile(HexCoord target)
         {
+            if (_pendingEncounterCoord.HasValue) return false;
             if (!_tiles.TryGetValue(target, out var tile)) return false;
             if (!IsClickable(target)) return false;
+
+            if (tile.Type == TileType.Enemy || tile.Type == TileType.Miniboss)
+            {
+                StartEncounter(target, tile);
+                return true;
+            }
 
             tile.State   = TileState.Scoperta;
             _playerCoord = target;
 
             ApplyMovementCost();
-            bool xpGained = ApplyEnemyOutcome(tile);
             AccumulateHp(tile);
             AccumulateFood(tile);
             bool moneteEarned = AccumulateMonete(tile);
@@ -291,6 +350,80 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (moneteEarned)
                 _bus?.Publish(new ScoreChangedEvent());
 
+            if (_context.Lives <= 0)
+            {
+                _feedbackService?.Play("game_over");
+                _bus?.Publish(new PlayerDeathEvent());
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Avvia un incontro Enemy/Miniboss: applica il costo movimento (una tantum, come
+        /// ogni click) ma NON marca la tile Scoperta e NON risolve il combattimento — resta
+        /// in attesa che il popup di Combattimento chiami ResolveEncounterFight/Flee. Non
+        /// tocca _playerCoord: finche' l'incontro e' pending il giocatore non si e' "mosso"
+        /// sulla tile (coerente con la fuga, che la lascia coperta). Se il costo movimento
+        /// stesso azzera gli HP, l'incontro non si apre: si va dritti a PlayerDeathEvent.
+        /// </summary>
+        private void StartEncounter(HexCoord target, HexTileData tile)
+        {
+            ApplyMovementCost();
+            _bus?.Publish(new HpChangedEvent());
+            _bus?.Publish(new FoodChangedEvent());
+            _feedbackService?.Play("hp_changed");
+
+            if (_context.Lives <= 0)
+            {
+                _feedbackService?.Play("game_over");
+                _bus?.Publish(new PlayerDeathEvent());
+                return;
+            }
+
+            _pendingEncounterCoord = target;
+            EncounterStarted?.Invoke(tile);
+        }
+
+        /// <summary>
+        /// Il giocatore ha scelto di combattere l'incontro pending. Risolve come il vecchio
+        /// reveal istantaneo: Scoperta, danno/XP Enemy da DifficultyLevel (no-op per
+        /// Miniboss finche' il suo bilanciamento non e' definito), guadagni della tessera,
+        /// reachability, eventi. Ritorna false se non c'e' nessun incontro pending.
+        /// </summary>
+        public bool ResolveEncounterFight()
+        {
+            if (!_pendingEncounterCoord.HasValue) return false;
+            var target = _pendingEncounterCoord.Value;
+            if (!_tiles.TryGetValue(target, out var tile))
+            {
+                _pendingEncounterCoord = null;
+                return false;
+            }
+
+            _pendingEncounterCoord = null;
+
+            tile.State   = TileState.Scoperta;
+            _playerCoord = target;
+
+            bool xpGained = ApplyEnemyOutcome(tile);
+            AccumulateHp(tile);
+            AccumulateFood(tile);
+            bool moneteEarned = AccumulateMonete(tile);
+
+            RecomputeReachability();
+
+            var neighbors = GetNeighbors(target);
+            TileRevealed?.Invoke(tile, neighbors);
+            EncounterResolved?.Invoke(tile, true);
+
+            _bus?.Publish(new HpChangedEvent());
+            _bus?.Publish(new FoodChangedEvent());
+            _feedbackService?.Play("hp_changed");
+
+            if (moneteEarned)
+                _bus?.Publish(new ScoreChangedEvent());
+
             if (xpGained)
                 _bus?.Publish(new XpChangedEvent());
 
@@ -299,6 +432,35 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 _feedbackService?.Play("game_over");
                 _bus?.Publish(new PlayerDeathEvent());
             }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Il giocatore ha scelto di fuggire dall'incontro pending. Costo fisso
+        /// FleeFoodCost in Cibo, clampato a 0 (mai HP, a differenza del costo movimento
+        /// normale). La tile resta/torna Conosciuta — non e' mai stata marcata Scoperta —
+        /// e _playerCoord non cambia: il giocatore non si e' mai spostato sulla tile.
+        /// L'informazione sul nemico e' persa solo lato UI (il popup si chiude); i dati
+        /// (HexTileData.Type/DifficultyLevel) non cambiano, un nuovo tentativo mostrera' le
+        /// stesse info. Ritorna false se non c'e' nessun incontro pending.
+        /// </summary>
+        public bool ResolveEncounterFlee()
+        {
+            if (!_pendingEncounterCoord.HasValue) return false;
+            var target = _pendingEncounterCoord.Value;
+            if (!_tiles.TryGetValue(target, out var tile))
+            {
+                _pendingEncounterCoord = null;
+                return false;
+            }
+
+            _pendingEncounterCoord = null;
+
+            _context.Food = Mathf.Max(0, _context.Food - FleeFoodCost);
+
+            EncounterResolved?.Invoke(tile, false);
+            _bus?.Publish(new FoodChangedEvent());
 
             return true;
         }
