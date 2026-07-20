@@ -1,6 +1,7 @@
 using hp55games.Mobile.Core.Architecture;
 using hp55games.Mobile.Core.Context;
 using hp55games.Mobile.Core.SceneFlow;
+using hp55games.Mobile.Core.UI;
 using hp55games.Mobile.Core;
 using hp55games.Mobile.UI;
 using TMPro;
@@ -16,7 +17,7 @@ namespace hp55games.Mobile.Game.UI
     /// - Retry -> go back to Gameplay via SceneFlowService.
     /// - Main Menu -> go back to Menu via SceneFlowService.
     /// </summary>
-    public sealed class UIResultsPage : MonoBehaviour
+    public sealed class UIResultsPage : UIPageBase
     {
         [Header("UI")]
         [SerializeField] private UILocalizedText _scoreLabel;
@@ -48,11 +49,8 @@ namespace hp55games.Mobile.Game.UI
 
             UpdateStatusLabel();
 
-            if (_retryButton != null)
-                _retryButton.onClick.AddListener(OnRetryClicked);
-
-            if (_menuButton != null)
-                _menuButton.onClick.AddListener(OnMenuClicked);
+            Bind(_retryButton, OnRetryClicked);
+            Bind(_menuButton, OnMenuClicked);
         }
         
         private void Start()
@@ -88,15 +86,6 @@ namespace hp55games.Mobile.Game.UI
 
             bool lost = _context != null && _context.Lives <= 0;
             _statusLabel.text = lost ? "Hai perso" : "Hai vinto";
-        }
-
-        private void OnDestroy()
-        {
-            if (_retryButton != null)
-                _retryButton.onClick.RemoveListener(OnRetryClicked);
-
-            if (_menuButton != null)
-                _menuButton.onClick.RemoveListener(OnMenuClicked);
         }
 
         private void OnRetryClicked()

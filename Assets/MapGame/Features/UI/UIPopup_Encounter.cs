@@ -1,9 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
-using hp55games.Mobile.Core.Architecture;
+using TMPro;
 using hp55games.Mobile.Core.UI;
 using hp55games.MapGame.Features.Gameplay.HexGrid;
-using TMPro;
 
 namespace hp55games.MapGame.Features.UI
 {
@@ -13,9 +12,9 @@ namespace hp55games.MapGame.Features.UI
     /// tile.Type e tile.DifficultyLevel come placeholder di info nemico (nessun dato
     /// di lore/nome esiste ancora, non aggiungerne). Bottone Combatti chiama
     /// ResolveEncounterFight(), bottone Fuggi chiama ResolveEncounterFlee(); in
-    /// entrambi i casi il popup si chiude subito dopo tramite IUIPopupService.Close.
+    /// entrambi i casi il popup si chiude subito dopo tramite ClosePopup() (UIPopupBase).
     /// </summary>
-    public sealed class UIPopup_Encounter : MonoBehaviour
+    public sealed class UIPopup_Encounter : UIPopupBase
     {
         [Header("Info nemico")]
         [SerializeField] private TextMeshProUGUI _tileTypeLabel;
@@ -27,13 +26,11 @@ namespace hp55games.MapGame.Features.UI
         [SerializeField] private Button _fleeButton;
 
         private HexGridController _grid;
-        private IUIPopupService    _popupService;
 
         /// <summary>Chiamato da EncounterPopupTrigger subito dopo l'istanziazione.</summary>
         public void Open(HexTileData tile, HexGridController grid)
         {
-            _grid         = grid;
-            _popupService = ServiceRegistry.Resolve<IUIPopupService>();
+            _grid = grid;
 
             if (_tileTypeLabel != null)
                 _tileTypeLabel.text = tile.Type.ToString();
@@ -44,28 +41,20 @@ namespace hp55games.MapGame.Features.UI
             // _monsterIcon.sprite resta il placeholder assegnato in Inspector finché non
             // esiste arte per tipo/DifficultyLevel (vedi Asset Inventory in Notion).
 
-            _fightButton.onClick.RemoveAllListeners();
-            _fightButton.onClick.AddListener(OnFightClicked);
-
-            _fleeButton.onClick.RemoveAllListeners();
-            _fleeButton.onClick.AddListener(OnFleeClicked);
+            Bind(_fightButton, OnFightClicked);
+            Bind(_fleeButton, OnFleeClicked);
         }
 
         private void OnFightClicked()
         {
             _grid.ResolveEncounterFight();
-            Close();
+            ClosePopup();
         }
 
         private void OnFleeClicked()
         {
             _grid.ResolveEncounterFlee();
-            Close();
-        }
-
-        private void Close()
-        {
-            _popupService?.Close(gameObject);
+            ClosePopup();
         }
     }
 }

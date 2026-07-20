@@ -2,10 +2,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using hp55games.Mobile.Core.UI;
 
 namespace hp55games.Ui
 {
-    public class UIPopup_Generic : MonoBehaviour
+    public class UIPopup_Generic : UIPopupBase
     {
         public CanvasGroup cg;
         public TMP_Text title;
@@ -16,19 +17,15 @@ namespace hp55games.Ui
         public void Open(string t, string b, System.Action onConfirm, System.Action onCancel = null)
         {
             title.text = t; body.text = b;
-            confirm.onClick.RemoveAllListeners();
-            confirm.onClick.AddListener(() => { onConfirm?.Invoke(); Close(); });
+
+            Bind(confirm, () => { onConfirm?.Invoke(); ClosePopup(); });
             if (cancel != null)
-            {
-                cancel.onClick.RemoveAllListeners();
-                cancel.onClick.AddListener(() => { onCancel?.Invoke(); Close(); });
-            }
+                Bind(cancel, () => { onCancel?.Invoke(); ClosePopup(); });
+
             cg.alpha = 1; cg.blocksRaycasts = true; cg.interactable = true;
         }
 
-        public void Close()
-        {
-            cg.alpha = 0; cg.blocksRaycasts = false; cg.interactable = false;
-        }
+        /// <summary>Wrapper pubblico per compatibilità: chiude sempre passando dal servizio (ClosePopup), non solo abbassando l'alpha come prima.</summary>
+        public void Close() => ClosePopup();
     }
 }
