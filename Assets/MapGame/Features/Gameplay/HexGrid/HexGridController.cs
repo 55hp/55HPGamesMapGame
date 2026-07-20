@@ -37,8 +37,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// Incontro Enemy/Miniboss (2026-07-20, revisione Combat & NPC 2026-07-19): NON piu'
     /// istantaneo. Il click su Enemy/Miniboss applica il costo movimento ma NON marca la
     /// tile Scoperta ne' risolve il combattimento: apre un incontro pending
-    /// (HasPendingEncounter/PendingEncounterTile) e pubblica EncounterStarted. Il popup di
-    /// Combattimento (feature Combattimento) deve poi chiamare ResolveEncounterFight() o
+    /// (HasPendingEncounter/PendingEncounterTile) e pubblica EncounterStartedEvent su
+    /// IEventBus (vedi EncounterEvents.cs). Il popup di Combattimento deve poi chiamare
+    /// ResolveEncounterFight() o
     /// ResolveEncounterFlee(). Mentre un incontro e' pending, TryRevealTile ignora ogni
     /// altro click. Fuga: costo fisso FleeFoodCost in Cibo (clamp a 0, mai HP), la tile
     /// resta/torna Conosciuta (non e' mai stata marcata Scoperta) e il giocatore non si
@@ -121,21 +122,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// <summary>La reachability è stata ricalcolata: le tile Sconosciuta adiacenti a una Scoperta sono promosse a Conosciuta (IsClickable aggiornato di conseguenza).</summary>
         public event Action ReachabilityChanged;
 
-        /// <summary>
-        /// Click su una tile Enemy/Miniboss: costo movimento gia' applicato, ma la tile NON
-        /// e' ancora Scoperta e il combattimento non e' ancora risolto. Il popup di
-        /// Combattimento deve ascoltare questo evento, mostrare le info nemico (tile.Type,
-        /// tile.DifficultyLevel) e poi chiamare ResolveEncounterFight() o
-        /// ResolveEncounterFlee() in base alla scelta del giocatore.
-        /// </summary>
-        public event Action<HexTileData> EncounterStarted;
-
-        /// <summary>
-        /// L'incontro pending e' stato risolto. wasFought: true se combattuto (tile ora
-        /// Scoperta), false se si e' fuggiti (tile invariata). Il popup deve chiudersi a
-        /// questo evento.
-        /// </summary>
-        public event Action<HexTileData, bool> EncounterResolved;
+        // Gli eventi di incontro (EncounterStartedEvent/EncounterResolvedEvent) NON sono
+        // C# event locali come i tre qui sopra: quelli servono al rendering della griglia
+        // (coupling 1:1 con la view), gli incontri sono segnali di gameplay trasversali
+        // consumati da sistemi disaccoppiati (popup UI, in futuro audio/missioni) e
+        // viaggiano su IEventBus come HpChangedEvent/PlayerDeathEvent. Vedi EncounterEvents.cs.
 
         private void Awake()
         {
@@ -228,6 +219,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             int seed = (_context?.CurrentRunSeed != 0) ? _context.CurrentRunSeed : _mapConfig.Seed;
             var result = _mapGenerationService.GenerateMap(_mapConfig, _level, seed);
+
+            // Rigenerazione = nessun incontro può sopravvivere: la coordinata pending
+            // apparterrebbe a una mappa che non esiste più e bloccherebbe ogni click.
+            _pendingEncounterCoord = null;
 
             _tiles.Clear();
             foreach (var kvp in result.Tiles)
@@ -382,7 +377,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
 
             _pendingEncounterCoord = target;
-            EncounterStarted?.Invoke(tile);
+            _bus?.Publish(new EncounterStartedEvent(tile, this));
         }
 
         /// <summary>
@@ -415,7 +410,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             var neighbors = GetNeighbors(target);
             TileRevealed?.Invoke(tile, neighbors);
-            EncounterResolved?.Invoke(tile, true);
+            _bus?.Publish(new EncounterResolvedEvent(tile, wasFought: true));
 
             _bus?.Publish(new HpChangedEvent());
             _bus?.Publish(new FoodChangedEvent());
@@ -459,7 +454,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             _context.Food = Mathf.Max(0, _context.Food - FleeFoodCost);
 
-            EncounterResolved?.Invoke(tile, false);
+            _bus?.Publish(new EncounterResolvedEvent(tile, wasFought: false));
             _bus?.Publish(new FoodChangedEvent());
 
             return true;
