@@ -1,8 +1,11 @@
 using System;
+using System.Threading.Tasks;
 using hp55games.MapGame.Features.Gameplay.HexGrid;
+using hp55games.Mobile.Core;
 using hp55games.Mobile.Core.Architecture;
 using hp55games.Mobile.Core.Context;
 using hp55games.Mobile.Core.Gameplay.Events;
+using hp55games.Mobile.Core.UI;
 using UnityEngine;
 
 namespace hp55games.MapGame.Features.UI
@@ -12,9 +15,8 @@ namespace hp55games.MapGame.Features.UI
     /// Pensato per il playtest e il bilanciamento, non per la build finale.
     ///
     /// Volutamente in OnGUI e non su Canvas/TMP: nessun prefab da costruire, nessun campo da
-    /// assegnare in Inspector, nessuna dipendenza da TextMeshPro (Game.Features non
-    /// referenzia l'assembly TMP). Basta aggiungere questo componente a un GameObject
-    /// qualsiasi della scena di gameplay e i valori compaiono a schermo.
+    /// assegnare in Inspector. Basta aggiungere questo componente a un GameObject qualsiasi
+    /// della scena di gameplay e i valori compaiono a schermo.
     ///
     /// Puo' convivere con MapGameGameplayHud (icone) — leggono entrambi lo stesso
     /// IGameContextService, non si disturbano. Tienili entrambi attivi per verificare che le
@@ -25,6 +27,11 @@ namespace hp55games.MapGame.Features.UI
     /// contarli: se un contatore non sale quando il valore cambia, il bug e' nella
     /// pubblicazione dell'evento, non nella logica di gioco. E' la ragione principale per cui
     /// questo HUD e' utile in debug.
+    ///
+    /// 2026-07-20 (Economia + Win Condition): XP/Livello rimossi insieme al bottone level
+    /// up. Al loro posto: cap runtime HP/Cibo accanto ai correnti, contatore Victory, e un
+    /// bottone SHOP di debug che apre UIPopup_Shop (stesso popup della UI reale, cosi' il
+    /// flusso acquisti e' testabile prima che esista un ingresso di gioco allo shop).
     /// </summary>
     public sealed class MapGameGameplayHud_Test : MonoBehaviour
     {
@@ -33,9 +40,9 @@ namespace hp55games.MapGame.Features.UI
         [SerializeField] private int _fontSize = 22;
         [SerializeField] private bool _showEventCounters = true;
 
-        [Header("Level up")]
-        [Tooltip("Mostra un bottone di debug che chiama HexGridController.TryLevelUp().")]
-        [SerializeField] private bool _showLevelUpButton = true;
+        [Header("Shop (debug)")]
+        [Tooltip("Mostra un bottone di debug che apre il popup dello shop.")]
+        [SerializeField] private bool _showShopButton = true;
         [Tooltip("Opzionale: se vuoto, viene cercato in scena con FindObjectOfType.")]
         [SerializeField] private HexGridController _grid;
 
@@ -44,17 +51,17 @@ namespace hp55games.MapGame.Features.UI
 
         private IDisposable _hpSub;
         private IDisposable _foodSub;
-        private IDisposable _xpSub;
         private IDisposable _scoreSub;
         private IDisposable _deathSub;
+        private IDisposable _victorySub;
 
         private int _hpEvents;
         private int _foodEvents;
-        private int _xpEvents;
         private int _scoreEvents;
         private int _deathEvents;
+        private int _victoryEvents;
 
-        private string _lastLevelUpResult = "-";
+        private bool _shopOpening;
         private GUIStyle _style;
 
         private void Awake()
@@ -67,11 +74,11 @@ namespace hp55games.MapGame.Features.UI
 
             if (_bus != null)
             {
-                _hpSub    = _bus.Subscribe<HpChangedEvent>(_    => _hpEvents++);
-                _foodSub  = _bus.Subscribe<FoodChangedEvent>(_  => _foodEvents++);
-                _xpSub    = _bus.Subscribe<XpChangedEvent>(_    => _xpEvents++);
-                _scoreSub = _bus.Subscribe<ScoreChangedEvent>(_ => _scoreEvents++);
-                _deathSub = _bus.Subscribe<PlayerDeathEvent>(_  => _deathEvents++);
+                _hpSub      = _bus.Subscribe<HpChangedEvent>(_      => _hpEvents++);
+                _foodSub    = _bus.Subscribe<FoodChangedEvent>(_    => _foodEvents++);
+                _scoreSub   = _bus.Subscribe<ScoreChangedEvent>(_   => _scoreEvents++);
+                _deathSub   = _bus.Subscribe<PlayerDeathEvent>(_    => _deathEvents++);
+                _victorySub = _bus.Subscribe<PlayerVictoryEvent>(_  => _victoryEvents++);
             }
         }
 
@@ -79,9 +86,9 @@ namespace hp55games.MapGame.Features.UI
         {
             _hpSub?.Dispose();
             _foodSub?.Dispose();
-            _xpSub?.Dispose();
             _scoreSub?.Dispose();
             _deathSub?.Dispose();
+            _victorySub?.Dispose();
         }
 
         private void OnGUI()
@@ -109,11 +116,12 @@ namespace hp55games.MapGame.Features.UI
                 return;
             }
 
+            string hpCap   = _grid != null ? $" / {_grid.CurrentMaxHp}" : "";
+            string foodCap = _grid != null ? $" / {_grid.CurrentMaxFood}" : "";
+
             GUILayout.Label("<b>[HUD TEST]</b>", _style);
-            GUILayout.Label($"HP      : {_context.Lives}", _style);
-            GUILayout.Label($"Cibo    : {_context.Food}", _style);
-            GUILayout.Label($"XP      : {_context.Xp} / {HexGridController.XpPerLevel}", _style);
-            GUILayout.Label($"Livello : {_context.Level}", _style);
+            GUILayout.Label($"HP      : {_context.Lives}{hpCap}", _style);
+            GUILayout.Label($"Cibo    : {_context.Food}{foodCap}", _style);
             GUILayout.Label($"Monete  : {_context.Score}", _style);
             GUILayout.Label($"Seed    : {_context.CurrentRunSeed}", _style);
 
@@ -121,35 +129,54 @@ namespace hp55games.MapGame.Features.UI
             {
                 GUILayout.Space(6f);
                 GUILayout.Label("<b>Eventi pubblicati</b>", _style);
-                GUILayout.Label($"Hp {_hpEvents}  Food {_foodEvents}  Xp {_xpEvents}  Score {_scoreEvents}  Death {_deathEvents}", _style);
+                GUILayout.Label($"Hp {_hpEvents}  Food {_foodEvents}  Score {_scoreEvents}  Death {_deathEvents}  Victory {_victoryEvents}", _style);
             }
 
-            if (_showLevelUpButton)
+            if (_showShopButton)
             {
                 GUILayout.Space(6f);
 
                 if (_grid == null)
                 {
-                    GUILayout.Label("HexGridController non trovato: level up non disponibile.", _style);
+                    GUILayout.Label("HexGridController non trovato: shop non disponibile.", _style);
                 }
                 else
                 {
-                    bool ready = _context.Xp >= HexGridController.XpPerLevel;
-                    GUI.enabled = ready;
-
-                    string label = ready
-                        ? "LEVEL UP"
-                        : $"LEVEL UP (servono {HexGridController.XpPerLevel - _context.Xp} XP)";
-
-                    if (GUILayout.Button(label, GUILayout.Height(_fontSize * 2f), GUILayout.Width(320f)))
-                        _lastLevelUpResult = _grid.TryLevelUp() ? "riuscito" : "rifiutato";
-
+                    GUI.enabled = !_shopOpening;
+                    if (GUILayout.Button("SHOP", GUILayout.Height(_fontSize * 2f), GUILayout.Width(320f)))
+                        AsyncUtils.FireAndForget(OpenShopAsync(), context: nameof(MapGameGameplayHud_Test));
                     GUI.enabled = true;
-                    GUILayout.Label($"Ultimo tentativo: {_lastLevelUpResult}", _style);
                 }
             }
 
             GUILayout.EndArea();
+        }
+
+        private async Task OpenShopAsync()
+        {
+            // Guard contro doppio click mentre l'istanza Addressable sta caricando.
+            _shopOpening = true;
+            try
+            {
+                if (!ServiceRegistry.TryResolve<IUIPopupService>(out var popupService))
+                {
+                    Debug.LogError("[HUD TEST] IUIPopupService non risolto: shop non apribile.");
+                    return;
+                }
+
+                var popup = await popupService.OpenAsync<UIPopup_Shop>(Addr.Content.UI.Popups.Popup_Shop);
+                if (popup == null)
+                {
+                    Debug.LogError("[HUD TEST] Impossibile aprire UIPopup_Shop (address non registrato o Addressables non buildate).");
+                    return;
+                }
+
+                popup.Open(_grid);
+            }
+            finally
+            {
+                _shopOpening = false;
+            }
         }
     }
 }

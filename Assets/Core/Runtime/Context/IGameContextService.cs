@@ -37,21 +37,7 @@ namespace hp55games.Mobile.Core.Context
         int Food { get; set; }
 
         /// <summary>
-        /// Punti esperienza correnti del personaggio per questa run (0 = nessuno).
-        /// Reintrodotto 2026-07-17. Guadagnati sconfiggendo Enemy (XP = DifficultyLevel del
-        /// nemico), cappati a HexGridController.XpPerLevel; l'eccesso è perso. Il level up
-        /// esplicito (HexGridController.TryLevelUp) li riporta a 0.
-        /// </summary>
-        int Xp { get; set; }
-
-        /// <summary>
-        /// Livello corrente del personaggio (parte da 1). Ogni level up: +1 e alza il cap
-        /// runtime di HP (sempre) e di Cibo (ogni 4 livelli). Vedi HexGridController.
-        /// </summary>
-        int Level { get; set; }
-
-        /// <summary>
-        /// Resets all run-related transient data (score, lives, food, xp, character level, seed).
+        /// Resets all run-related transient data (score, lives, food, seed).
         /// Does NOT touch ProfileId or IsDebug.
         /// </summary>
         void ResetRun();

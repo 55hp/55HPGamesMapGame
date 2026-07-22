@@ -18,8 +18,9 @@ namespace hp55games.Mobile.Core.Architecture.States
     /// dello stato (sia al primo Enter sia dopo un resume da Pause, non solo al primo
     /// avvio — per questo la subscribe/unsubscribe sta fuori dal blocco "prima volta")
     /// e passa a Results via ISceneFlowService.GoToResultsAsync() quando l'HP arriva a 0.
-    /// Nessuna condizione di vittoria ancora wired: raggiungere la tile Boss non fa
-    /// succedere nulla oggi, vedi HexTileData.IsObjective (non consumato da nessuno).
+    /// Win condition (2026-07-20): stessa meccanica con PlayerVictoryEvent, pubblicato al
+    /// reveal della tile IsObjective da vivi. UIResultsPage distingue i due esiti
+    /// inferendo da Lives (0 = sconfitta, > 0 = vittoria).
     /// </summary>
     public sealed class GameplayState : IGameState
     {
@@ -28,6 +29,7 @@ namespace hp55games.Mobile.Core.Architecture.States
         private IEventBus _bus;
         private ISceneFlowService _sceneFlow;
         private IDisposable _deathSub;
+        private IDisposable _victorySub;
 
         public GameplayState(bool isResuming = false)
         {
@@ -42,7 +44,8 @@ namespace hp55games.Mobile.Core.Architecture.States
             // Pause, altrimenti morire subito dopo aver messo pausa non farebbe nulla.
             _bus = ServiceRegistry.Resolve<IEventBus>();
             ServiceRegistry.TryResolve<ISceneFlowService>(out _sceneFlow);
-            _deathSub = _bus?.Subscribe<PlayerDeathEvent>(OnPlayerDeath);
+            _deathSub   = _bus?.Subscribe<PlayerDeathEvent>(OnPlayerDeath);
+            _victorySub = _bus?.Subscribe<PlayerVictoryEvent>(OnPlayerVictory);
 
             if (!_isResuming)
             {
@@ -75,6 +78,9 @@ namespace hp55games.Mobile.Core.Architecture.States
             _deathSub?.Dispose();
             _deathSub = null;
 
+            _victorySub?.Dispose();
+            _victorySub = null;
+
             // Optional cleanup (HUD, listeners, etc.)
             await Task.Yield();
         }
@@ -87,9 +93,19 @@ namespace hp55games.Mobile.Core.Architecture.States
         /// </summary>
         private void OnPlayerDeath(PlayerDeathEvent _)
         {
+            GoToResults("PlayerDeathEvent");
+        }
+
+        private void OnPlayerVictory(PlayerVictoryEvent _)
+        {
+            GoToResults("PlayerVictoryEvent");
+        }
+
+        private void GoToResults(string reason)
+        {
             if (_sceneFlow == null)
             {
-                Debug.LogWarning("[GameplayState] PlayerDeathEvent ricevuto ma ISceneFlowService non disponibile, nessuna transizione.");
+                Debug.LogWarning($"[GameplayState] {reason} ricevuto ma ISceneFlowService non disponibile, nessuna transizione.");
                 return;
             }
 

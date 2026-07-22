@@ -16,8 +16,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     ///
     /// HP correnti: _context.Lives (clamped 0.._currentMaxHp).
     /// Cibo corrente: _context.Food (clamped 0.._currentMaxFood).
-    /// Monete correnti: _context.Score (in pausa: nessun tipo assegna Monete per ora).
-    /// XP corrente: _context.Xp (0..XpPerLevel). Livello: _context.Level (parte da 1).
+    /// Monete correnti: _context.Score — unica valuta di progressione (Economia 2026-07-20).
     ///
     /// Configurazione: nessun config serializzato in scena. In Awake risolve
     /// IConfigCatalogService e pesca MapGenerationConfig, SurvivalConfig e il LevelConfig
@@ -46,27 +45,24 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// sposta — "l'informazione va persa" e' un fatto di UI (popup chiuso), non di dati
     /// (HexTileData non cambia, un nuovo tentativo mostra le stesse info).
     ///
-    /// Effetto Enemy al combattimento: HP -= DifficultyLevel e XP += DifficultyLevel
-    /// (cappato a XpPerLevel, l'eccesso e' perso). No-op per Miniboss finche' il suo
-    /// bilanciamento non e' definito (vedi Combattimento, backlog). Applicato in
+    /// Effetto Enemy al combattimento: HP -= DifficultyLevel (nessuna ricompensa: XP
+    /// rimosso 2026-07-20, ricompensa in Monete da definire — vedi Franci Tasks). No-op per
+    /// Miniboss finche' il suo bilanciamento non e' definito. Applicato in
     /// ResolveEncounterFight, non in generazione, perche' il DifficultyLevel finale e'
     /// noto solo dopo ResolveDifficulty.
     ///
-    /// Level up (TryLevelUp): esplicito, non automatico. Serve XP == XpPerLevel; a ogni
-    /// level up: Livello +1, cap HP +1 sempre, cap Cibo +1 ogni 4 livelli, HP rifornito al
-    /// nuovo cap, XP azzerato.
+    /// Economia (2026-07-20): la progressione passa da Monete (_context.Score) e dallo shop
+    /// — vedi la sezione Shop in fondo (TryBuyMaxHpUpgrade/FoodSlotUpgrade/Heal/FoodRefill,
+    /// prezzi in EconomyConfig). XP/Livello rimossi.
+    ///
+    /// Win Condition (2026-07-20): rivelare la tile IsObjective da vivi pubblica
+    /// PlayerVictoryEvent; la morte nello stesso click prevale.
     ///
     /// Inizializzazione avviene in OnGameStarted (GameStartedEvent), non in BuildGrid, per
     /// evitare la race con GameplayState.ResetRun(). Fallback in Start() per standalone.
     /// </summary>
     public sealed class HexGridController : MonoBehaviour
     {
-        /// <summary>XP necessari per un level up. L'XP si cappa qui; l'eccesso è perso.</summary>
-        public const int XpPerLevel = 10;
-
-        /// <summary>Ogni quanti livelli il level up concede +1 al cap del Cibo.</summary>
-        private const int FoodSlotEveryLevels = 4;
-
         /// <summary>
         /// Costo fisso in Cibo per fuggire da un incontro Enemy/Miniboss pending. Valore di
         /// design confermato 2026-07-19, distinto da FoodCostPerClick/NoFoodHpPenalty
@@ -86,11 +82,21 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private MapGenerationConfig _mapConfig;
         private SurvivalConfig      _survival;
         private LevelConfig         _level;
+        private EconomyConfig       _economy;
 
-        // Cap runtime della run, inizializzati dalla baseline SurvivalConfig e alzati dal
-        // level up. Non modificano mai l'asset SurvivalConfig.
+        // Cap runtime della run, inizializzati dalla baseline SurvivalConfig e alzati dai
+        // potenziamenti dello shop. Non modificano mai l'asset SurvivalConfig.
         private int _currentMaxHp;
         private int _currentMaxFood;
+
+        /// <summary>Cap HP corrente della run (baseline SurvivalConfig + potenziamenti acquistati).</summary>
+        public int CurrentMaxHp => _currentMaxHp;
+
+        /// <summary>Cap Cibo corrente della run (baseline SurvivalConfig + potenziamenti acquistati).</summary>
+        public int CurrentMaxFood => _currentMaxFood;
+
+        /// <summary>Monete correnti della run (facciata su _context.Score per la UI dello shop).</summary>
+        public int CurrentMonete => _context?.Score ?? 0;
 
         private readonly Dictionary<HexCoord, HexTileData> _tiles = new();
         private HexCoord _playerCoord;
@@ -143,6 +149,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _mapConfig = _configs.Get<MapGenerationConfig>();
             _survival  = _configs.Get<SurvivalConfig>();
             _level     = _configs.Get<LevelConfig>();
+            _economy   = _configs.Get<EconomyConfig>();
 
             BuildGrid();
         }
@@ -190,13 +197,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _context.Lives = _survival.StartHp;
             _context.Food  = _survival.StartFood;
             _context.Score = 0;
-            _context.Xp    = 0;
-            _context.Level = 1;
 
             _bus?.Publish(new HpChangedEvent());
             _bus?.Publish(new FoodChangedEvent());
             _bus?.Publish(new ScoreChangedEvent());
-            _bus?.Publish(new XpChangedEvent());
         }
 
         /// <summary>
@@ -350,6 +354,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 _feedbackService?.Play("game_over");
                 _bus?.Publish(new PlayerDeathEvent());
             }
+            else if (tile.IsObjective)
+            {
+                // Win Condition (2026-07-20): rivelare la tile obiettivo (Boss, IsObjective
+                // da generazione) da vivi = vittoria. La morte prevale: se il costo movimento
+                // dell'ultimo click azzera gli HP proprio sull'obiettivo, e' una sconfitta.
+                // UIResultsPage inferisce vittoria da Lives > 0, coerente con questa regola.
+                _feedbackService?.Play("victory");
+                _bus?.Publish(new PlayerVictoryEvent());
+            }
 
             return true;
         }
@@ -382,9 +395,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Il giocatore ha scelto di combattere l'incontro pending. Risolve come il vecchio
-        /// reveal istantaneo: Scoperta, danno/XP Enemy da DifficultyLevel (no-op per
-        /// Miniboss finche' il suo bilanciamento non e' definito), guadagni della tessera,
+        /// reveal istantaneo: Scoperta, danno Enemy da DifficultyLevel (no-op per Miniboss
+        /// finche' il suo bilanciamento non e' definito), guadagni della tessera,
         /// reachability, eventi. Ritorna false se non c'e' nessun incontro pending.
+        /// Ricompensa del combattimento: nessuna per ora — l'XP e' stato rimosso (Economia,
+        /// 2026-07-20) e la ricompensa in Monete e' una decisione di design aperta (vedi
+        /// Franci Tasks).
         /// </summary>
         public bool ResolveEncounterFight()
         {
@@ -401,7 +417,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             tile.State   = TileState.Scoperta;
             _playerCoord = target;
 
-            bool xpGained = ApplyEnemyOutcome(tile);
+            ApplyEnemyDamage(tile);
             AccumulateHp(tile);
             AccumulateFood(tile);
             bool moneteEarned = AccumulateMonete(tile);
@@ -419,13 +435,18 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (moneteEarned)
                 _bus?.Publish(new ScoreChangedEvent());
 
-            if (xpGained)
-                _bus?.Publish(new XpChangedEvent());
-
             if (_context.Lives <= 0)
             {
                 _feedbackService?.Play("game_over");
                 _bus?.Publish(new PlayerDeathEvent());
+            }
+            else if (tile.IsObjective)
+            {
+                // Stessa regola di TryRevealTile: l'obiettivo oggi non passa da qui (Boss
+                // non e' nel ramo encounter), ma se in futuro il Boss diventera' un
+                // incontro, la vittoria post-combattimento e' gia' coperta. Morte prevale.
+                _feedbackService?.Play("victory");
+                _bus?.Publish(new PlayerVictoryEvent());
             }
 
             return true;
@@ -461,23 +482,19 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Effetto Enemy: perdita HP pari al DifficultyLevel della tessera e guadagno XP
-        /// pari allo stesso valore (cappato a XpPerLevel, eccesso perso). No-op per i tipi
-        /// non-Enemy. Ritorna true se l'XP è cambiato (per pubblicare XpChangedEvent).
-        /// Non pubblica eventi direttamente — il publish è centralizzato in TryRevealTile.
+        /// Effetto Enemy: perdita HP pari al DifficultyLevel della tessera. No-op per i tipi
+        /// non-Enemy (Miniboss: bilanciamento non definito, vedi backlog). L'XP e' stato
+        /// rimosso (Economia, 2026-07-20): la progressione passa dalle Monete e dallo shop.
+        /// Non pubblica eventi — il publish e' centralizzato nel chiamante.
         /// </summary>
-        private bool ApplyEnemyOutcome(HexTileData tile)
+        private void ApplyEnemyDamage(HexTileData tile)
         {
-            if (tile.Type != TileType.Enemy) return false;
+            if (tile.Type != TileType.Enemy) return;
 
             int level = Mathf.Max(0, tile.DifficultyLevel);
-            if (level <= 0) return false;
+            if (level <= 0) return;
 
             _context.Lives = Mathf.Clamp(_context.Lives - level, 0, _currentMaxHp);
-
-            int before = _context.Xp;
-            _context.Xp = Mathf.Min(_context.Xp + level, XpPerLevel);
-            return _context.Xp != before;
         }
 
         /// <summary>
@@ -510,34 +527,80 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             return true;
         }
 
-        /// <summary>
-        /// Level up esplicito. Richiede XP == XpPerLevel; altrimenti ritorna false senza
-        /// fare nulla (pensato per essere invocato da un bottone UI che si attiva solo
-        /// quando l'XP è pieno). A ogni level up riuscito: Livello +1, cap HP +1 sempre,
-        /// cap Cibo +1 ogni FoodSlotEveryLevels livelli, HP rifornito al nuovo cap, XP
-        /// azzerato. Pubblica gli eventi rilevanti.
-        /// </summary>
-        public bool TryLevelUp()
+        // ------------------------- Shop (Economia, 2026-07-20) -------------------------
+        // Potenziamenti diretti acquistabili in Monete (_context.Score), ricomprabili nella
+        // stessa run. Sostituiscono il level up XP (rimosso). Prezzi ed entita' degli
+        // effetti in EconomyConfig (bilanciamento in editor, mai hardcoded qui).
+        // ATK/DEF/chiavi/vision boost: deferiti, i sistemi che li consumano non esistono
+        // ancora (Combattimento / Knowledge). Ogni TryBuy ritorna false senza effetti se
+        // le Monete non bastano o l'acquisto sarebbe inutile (es. cura a HP pieni).
+
+        /// <summary>Alza il cap HP della run di EconomyConfig.MaxHpUpgradeAmount (le Monete lo consentono sempre: mai "inutile").</summary>
+        public bool TryBuyMaxHpUpgrade()
         {
-            if (_context.Xp < XpPerLevel) return false;
+            if (!CanSpend(_economy?.MaxHpUpgradeCost)) return false;
 
-            _context.Level += 1;
-            _currentMaxHp  += 1;
+            Spend(_economy.MaxHpUpgradeCost);
+            _currentMaxHp += _economy.MaxHpUpgradeAmount;
 
-            bool foodCapRaised = (_context.Level % FoodSlotEveryLevels) == 0;
-            if (foodCapRaised)
-                _currentMaxFood += 1;
-
-            _context.Lives = _currentMaxHp; // refill completo al nuovo cap
-            _context.Xp    = 0;
-
-            _bus?.Publish(new HpChangedEvent());
-            if (foodCapRaised)
-                _bus?.Publish(new FoodChangedEvent());
-            _bus?.Publish(new XpChangedEvent());
-
+            _bus?.Publish(new ScoreChangedEvent());
+            _bus?.Publish(new HpChangedEvent()); // il cap e' cambiato, la UI degli stack deve saperlo
             return true;
         }
+
+        /// <summary>Alza il cap Cibo della run di EconomyConfig.FoodSlotUpgradeAmount.</summary>
+        public bool TryBuyFoodSlotUpgrade()
+        {
+            if (!CanSpend(_economy?.FoodSlotUpgradeCost)) return false;
+
+            Spend(_economy.FoodSlotUpgradeCost);
+            _currentMaxFood += _economy.FoodSlotUpgradeAmount;
+
+            _bus?.Publish(new ScoreChangedEvent());
+            _bus?.Publish(new FoodChangedEvent());
+            return true;
+        }
+
+        /// <summary>Cura EconomyConfig.HealAmount HP (clamp al cap). Rifiutato a HP gia' pieni.</summary>
+        public bool TryBuyHeal()
+        {
+            if (_context.Lives >= _currentMaxHp) return false;
+            if (!CanSpend(_economy?.HealCost)) return false;
+
+            Spend(_economy.HealCost);
+            _context.Lives = Mathf.Clamp(_context.Lives + _economy.HealAmount, 0, _currentMaxHp);
+
+            _bus?.Publish(new ScoreChangedEvent());
+            _bus?.Publish(new HpChangedEvent());
+            return true;
+        }
+
+        /// <summary>Aggiunge EconomyConfig.FoodRefillAmount Cibo (clamp al cap). Rifiutato a Cibo gia' pieno.</summary>
+        public bool TryBuyFoodRefill()
+        {
+            if (_context.Food >= _currentMaxFood) return false;
+            if (!CanSpend(_economy?.FoodRefillCost)) return false;
+
+            Spend(_economy.FoodRefillCost);
+            _context.Food = Mathf.Clamp(_context.Food + _economy.FoodRefillAmount, 0, _currentMaxFood);
+
+            _bus?.Publish(new ScoreChangedEvent());
+            _bus?.Publish(new FoodChangedEvent());
+            return true;
+        }
+
+        /// <summary>null-safe: false se EconomyConfig manca dal catalogo o le Monete non bastano.</summary>
+        private bool CanSpend(int? cost)
+        {
+            if (!cost.HasValue)
+            {
+                Debug.LogError("[HexGridController] EconomyConfig non risolto dal catalogo: acquisto rifiutato.", this);
+                return false;
+            }
+            return _context.Score >= cost.Value;
+        }
+
+        private void Spend(int cost) => _context.Score -= cost;
 
         /// <summary>
         /// BFS flood-fill: rivela tutte le tile Strada non ancora Scoperta connesse, senza

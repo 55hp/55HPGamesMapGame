@@ -21,6 +21,7 @@ namespace hp55games
                     public const string Popup_Generic = "content/ui/popup_generic";
                     public const string Popup_Pause = "content/ui/popups/pause";
                     public const string Popup_Encounter = "content/ui/popups/encounter";
+                    public const string Popup_Shop = "content/ui/popups/shop";
                 }
                 
                 public static class Pages
