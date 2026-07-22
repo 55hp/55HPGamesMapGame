@@ -38,7 +38,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 70d3de966246b7344880cefb60ed4cde
-    m_Address: Assets/Content/UI/Popups/UIPopup_Shop.prefab
+    m_Address: content/ui/popups/shop
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
