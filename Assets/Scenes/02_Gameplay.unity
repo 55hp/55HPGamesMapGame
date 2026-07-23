@@ -365,7 +365,7 @@ MonoBehaviour:
   _screenOffset: {x: 10, y: 10}
   _fontSize: 22
   _showEventCounters: 1
-  _showLevelUpButton: 1
+  _showShopButton: 1
   _grid: {fileID: 1567416454}
 --- !u!4 &673627814
 Transform:
@@ -480,6 +480,71 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &901606353
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 901606354}
+  - component: {fileID: 901606356}
+  - component: {fileID: 901606355}
+  m_Layer: 0
+  m_Name: Victory_Feedback
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &901606354
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 901606353}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1504290696}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &901606355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 901606353}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04730cb62c402844ab2e0f969639fe56, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _startDelay: 0
+  _clip: {fileID: 8300000, guid: 08ff34bc0c776174b8c5d81df4fec5a1, type: 3}
+  _volume: 0.801
+  _pitchVariation: 0
+--- !u!114 &901606356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 901606353}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da64cb66432d6744ea4daf78b4320d10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _feedbacks:
+  - {fileID: 901606356}
+  _selfRegisterOnStart: 0
+  _registrationId: victory
 --- !u!1001 &1296107419
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -603,7 +668,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1504290696
 Transform:
   m_ObjectHideFlags: 0
@@ -618,6 +683,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 538140945}
+  - {fileID: 901606354}
   - {fileID: 56808534}
   - {fileID: 237044239}
   m_Father: {fileID: 0}
