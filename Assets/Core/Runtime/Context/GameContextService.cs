@@ -16,6 +16,10 @@ namespace hp55games.Mobile.Core.Context
         public int Lives { get; set; } = -1; // -1 = "no lives system" by default
         public int Food  { get; set; } = -1; // -1 = "no food system" by default
 
+        public bool HasKeyDL4 { get; set; }
+        public bool HasKeyDL5 { get; set; }
+        public bool HasKeyDL6 { get; set; }
+
         public void ResetRun()
         {
             CurrentLevelId = null;
@@ -23,6 +27,9 @@ namespace hp55games.Mobile.Core.Context
             Score          = 0;
             Lives          = -1;
             Food           = -1;
+            HasKeyDL4      = false;
+            HasKeyDL5      = false;
+            HasKeyDL6      = false;
         }
     }
 }

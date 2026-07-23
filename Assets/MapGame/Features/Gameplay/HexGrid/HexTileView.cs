@@ -35,20 +35,20 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Aggiorna lo sprite del background in base allo stato di conoscenza.
-        /// Sconosciuta → nuvole (nessuna informazione).
-        /// Conosciuta e Scoperta → arte del bioma. Il background NON cambia mai al
-        /// reveal: l'ambiente è il sistema di hint e resta lo stesso prima e dopo aver
-        /// giocato l'evento.
+        /// Aggiorna lo sprite del background in base a SpottingState.
+        /// Unspotted → nuvole (nessuna informazione).
+        /// Spotted → arte del bioma (copre sia il vecchio Conosciuta che Scoperta). Il
+        /// background NON cambia mai al reveal (ExplorationState non serve qui): l'ambiente
+        /// è il sistema di hint e resta lo stesso prima e dopo aver giocato l'evento.
         /// </summary>
-        public void ApplyState(TileState state)
+        public void ApplyState(SpottingState spotting)
         {
             if (_background == null || _visualConfig == null) return;
 
-            _background.sprite = state switch
+            _background.sprite = spotting switch
             {
-                TileState.Sconosciuta => _visualConfig.SconosciutaSprite,
-                _                     => _visualConfig.ConosciutaSprite,
+                SpottingState.Unspotted => _visualConfig.SconosciutaSprite,
+                _                       => _visualConfig.ConosciutaSprite,
             };
 
             _icon?.gameObject.SetActive(false);

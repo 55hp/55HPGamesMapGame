@@ -673,8 +673,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         private void RevealInitialTiles(HexTileData startTile, HexTileData endTile)
         {
-            startTile.State = TileState.Scoperta;
-            endTile.State   = TileState.Conosciuta;
+            startTile.Exploration = ExplorationState.Explored; startTile.Spotting = SpottingState.Spotted;
+            endTile.Exploration = ExplorationState.Unexplored; endTile.Spotting = SpottingState.Spotted;
         }
     }
 }

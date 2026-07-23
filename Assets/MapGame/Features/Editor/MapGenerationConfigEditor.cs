@@ -39,12 +39,12 @@ namespace hp55games.MapGame.Editor
         //   Scoperta = full (content resolved), Conosciuta = dimmed (position known, content pending),
         //   Sconosciuta = very dark (no information). Editor shows raw generator output before reveal.
 
-        private static float StateAlpha(TileState s) => s switch
+        private static float StateAlpha(ExplorationState exploration, SpottingState spotting) => (exploration, spotting) switch
         {
-            TileState.Scoperta    => 1.00f,
-            TileState.Conosciuta  => 0.55f,
-            TileState.Sconosciuta => 0.18f,
-            _                     => 1.00f,
+            (ExplorationState.Explored,   SpottingState.Spotted)   => 1.00f, // ex TileState.Scoperta
+            (ExplorationState.Unexplored, SpottingState.Spotted)   => 0.55f, // ex TileState.Conosciuta
+            (ExplorationState.Unexplored, SpottingState.Unspotted) => 0.18f, // ex TileState.Sconosciuta
+            _                                                       => 1.00f, // Explored+Unspotted: non dovrebbe mai accadere (il reveal marca sempre entrambi gli assi insieme), fallback come nell'originale
         };
 
         // ── State ────────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ namespace hp55games.MapGame.Editor
                 float y = area.y + row * stride + yOffset + 2f;
 
                 Color baseColor = TileColors.TryGetValue(tile.Type, out var c) ? c : Color.white;
-                float alpha     = StateAlpha(tile.State);
+                float alpha     = StateAlpha(tile.Exploration,tile.Spotting);
                 EditorGUI.DrawRect(new Rect(x, y, CellPx, CellPx), baseColor * alpha);
 
                 // Start tile: white inner dot. End/Boss tile: black inner dot.

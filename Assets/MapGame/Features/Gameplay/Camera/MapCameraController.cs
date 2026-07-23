@@ -120,7 +120,7 @@ namespace hp55games.MapGame.Features.Gameplay.CameraControl
 
             foreach (var (coord, data) in _grid.Tiles)
             {
-                if (data.State != TileState.Scoperta) continue;
+                if (!(data.Exploration == ExplorationState.Explored && data.Spotting == SpottingState.Spotted)) continue;
 
                 Vector3 p = _spawner.GetWorldPosition(coord);
                 if (p.x < min.x) min.x = p.x;

@@ -10,10 +10,22 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     ///                "known via design/mission brief" (e.g. the End/objective tile).
     /// Scoperta     — content resolved; the player has interacted with this tile.
     /// </summary>
-    public enum TileState
+    //public enum TileState
+    //{
+    //    Sconosciuta, // ExplorationState.Unexplored && TileKnowledgeState.Unspotted
+    //    Conosciuta, // ExplorationState.Unexplored && TileKnowledgeState.Unspotted
+    //    Scoperta, // ExplorationState.Explored && TileKnowledgeState.Spotted
+    //}
+    
+    public enum ExplorationState
     {
-        Sconosciuta,
-        Conosciuta,
-        Scoperta,
+        Unexplored,
+        Explored
+    }
+
+    public enum SpottingState
+    {
+        Unspotted,
+        Spotted
     }
 }

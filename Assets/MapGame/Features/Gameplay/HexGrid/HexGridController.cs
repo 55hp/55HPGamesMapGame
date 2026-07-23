@@ -40,10 +40,19 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// IEventBus (vedi EncounterEvents.cs). Il popup di Combattimento deve poi chiamare
     /// ResolveEncounterFight() o
     /// ResolveEncounterFlee(). Mentre un incontro e' pending, TryRevealTile ignora ogni
-    /// altro click. Fuga: costo fisso FleeFoodCost in Cibo (clamp a 0, mai HP), la tile
-    /// resta/torna Conosciuta (non e' mai stata marcata Scoperta) e il giocatore non si
-    /// sposta — "l'informazione va persa" e' un fatto di UI (popup chiuso), non di dati
-    /// (HexTileData non cambia, un nuovo tentativo mostra le stesse info).
+    /// altro click. Fuga (revisione 2026-07-23): richiede Cibo >= FleeFoodCost — CanFlee
+    /// espone il gate alla UI (bottone disabilitato), ResolveEncounterFlee lo rifiuta come
+    /// difesa in profondita'. Con Cibo insufficiente l'unica opzione e' combattere. A fuga
+    /// riuscita la tile resta/torna Conosciuta (non e' mai stata marcata Scoperta) e il
+    /// giocatore non si sposta — nessuno snapshot da ripristinare, perche' il reveal non
+    /// era mai stato scritto. "L'informazione va persa" e' un fatto di UI (popup chiuso) e
+    /// di memoria del giocatore, non di dati (HexTileData non cambia, un nuovo tentativo
+    /// mostra le stesse info).
+    ///
+    /// Element a effetto Immediate (revisione 2026-07-23, vedi ApplyImmediateElement):
+    /// Trap (HP -= DifficultyLevel), Fountain (HP al massimo), Tree (Cibo al massimo),
+    /// Key (attiva HasKeyDL4/5/6 sul contesto + KeysChangedEvent). Chest e' inerte al
+    /// reveal finche' il popup Loot non esiste.
     ///
     /// Effetto Enemy al combattimento: HP -= DifficultyLevel (nessuna ricompensa: XP
     /// rimosso 2026-07-20, ricompensa in Monete da definire — vedi Franci Tasks). No-op per
@@ -67,10 +76,18 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// Costo fisso in Cibo per fuggire da un incontro Enemy/Miniboss pending. Valore di
         /// design confermato 2026-07-19, distinto da FoodCostPerClick/NoFoodHpPenalty
         /// (SurvivalConfig): specifico dell'azione fuga, non un parametro di sopravvivenza
-        /// generico. Se il Cibo residuo non copre il costo si clampa a 0 — a differenza del
-        /// costo movimento normale, la fuga NON ricade mai su HP.
+        /// generico. Dal 2026-07-23 e' anche un GATE: la fuga richiede Cibo >= FleeFoodCost
+        /// (vedi CanFlee) — con Cibo insufficiente la fuga non e' permessa e l'unica
+        /// opzione e' combattere. La fuga non ricade mai su HP.
         /// </summary>
         private const int FleeFoodCost = 2;
+
+        /// <summary>
+        /// True se il giocatore ha abbastanza Cibo per fuggire dall'incontro pending.
+        /// La UI del popup lo usa per disabilitare il bottone Fuggi; ResolveEncounterFlee
+        /// applica lo stesso gate come difesa in profondita'.
+        /// </summary>
+        public bool CanFlee => _context != null && _context.Food >= FleeFoodCost;
 
         private IMapGenerationService _mapGenerationService;
         private IConfigCatalogService _configs;
@@ -244,13 +261,13 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             foreach (var tile in _tiles.Values)
             {
                 // Knowledge never regresses: only promote Sconosciuta → Conosciuta.
-                if (tile.State != TileState.Sconosciuta) continue;
+                if (tile.Spotting == SpottingState.Spotted) continue;
 
                 foreach (var neighbor in GetNeighbors(tile.Coord))
                 {
-                    if (neighbor.State == TileState.Scoperta)
+                    if ((neighbor.Exploration == ExplorationState.Explored && neighbor.Spotting == SpottingState.Spotted))
                     {
-                        tile.State = TileState.Conosciuta;
+                        tile.Exploration = ExplorationState.Unexplored; tile.Spotting = SpottingState.Spotted;
                         break;
                     }
                 }
@@ -267,11 +284,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public bool IsClickable(HexCoord coord)
         {
             if (!_tiles.TryGetValue(coord, out var tile)) return false;
-            if (tile.State == TileState.Scoperta) return false;
+            if ((tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted)) return false;
 
             foreach (var neighbor in GetNeighbors(coord))
             {
-                if (neighbor.State == TileState.Scoperta)
+                if ((neighbor.Exploration == ExplorationState.Explored && neighbor.Spotting == SpottingState.Spotted))
                     return true;
             }
 
@@ -287,7 +304,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             int count = 0;
             foreach (var neighbor in GetNeighbors(coord))
             {
-                if (neighbor.State == TileState.Scoperta)
+                if ((neighbor.Exploration == ExplorationState.Explored && neighbor.Spotting == SpottingState.Spotted))
                     count++;
             }
             return count;
@@ -325,13 +342,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 return true;
             }
 
-            tile.State   = TileState.Scoperta;
+            tile.Exploration = ExplorationState.Explored; tile.Spotting = SpottingState.Spotted;
             _playerCoord = target;
 
             ApplyMovementCost();
             AccumulateHp(tile);
             AccumulateFood(tile);
             bool moneteEarned = AccumulateMonete(tile);
+            bool keysChanged  = ApplyImmediateElement(tile);
 
             if (tile.Type == TileType.Path)
                 CascadeStrada(target);
@@ -348,6 +366,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             if (moneteEarned)
                 _bus?.Publish(new ScoreChangedEvent());
+
+            if (keysChanged)
+                _bus?.Publish(new KeysChangedEvent());
 
             if (_context.Lives <= 0)
             {
@@ -414,7 +435,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             _pendingEncounterCoord = null;
 
-            tile.State   = TileState.Scoperta;
+            tile.Exploration = ExplorationState.Explored; tile.Spotting = SpottingState.Spotted;
             _playerCoord = target;
 
             ApplyEnemyDamage(tile);
@@ -453,17 +474,20 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Il giocatore ha scelto di fuggire dall'incontro pending. Costo fisso
-        /// FleeFoodCost in Cibo, clampato a 0 (mai HP, a differenza del costo movimento
-        /// normale). La tile resta/torna Conosciuta — non e' mai stata marcata Scoperta —
-        /// e _playerCoord non cambia: il giocatore non si e' mai spostato sulla tile.
-        /// L'informazione sul nemico e' persa solo lato UI (il popup si chiude); i dati
-        /// (HexTileData.Type/DifficultyLevel) non cambiano, un nuovo tentativo mostrera' le
-        /// stesse info. Ritorna false se non c'e' nessun incontro pending.
+        /// Il giocatore ha scelto di fuggire dall'incontro pending. Gate (2026-07-23):
+        /// richiede Cibo >= FleeFoodCost, altrimenti ritorna false senza effetti — la UI
+        /// dovrebbe aver gia' disabilitato il bottone (CanFlee), questo e' il controllo di
+        /// difesa in profondita'. A fuga riuscita: costo FleeFoodCost in Cibo (mai HP), la
+        /// tile resta/torna Conosciuta — non e' mai stata marcata Scoperta — e _playerCoord
+        /// non cambia: il giocatore non si e' mai spostato sulla tile. L'informazione sul
+        /// nemico e' persa solo lato UI e nella memoria del giocatore (il popup si chiude);
+        /// i dati (HexTileData.Type/DifficultyLevel) non cambiano, un nuovo tentativo
+        /// mostrera' le stesse info. Ritorna false se non c'e' nessun incontro pending.
         /// </summary>
         public bool ResolveEncounterFlee()
         {
             if (!_pendingEncounterCoord.HasValue) return false;
+            if (!CanFlee) return false;
             var target = _pendingEncounterCoord.Value;
             if (!_tiles.TryGetValue(target, out var tile))
             {
@@ -473,7 +497,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             _pendingEncounterCoord = null;
 
-            _context.Food = Mathf.Max(0, _context.Food - FleeFoodCost);
+            _context.Food -= FleeFoodCost;
 
             _bus?.Publish(new EncounterResolvedEvent(tile, wasFought: false));
             _bus?.Publish(new FoodChangedEvent());
@@ -525,6 +549,59 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (tile.MoneteGained <= 0) return false;
             _context.Score += tile.MoneteGained;
             return true;
+        }
+
+        /// <summary>
+        /// Effetti degli Element a RevealEffect Immediate (GDD, Tile Types, revisione
+        /// 2026-07-23), applicati al reveal senza popup. Ritorna true se lo stato delle
+        /// chiavi di sessione e' cambiato (il chiamante pubblica KeysChangedEvent — il
+        /// publish resta centralizzato in TryRevealTile come per gli altri eventi).
+        ///
+        /// Trap:     HP -= DifficultyLevel (stessa formula placeholder del danno Enemy,
+        ///           vedi ApplyEnemyDamage — regola autorevole in GDD, Tile Types → Enemy).
+        /// Fountain: ripristina tutti gli HP al cap runtime corrente.
+        /// Tree:     ripristina tutto il Cibo al cap runtime corrente.
+        /// Key:      attiva la chiave di sessione per il proprio DifficultyLevel (4/5/6);
+        ///           idempotente, le chiavi non si consumano ne' si disattivano.
+        /// Chest:    inerte — RevealEffect Loot, il popup non esiste ancora (vedi GDD,
+        ///           Reveal Effects). Nessun effetto qui finche' il flusso Loot non c'e'.
+        /// Goods:    NON gestito qui — il suo +Food viaggia gia' su HexTileData.FoodRestore
+        ///           (AccumulateFood), assegnato dal generatore. Non duplicare l'effetto.
+        /// </summary>
+        private bool ApplyImmediateElement(HexTileData tile)
+        {
+            switch (tile.Type)
+            {
+                case TileType.Trap:
+                {
+                    int level = Mathf.Max(0, tile.DifficultyLevel);
+                    if (level > 0)
+                        _context.Lives = Mathf.Clamp(_context.Lives - level, 0, _currentMaxHp);
+                    return false;
+                }
+
+                case TileType.Fountain:
+                    _context.Lives = _currentMaxHp;
+                    return false;
+
+                case TileType.Tree:
+                    _context.Food = _currentMaxFood;
+                    return false;
+
+                case TileType.Key:
+                    switch (tile.DifficultyLevel)
+                    {
+                        case 4: _context.HasKeyDL4 = true; return true;
+                        case 5: _context.HasKeyDL5 = true; return true;
+                        case 6: _context.HasKeyDL6 = true; return true;
+                        default:
+                            Debug.LogWarning($"[HexGridController] Tile Key con DifficultyLevel {tile.DifficultyLevel} fuori dal set 4/5/6: nessuna chiave attivata. Verifica le LevelTileEntry del LevelConfig.", this);
+                            return false;
+                    }
+
+                default:
+                    return false;
+            }
         }
 
         // ------------------------- Shop (Economia, 2026-07-20) -------------------------
@@ -617,9 +694,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 var coord = queue.Dequeue();
                 foreach (var neighbor in GetNeighbors(coord))
                 {
-                    if (neighbor.Type == TileType.Path && neighbor.State != TileState.Scoperta)
+                    if (neighbor.Type == TileType.Path && !(neighbor.Exploration == ExplorationState.Explored && neighbor.Spotting == SpottingState.Spotted))
                     {
-                        neighbor.State = TileState.Scoperta;
+                        neighbor.Exploration = ExplorationState.Explored; neighbor.Spotting = SpottingState.Spotted;
                         AccumulateHp(neighbor);
                         queue.Enqueue(neighbor.Coord);
                     }

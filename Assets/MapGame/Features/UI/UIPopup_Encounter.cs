@@ -43,6 +43,12 @@ namespace hp55games.MapGame.Features.UI
 
             Bind(_fightButton, OnFightClicked);
             Bind(_fleeButton, OnFleeClicked);
+
+            // Gate fuga (2026-07-23): fuggire richiede Cibo >= 2. Con Cibo insufficiente
+            // il bottone appare ma e' disattivato — l'unica opzione e' combattere.
+            // ResolveEncounterFlee applica lo stesso gate come difesa in profondita'.
+            if (_fleeButton != null)
+                _fleeButton.interactable = grid.CanFlee;
         }
 
         private void OnFightClicked()

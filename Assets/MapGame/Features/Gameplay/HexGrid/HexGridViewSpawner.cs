@@ -67,10 +67,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 var view = Instantiate(_tileViewPrefab, transform);
                 coord.ToOffsetOddQ(out int col, out int row);
                 view.transform.localPosition = _unityGrid.GetCellCenterLocal(new Vector3Int(row, col, 0));                view.Setup(coord);
-                view.ApplyState(tile.State);
+                view.ApplyState(tile.Spotting);
                 view.SetClickable(_grid.IsClickable(coord));
-                if (tile.State != TileState.Sconosciuta)
-                    view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: tile.State == TileState.Scoperta);
+                if (tile.Spotting == SpottingState.Spotted)
+                    view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: (tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted));
 
                 _views[coord] = view;
             }
@@ -82,10 +82,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             {
                 if (_views.TryGetValue(kvp.Key, out var view))
                 {
-                    view.ApplyState(kvp.Value.State);
+                    view.ApplyState(kvp.Value.Spotting);
                     view.SetClickable(_grid.IsClickable(kvp.Key));
-                    if (kvp.Value.State != TileState.Sconosciuta)
-                        view.Reveal(kvp.Value.Type, showIcon: ShouldShowIcon(kvp.Value), showAlpha: kvp.Value.State == TileState.Scoperta);
+                    if (kvp.Value.Spotting == SpottingState.Spotted)
+                        view.Reveal(kvp.Value.Type, showIcon: ShouldShowIcon(kvp.Value), showAlpha: kvp.Value.Exploration == ExplorationState.Explored && kvp.Value.Spotting == SpottingState.Spotted);
                 }
             }
         }
@@ -99,7 +99,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// </summary>
         private bool ShouldShowIcon(HexTileData tile)
         {
-            if (tile.State == TileState.Scoperta) return true;
+            if ((tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted)) return true;
             return _grid.CountScopertaNeighbors(tile.Coord) >= tile.DifficultyLevel;
         }
     }

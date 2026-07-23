@@ -9,7 +9,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     public sealed class HexTileData
     {
         public HexCoord Coord;
-        public TileState State;
+        public ExplorationState Exploration;
+        public SpottingState Spotting;
         public TileType Type;
 
         /// <summary>
@@ -66,7 +67,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public HexTileData(HexCoord coord)
         {
             Coord = coord;
-            State = TileState.Sconosciuta;
+            Exploration = ExplorationState.Unexplored;
+            Spotting = SpottingState.Unspotted;
             Type = TileType.Path;
             HpRestore = 0;
             FoodRestore = 0;

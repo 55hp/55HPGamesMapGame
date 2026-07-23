@@ -84,7 +84,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             if (!_grid.Tiles.TryGetValue(coord, out var tile)) return;
 
-            if (tile.State != TileState.Scoperta)
+            if (!(tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted))
             {
                 Debug.Log($"[HexTileTapController] Doppio tap su {coord} ignorato (tile non Scoperta).");
                 return;
