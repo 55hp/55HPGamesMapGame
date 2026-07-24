@@ -15,21 +15,29 @@ MonoBehaviour:
   EnvType: 
   EventClusterTilesList:
   - Type: 5
-    DifficultyLevel: 3
+    DifficultyLevel: 1
   - Type: 7
-    DifficultyLevel: 2
-  - Type: 8
-    DifficultyLevel: 5
+    DifficultyLevel: 1
+  - Type: 0
+    DifficultyLevel: 1
+  - Type: 9
+    DifficultyLevel: 1
   EventSingleTilesList:
   - Type: 0
     DifficultyLevel: 0
+  - Type: 9
+    DifficultyLevel: 1
+  - Type: 12
+    DifficultyLevel: 1
+  - Type: 13
+    DifficultyLevel: 1
   - Type: 3
-    DifficultyLevel: 4
+    DifficultyLevel: 0
   - Type: 7
-    DifficultyLevel: 3
+    DifficultyLevel: 0
+  - Type: 11
+    DifficultyLevel: 0
   - Type: 5
-    DifficultyLevel: 3
-  - Type: 4
     DifficultyLevel: 0
   StopSingleTilesList:
   - Type: 0
