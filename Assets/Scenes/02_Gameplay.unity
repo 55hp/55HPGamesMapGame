@@ -187,71 +187,6 @@ MonoBehaviour:
   - {fileID: 56808535}
   _selfRegisterOnStart: 0
   _registrationId: follower_death
---- !u!1 &237044238
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 237044239}
-  - component: {fileID: 237044241}
-  - component: {fileID: 237044240}
-  m_Layer: 0
-  m_Name: PickupCollected_Feedback
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &237044239
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 237044238}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1504290696}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &237044240
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 237044238}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: da64cb66432d6744ea4daf78b4320d10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _feedbacks:
-  - {fileID: 237044241}
-  _selfRegisterOnStart: 0
-  _registrationId: pickup_collected
---- !u!114 &237044241
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 237044238}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47df80ac40056db46b091f396fb60162, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _prefab: {fileID: -109760461816227616, guid: 0770de6349c5d5844828a4f26b4b6c60, type: 3}
-  _lifetime: 1
-  _warmUpCount: 1
-  _startDelay: 0
 --- !u!1 &538140942
 GameObject:
   m_ObjectHideFlags: 0
@@ -542,7 +477,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _feedbacks:
-  - {fileID: 901606356}
+  - {fileID: 901606355}
   _selfRegisterOnStart: 0
   _registrationId: victory
 --- !u!1001 &1296107419
@@ -685,7 +620,6 @@ Transform:
   - {fileID: 538140945}
   - {fileID: 901606354}
   - {fileID: 56808534}
-  - {fileID: 237044239}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1504290697
@@ -704,9 +638,11 @@ MonoBehaviour:
   - id: follower_death
     player: {fileID: 56808536}
   - id: pickup_collected
-    player: {fileID: 237044240}
+    player: {fileID: 0}
   - id: game_over
     player: {fileID: 538140943}
+  - id: victory
+    player: {fileID: 901606356}
 --- !u!1 &1567416451
 GameObject:
   m_ObjectHideFlags: 0
