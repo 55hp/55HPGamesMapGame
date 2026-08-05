@@ -15,24 +15,43 @@ namespace hp55games.MapGame.Editor
         private const int CellGap =  1;
 
         // ── Color palette: one distinct color per TileType ───────────────────
-        // Revisione 2026-07-10 per il TileType refactor. Colori esistenti riusati dove il
-        // tipo e' equivalente al precedente (Enemy = ex Battaglia); Void, Shop, Miniboss
-        // sono nuovi, colori placeholder scelti per restare leggibili accanto agli altri,
-        // non presi dalla palette ufficiale Isle of Lore 2 come i precedenti — -- Franci
-        // TASK -- se vuoi allinearli alla palette asset pack, non l'ho fatto qui.
+        // Revisione 2026-08-05 per l'allineamento GDD 2026-07-25: Path/Shop erano alias
+        // [Obsolete] di Road/Trader sullo stesso int, quindi qui restano una voce sola a
+        // testa (una Dictionary<TileType,Color> non puo' avere due chiavi con lo stesso
+        // valore sottostante). Boss/Npc/Goods/Miniboss/Chance restano in tavolozza per
+        // sicurezza (dati serializzati vecchi potrebbero ancora referenziarli, es.
+        // LevelConfig_Test_1.asset ha entry Npc/Goods non ancora sistemate) anche se il
+        // generatore non li piazza piu'. Le 8 nuove voci (Bush/BeeHive/TurnipSprout/
+        // MoneyBag/Inn/Witch/Farmer/Hunter) hanno colori placeholder scelti solo per
+        // restare leggibili accanto agli altri, non dalla palette ufficiale Isle of
+        // Lore 2 — -- Franci TASK -- se vuoi allinearli alla palette asset pack, non
+        // l'ho fatto qui.
         //   Start marker: white inner square. End marker: black inner square.
 
         private static readonly Dictionary<TileType, Color> TileColors = new()
         {
-            { TileType.Void,     new Color(0.500f, 0.500f, 0.500f) },  // #808080 — placeholder, vero no-op
-            { TileType.Path,   new Color(0.863f, 0.725f, 0.373f) },  // #dcb95f
-            { TileType.Enemy,    new Color(0.612f, 0.278f, 0.255f) },  // #9c4741 — ex Battaglia
-            { TileType.Goods,  new Color(0.537f, 0.600f, 0.329f) },  // #889954
-            { TileType.Npc,      new Color(0.314f, 0.694f, 0.847f) },  // #50b1d8
-            { TileType.Shop,     new Color(0.847f, 0.694f, 0.314f) },  // #d8b150 — placeholder, ex sottotipo Mercante di NPC
-            { TileType.Chance,  new Color(0.369f, 0.251f, 0.639f) },  // #5e40a3
-            { TileType.Miniboss, new Color(0.400f, 0.176f, 0.153f) },  // #662d27 — placeholder, piu' scuro di Enemy
-            { TileType.Boss,     new Color(0.086f, 0.086f, 0.086f) },  // #161616
+            { TileType.Void,         new Color(0.500f, 0.500f, 0.500f) },  // #808080 — placeholder, vero no-op
+            { TileType.Road,         new Color(0.863f, 0.725f, 0.373f) },  // #dcb95f — ex Path
+            { TileType.Enemy,        new Color(0.612f, 0.278f, 0.255f) },  // #9c4741 — ex Battaglia
+            { TileType.Trap,         new Color(0.369f, 0.251f, 0.639f) },  // #5e40a3 — ex Chance
+            { TileType.Fountain,     new Color(0.243f, 0.588f, 0.780f) },  // #3e96c7
+            { TileType.Tree,         new Color(0.322f, 0.494f, 0.243f) },  // #527e3e
+            { TileType.Key,          new Color(0.816f, 0.706f, 0.235f) },  // #d0b43c
+            { TileType.Chest,        new Color(0.616f, 0.443f, 0.196f) },  // #9d7132
+            { TileType.Trader,       new Color(0.847f, 0.694f, 0.314f) },  // #d8b150 — ex Shop
+            { TileType.Bush,         new Color(0.537f, 0.600f, 0.329f) },  // #889954 — ex Goods
+            { TileType.BeeHive,      new Color(0.827f, 0.616f, 0.129f) },  // #d39d21
+            { TileType.TurnipSprout, new Color(0.706f, 0.816f, 0.353f) },  // #b4d05a
+            { TileType.MoneyBag,     new Color(0.827f, 0.702f, 0.161f) },  // #d3b329
+            { TileType.Inn,          new Color(0.314f, 0.694f, 0.847f) },  // #50b1d8 — ex Npc
+            { TileType.Witch,        new Color(0.549f, 0.314f, 0.847f) },  // #8c50d8
+            { TileType.Farmer,       new Color(0.463f, 0.663f, 0.286f) },  // #76a949
+            { TileType.Hunter,       new Color(0.494f, 0.400f, 0.267f) },  // #7e6644
+            { TileType.Npc,          new Color(0.314f, 0.694f, 0.847f) },  // #50b1d8 — legacy, vedi nota sopra
+            { TileType.Goods,        new Color(0.537f, 0.600f, 0.329f) },  // #889954 — legacy
+            { TileType.Chance,       new Color(0.369f, 0.251f, 0.639f) },  // #5e40a3 — legacy
+            { TileType.Miniboss,     new Color(0.400f, 0.176f, 0.153f) },  // #662d27 — legacy, piu' scuro di Enemy
+            { TileType.Boss,         new Color(0.086f, 0.086f, 0.086f) },  // #161616 — legacy
         };
 
         // Alpha multiplier per TileState (flagged as design decision):
@@ -56,6 +75,11 @@ namespace hp55games.MapGame.Editor
         // di uno esplicito: assegnabile qui, con default al primo LevelConfig trovato.
         private LevelConfig _previewLevel;
 
+        // ElementCatalog (2026-08-05): il generatore ora risolve le specie da qui per
+        // FoodRestore/CoinReward. Stesso pattern di _previewLevel: assegnabile a mano,
+        // default al primo ElementCatalog trovato in progetto.
+        private ElementCatalog _previewElementCatalog;
+
         // ── Inspector GUI ────────────────────────────────────────────────────
 
         public override void OnInspectorGUI()
@@ -72,13 +96,24 @@ namespace hp55games.MapGame.Editor
 
             if (_previewLevel == null)
                 EditorGUILayout.HelpBox(
-                    "Nessun LevelConfig assegnato: la preview genera con contenuto di default (nessuna lista eleggibile). Assegnane uno per una preview realistica.",
+                    "Nessun LevelConfig assegnato: la preview genera con contenuto di default (nessuna istanza da piazzare). Assegnane uno per una preview realistica.",
+                    MessageType.Warning);
+
+            if (_previewElementCatalog == null)
+                _previewElementCatalog = FindFirstElementCatalog();
+
+            _previewElementCatalog = (ElementCatalog)EditorGUILayout.ObjectField(
+                "Element Catalog (preview)", _previewElementCatalog, typeof(ElementCatalog), false);
+
+            if (_previewElementCatalog == null)
+                EditorGUILayout.HelpBox(
+                    "Nessun ElementCatalog assegnato: le tessere content avranno FoodRestore/CoinReward a 0 (nessuna specie risolta). Assegnane uno per una preview realistica.",
                     MessageType.Warning);
 
             if (GUILayout.Button("Genera Preview"))
             {
                 var cfg = (MapGenerationConfig)target;
-                _preview = new MapGenerationService().GenerateMap(cfg, _previewLevel, cfg.Seed);
+                _preview = new MapGenerationService().GenerateMap(cfg, _previewLevel, _previewElementCatalog, cfg.Seed);
                 Repaint();
             }
 
@@ -125,7 +160,7 @@ namespace hp55games.MapGame.Editor
                 float alpha     = StateAlpha(tile.Exploration,tile.Spotting);
                 EditorGUI.DrawRect(new Rect(x, y, CellPx, CellPx), baseColor * alpha);
 
-                // Start tile: white inner dot. End/Boss tile: black inner dot.
+                // Start tile: white inner dot. End/Enemy obiettivo: black inner dot.
                 bool isStart = coord.Equals(_preview.StartCoord);
                 bool isEnd   = coord.Equals(_preview.ObjectiveCoord);
                 if (isStart || isEnd)
@@ -141,6 +176,13 @@ namespace hp55games.MapGame.Editor
 
         private void DrawLegend()
         {
+            // Nota (2026-08-05): la tavolozza e' passata da 9 a 22 voci (nuovi TileType +
+            // legacy mantenuti per sicurezza, vedi commento sopra TileColors). La riga
+            // singola qui sotto e' la stessa struttura di prima, solo piu' lunga —
+            // volutamente non ho aggiunto wrapping su piu' righe: e' codice Editor IMGUI
+            // che non posso testare in questo ambiente, e la struttura originale gia'
+            // funzionante e' piu' sicura di un wrapping scritto alla cieca. Se in Unity
+            // risulta troppo larga, e' un cambiamento cosmetico facile da fare li'.
             EditorGUILayout.LabelField("Tipi", EditorStyles.miniLabel);
             EditorGUILayout.BeginHorizontal();
             foreach (var kvp in TileColors)
@@ -189,13 +231,21 @@ namespace hp55games.MapGame.Editor
             GUILayout.Label(label, EditorStyles.miniLabel);
             GUILayout.Space(12f);
         }
-    
+
         private static LevelConfig FindFirstLevelConfig()
         {
             string[] guids = AssetDatabase.FindAssets("t:LevelConfig");
             if (guids.Length == 0) return null;
             string path = AssetDatabase.GUIDToAssetPath(guids[0]);
             return AssetDatabase.LoadAssetAtPath<LevelConfig>(path);
+        }
+
+        private static ElementCatalog FindFirstElementCatalog()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:ElementCatalog");
+            if (guids.Length == 0) return null;
+            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+            return AssetDatabase.LoadAssetAtPath<ElementCatalog>(path);
         }
 
 }

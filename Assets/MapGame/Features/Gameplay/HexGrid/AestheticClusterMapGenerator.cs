@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
 using hp55games.MapGame.Features.Configs;
+//using UnityEngine;
 
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
     /// Generatore di mappa, pipeline "macchie di leopardo" (GDD, rev. 2026-07-07),
-    /// revisione 2026-07-10 per il sistema LevelConfig / DifficultyLevel:
-    /// 1. Piazzamento Start/End (weighted distance)
-    /// 2. Piazzamento EventCluster (forme dal catalogo, Type+DifficultyLevel gia' autorati
-    ///    per cella) e tessere singole (pescate da LevelConfig.EventSingleTilesList) via
-    ///    rejection sampling, con almeno una tessera di distacco tra due piazzamenti
-    ///    qualunque.
+    /// revisione 2026-08-05 (composizione deterministica + aggancio ElementCatalog):
+    /// 1. Piazzamento Start/End (weighted distance). Start diventa Road, End diventa
+    ///    Enemy con IsObjective = true, DifficultyLevel 6 (placeholder "boss finale",
+    ///    coerente con PlaceholderBossElementConfig — vedi Generate).
+    /// 2. Piazzamento EventCluster (forme dal catalogo, Type+DifficultyLevel gia'
+    ///    autorati per cella in fase di editing) e tessere singole via rejection
+    ///    sampling, con almeno una tessera di distacco tra due piazzamenti qualunque.
     /// 3. Mesh di PathCluster: parte da ogni bordo di ogni EventCluster/singola piazzata,
     ///    cresce a budget (15 tessere / 5 rami / rami 3-7) per ciascun PathCluster, si
     ///    ferma sui bordi degli EventCluster (fanno da muro, nessuna separazione
@@ -22,38 +24,69 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     ///    StopSingleTilesList se confina anche con un PathCluster diverso) oppure, se non
     ///    c'è un PathCluster a cui attaccarsi, una tessera singola da
     ///    EventSingleTilesList. Nessuna tessera resta senza contenuto esplicito.
-    /// 5. Vincolo DifficultyLevel: ogni tessera pescata da una lista LevelConfig porta con
-    ///    se' un DifficultyLevel (1-6) dalla entry scelta; se la posizione finale non ha
-    ///    abbastanza vicini validi in griglia per quel livello, il livello viene abbassato
-    ///    fino al valore supportato (minimo 1), stesso TileType — vedi ResolveDifficulty.
-    /// 6. Rivelazione iniziale (Start ed End già Scoperte)
+    /// 5. Vincolo DifficultyLevel: ogni tessera pescata porta con se' un DifficultyLevel
+    ///    (1-6) dalla entry scelta; se la posizione finale non ha abbastanza vicini
+    ///    validi in griglia per quel livello, il livello viene abbassato fino al valore
+    ///    supportato (minimo 1), stesso TileType — vedi ResolveDifficulty.
+    /// 6. Composizione fissa e deterministica (2026-08-05, decisione confermata
+    ///    2026-07-24): EventSingleTilesList e StopSingleTilesList NON sono piu' pool
+    ///    pesati con reinserimento (la stessa entry poteva essere pescata un numero
+    ///    illimitato di volte). Sono manifest: ogni entry rappresenta UNA istanza da
+    ///    piazzare, consumata quando viene usata. All'inizio di Generate ciascuna lista
+    ///    viene copiata e mescolata (Fisher-Yates) con lo stesso Random(seed) della run,
+    ///    poi TryDrawEntry pesca dalla coda senza mai reinserire — stesso seed produce
+    ///    sempre la stessa sequenza di pesche. Se il manifest si esaurisce prima che la
+    ///    griglia sia piena, il generatore degrada come per una lista vuota (vedi
+    ///    AssignSingleTile/AssignStopTile), non crasha. EventClusterTilesList NON e'
+    ///    interessata: le EventClusterShape hanno Type/DifficultyLevel gia' fissati per
+    ///    cella in fase di autoria (Shape Editor), il generatore non ripesca da li'.
+    /// 7. ElementCatalog (2026-08-05): ogni tessera content (EventCluster, singola, o
+    ///    stop) risolve una specie eleggibile per {TileType, DifficultyLevel finale} via
+    ///    ElementCatalog.PickRandom, e ne copia FoodRestore/CoinReward sulla
+    ///    HexTileData (HpRestore resta sempre 0: nessun path applica danno/cura tramite
+    ///    questo campo oggi, vedi HexGridController). Nessuna specie eleggibile per la
+    ///    combinazione richiesta → degrado silenzioso a valori neutri con un warning in
+    ///    Console, stesso principio del manifest vuoto: il designer se ne accorge, il
+    ///    gioco non crasha.
+    /// 8. Rivelazione iniziale (Start ed End già Scoperte)
     /// </summary>
     public sealed class AestheticClusterMapGenerator : IMapGenerator
     {
+        /// <summary>DifficultyLevel della tile End/obiettivo. Coincide col DifficultyLevel di PlaceholderBossElementConfig (6) — se in futuro esistono piu' "boss" a livelli diversi, questo andra' reso configurabile invece che hardcoded.</summary>
+        private const int ObjectiveDifficultyLevel = 6;
+
         private readonly DistanceWeight[] _endDistanceWeights;
         private readonly int _startMinBorderDistance;
         private readonly int _clusterMinDistanceFromStartEnd;
-        private readonly PlaceholderBalanceSettings _balance;
         private readonly StradaNetworkSettings _strada;
         private readonly EventClusterPlacementSettings _eventClusters;
         private readonly LevelConfig _levelConfig;
+        private readonly ElementCatalog _elementCatalog;
+
+        // Manifest consumabili della run corrente, costruiti in Generate() e pescati da
+        // TryDrawEntry. Campi di istanza invece di parametri passati a catena attraverso
+        // mezza dozzina di metodi privati: sicuro perche' il generatore e' istanziato una
+        // volta per singola chiamata a Generate (vedi MapGenerationService), mai riusato
+        // ne' chiamato in parallelo su piu' thread.
+        private List<LevelTileEntry> _eventSingleManifest;
+        private List<LevelTileEntry> _stopSingleManifest;
 
         public AestheticClusterMapGenerator(
             DistanceWeight[] endDistanceWeights,
             int startMinBorderDistance,
             int clusterMinDistanceFromStartEnd,
-            PlaceholderBalanceSettings balance,
             StradaNetworkSettings strada,
             EventClusterPlacementSettings eventClusters,
-            LevelConfig levelConfig)
+            LevelConfig levelConfig,
+            ElementCatalog elementCatalog)
         {
             _endDistanceWeights = endDistanceWeights;
             _startMinBorderDistance = startMinBorderDistance;
             _clusterMinDistanceFromStartEnd = clusterMinDistanceFromStartEnd;
-            _balance = balance;
             _strada = strada;
             _eventClusters = eventClusters;
             _levelConfig = levelConfig;
+            _elementCatalog = elementCatalog;
         }
 
         public MapGenerationResult Generate(int width, int height, int seed)
@@ -68,13 +101,25 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 tiles[coord] = new HexTileData(coord);
             }
 
+            // Manifest per-run: copiati e mescolati una volta sola qui, poi consumati
+            // (mai reinseriti) da AssignSingleTile/AssignStopTile per tutta la Generate.
+            _eventSingleManifest = BuildManifest(_levelConfig?.EventSingleTilesList, rng);
+            _stopSingleManifest  = BuildManifest(_levelConfig?.StopSingleTilesList, rng);
+
             var startCoord = PlaceStart(tiles, width, height, rng);
             var endCoord = PlaceEnd(tiles, startCoord, rng);
 
-            ResetTile(tiles[startCoord], TileType.Path, hpRestore: 0, moneteGained: 0);
+            ResetTile(tiles[startCoord], TileType.Road, hpRestore: 0, moneteGained: 0);
             tiles[startCoord].IsObjective = false;
 
-            ResetTile(tiles[endCoord], TileType.Boss, hpRestore: 0, moneteGained: 0);
+            // Obiettivo: sempre Enemy con IsObjective = true (Boss/Miniboss come TileType
+            // a se' sono obsoleti dal 2026-07-25, la distinzione e' via ElementConfig).
+            // DifficultyLevel 6 come da placeholder "Dragon" — passa comunque da
+            // ResolveDifficulty per coerenza con tutte le altre tessere content, nel caso
+            // la posizione End non abbia 6 vicini validi in griglia.
+            int objectiveLevel = ResolveDifficulty(ObjectiveDifficultyLevel, endCoord, tiles);
+            ApplyElementStats(tiles[endCoord], TileType.Enemy, objectiveLevel, rng);
+            tiles[endCoord].DifficultyLevel = objectiveLevel;
             tiles[endCoord].IsObjective = true;
 
             var eventOccupied = PlaceEventClusters(tiles, width, height, startCoord, endCoord, rng, out int nextEventId);
@@ -92,26 +137,74 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             };
         }
 
-        private void ApplyPlaceholderBalance(HexTileData tile, TileType type, Random rng)
+        /// <summary>
+        /// Copia source in una List mescolata con Fisher-Yates usando lo stesso rng della
+        /// run (mai un rng separato: il seed resta l'unica fonte di casualita', e la
+        /// stessa sequenza di draw deve ripetersi identica a parita' di seed). Lista
+        /// vuota (mai null) se source e' null o vuoto — TryDrawEntry gestisce il caso
+        /// senza bisogno di controlli aggiuntivi nei chiamanti.
+        /// </summary>
+        private List<LevelTileEntry> BuildManifest(LevelTileEntry[] source, Random rng)
+        {
+            var manifest = source != null ? new List<LevelTileEntry>(source) : new List<LevelTileEntry>();
+
+            for (int i = manifest.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (manifest[i], manifest[j]) = (manifest[j], manifest[i]);
+            }
+
+            return manifest;
+        }
+
+        /// <summary>
+        /// Pesca (e consuma) l'ultima entry di manifest. False se il manifest e' vuoto —
+        /// il chiamante decide il fallback, stesso comportamento di quando LevelConfig
+        /// non e' popolato. Rimuovere dalla coda invece che dalla testa e' solo una
+        /// scelta di costo O(1); l'ordine e' gia' casuale per via dello shuffle in
+        /// BuildManifest, quindi non ha alcun effetto sull'esito.
+        /// </summary>
+        private bool TryDrawEntry(List<LevelTileEntry> manifest, out LevelTileEntry entry)
+        {
+            if (manifest == null || manifest.Count == 0)
+            {
+                entry = default;
+                return false;
+            }
+
+            int lastIndex = manifest.Count - 1;
+            entry = manifest[lastIndex];
+            manifest.RemoveAt(lastIndex);
+            return true;
+        }
+
+        /// <summary>
+        /// Risolve una specie eleggibile da ElementCatalog per {type, difficultyLevel} e
+        /// ne copia FoodRestore/CoinReward sulla tile. HpRestore resta sempre 0: nessun
+        /// path del gioco applica oggi danno o cura tramite questo campo (Trap ed Enemy
+        /// agiscono direttamente su IGameContextService.Lives, non su HexTileData.HpRestore
+        /// — vedi HexGridController.ApplyImmediateElement/ApplyEnemyDamage). Se non esiste
+        /// nessuna specie eleggibile per la combinazione (catalogo incompleto per quel
+        /// livello, o ElementCatalog non risolto), la tile resta a valori neutri e viene
+        /// loggato un warning: degrado silenzioso, mai un crash.
+        /// </summary>
+        private void ApplyElementStats(HexTileData tile, TileType type, int difficultyLevel, Random rng)
         {
             tile.Type = type;
-            // Goods non cura più HP direttamente dal 2026-07-10 (introduzione del costo
-            // movimento): rifornisce la scorta di Cibo, che il costo movimento consuma,
-            // invece di curare sul colpo. Vedi FoodRestore sotto.
-            // Enemy (2026-07-17, reintegrazione XP): il danno NON viene piu' bruciato qui.
-            // Effetto Enemy = perdita HP pari al DifficultyLevel + guadagno XP pari al
-            // DifficultyLevel, applicato al reveal in HexGridController dove il livello e'
-            // gia' risolto (ResolveDifficulty gira DOPO questo metodo, qui non e' ancora
-            // noto). Quindi HpRestore resta 0 per Enemy come per tutti gli altri content.
-            // Chance assorbe il vecchio Trappola (tabella esiti non ancora definita, impatto
-            // zero). Shop/Miniboss: bilanciamento non ancora definito.
             tile.HpRestore = 0;
-            tile.FoodRestore = type == TileType.Goods
-                ? rng.Next(_balance.GoodsFoodRestoreMin, _balance.GoodsFoodRestoreMax + 1)
-                : 0;
-            // Monete in pausa: l'economia Shop/Monete e' sospesa finche' non viene
-            // ridisegnata. Enemy da' XP, non Monete. Nessun tipo assegna Monete per ora.
-            tile.MoneteGained = 0;
+
+            var species = _elementCatalog != null ? _elementCatalog.PickRandom(type, difficultyLevel, rng) : null;
+            if (species != null)
+            {
+                tile.FoodRestore = species.FoodRestore;
+                tile.MoneteGained = species.CoinReward;
+            }
+            else
+            {
+                tile.FoodRestore = 0;
+                tile.MoneteGained = 0;
+                UnityEngine.Debug.LogWarning($"[AestheticClusterMapGenerator] Nessuna specie eleggibile in ElementCatalog per {type} DifficultyLevel {difficultyLevel}: tile lasciata a valori neutri (FoodRestore/CoinReward 0).");
+            }
         }
 
         private void ResetTile(HexTileData tile, TileType type, int hpRestore, int moneteGained)
@@ -149,53 +242,37 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Sceglie una entry a caso da pool. False se pool e' null o vuoto (LevelConfig
-        /// non popolato per quella lista) — il chiamante decide il fallback.
-        /// </summary>
-        private bool TryPickEntry(LevelTileEntry[] pool, Random rng, out LevelTileEntry entry)
-        {
-            if (pool == null || pool.Length == 0)
-            {
-                entry = default;
-                return false;
-            }
-
-            entry = pool[rng.Next(pool.Length)];
-            return true;
-        }
-
-        /// <summary>
         /// Assegna una tessera singola (EventCluster da 1 tessera, o rammendo senza
-        /// PathCluster adiacente) pescando da EventSingleTilesList. Se la lista e' vuota o
-        /// il LevelConfig manca, la tile resta al default (Strada) invece di crashare —
-        /// degrado silenzioso, coerente con "LevelConfig puo' restare parzialmente
-        /// autorato" descritto sul LevelConfig stesso.
+        /// PathCluster adiacente) pescando dal manifest EventSingleTilesList. Se il
+        /// manifest e' esaurito (o il LevelConfig manca), la tile resta al default
+        /// (Strada) invece di crashare — degrado silenzioso, coerente con "LevelConfig
+        /// puo' restare parzialmente autorato" descritto sul LevelConfig stesso.
         /// </summary>
         private void AssignSingleTile(HexTileData tile, HexCoord coord, Dictionary<HexCoord, HexTileData> tiles, Random rng)
         {
-            var pool = _levelConfig != null ? _levelConfig.EventSingleTilesList : null;
-            if (TryPickEntry(pool, rng, out var entry))
+            if (TryDrawEntry(_eventSingleManifest, out var entry))
             {
-                ApplyPlaceholderBalance(tile, entry.Type, rng);
-                tile.DifficultyLevel = ResolveDifficulty(entry.DifficultyLevel, coord, tiles);
+                int level = ResolveDifficulty(entry.DifficultyLevel, coord, tiles);
+                ApplyElementStats(tile, entry.Type, level, rng);
+                tile.DifficultyLevel = level;
             }
         }
 
         /// <summary>
-        /// Assegna una tessera di separazione PathCluster pescando da
+        /// Assegna una tessera di separazione PathCluster pescando dal manifest
         /// StopSingleTilesList (contenuto reale riskinnato, es. npc vestito da ponte
-        /// rotto — vedi GDD "StopSingleTilesList"). Se la lista e' vuota o il LevelConfig
-        /// manca, ripiega su TileType.Void (vero no-op, DifficultyLevel 0). In entrambi i
-        /// casi la separazione funziona identicamente: CascadeStrada si ferma su
-        /// qualunque tessera non-Strada, a prescindere da cosa faccia quella tessera.
+        /// rotto — vedi GDD "StopSingleTilesList"). Se il manifest e' esaurito o il
+        /// LevelConfig manca, ripiega su TileType.Void (vero no-op, DifficultyLevel 0). In
+        /// entrambi i casi la separazione funziona identicamente: CascadeStrada si ferma
+        /// su qualunque tessera non-Road, a prescindere da cosa faccia quella tessera.
         /// </summary>
         private void AssignStopTile(HexTileData tile, HexCoord coord, Dictionary<HexCoord, HexTileData> tiles, Random rng)
         {
-            var pool = _levelConfig != null ? _levelConfig.StopSingleTilesList : null;
-            if (TryPickEntry(pool, rng, out var entry))
+            if (TryDrawEntry(_stopSingleManifest, out var entry))
             {
-                ApplyPlaceholderBalance(tile, entry.Type, rng);
-                tile.DifficultyLevel = ResolveDifficulty(entry.DifficultyLevel, coord, tiles);
+                int level = ResolveDifficulty(entry.DifficultyLevel, coord, tiles);
+                ApplyElementStats(tile, entry.Type, level, rng);
+                tile.DifficultyLevel = level;
             }
             else
             {
@@ -345,18 +422,21 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// <summary>
         /// Applica una EventClusterShape autorata a mano: Type e DifficultyLevel sono
         /// gia' fissati per-cella nello Shape Editor (letti da EventClusterTilesList al
-        /// momento dell'autoria, non ripescati qui). Il DifficultyLevel autorato viene
-        /// comunque passato per ResolveDifficulty, perche' la posizione finale in griglia
-        /// e' scelta a runtime (rejection sampling) e potrebbe non avere abbastanza vicini
-        /// per il livello autorato.
+        /// momento dell'autoria, non ripescati qui — quella lista non fa parte della
+        /// composizione deterministica per-run, e' materiale di editing). Il
+        /// DifficultyLevel autorato passa comunque per ResolveDifficulty, perche' la
+        /// posizione finale in griglia e' scelta a runtime (rejection sampling) e
+        /// potrebbe non avere abbastanza vicini per il livello autorato. La specie viene
+        /// risolta via ElementCatalog come per ogni altra tessera content.
         /// </summary>
         private void ApplyEventClusterShape(Dictionary<HexCoord, HexTileData> tiles, HexCoord origin, EventClusterShape shape, Random rng)
         {
             foreach (var tileSpec in shape.Tiles)
             {
                 var coord = origin + new HexCoord(tileSpec.RelativeQ, tileSpec.RelativeR);
-                ApplyPlaceholderBalance(tiles[coord], tileSpec.Type, rng);
-                tiles[coord].DifficultyLevel = ResolveDifficulty(tileSpec.DifficultyLevel, coord, tiles);
+                int level = ResolveDifficulty(tileSpec.DifficultyLevel, coord, tiles);
+                ApplyElementStats(tiles[coord], tileSpec.Type, level, rng);
+                tiles[coord].DifficultyLevel = level;
             }
         }
 
@@ -414,7 +494,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     }
                     else
                     {
-                        ResetTile(tileData, TileType.Path, hpRestore: 0, moneteGained: 0);
+                        ResetTile(tileData, TileType.Road, hpRestore: 0, moneteGained: 0);
                         tileData.DifficultyLevel = 0;
                     }
 
@@ -433,8 +513,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// risolta qui: se confina con un PathCluster che non ha ancora esaurito la sua
         /// quota di 2 tessere extra, diventa Strada (o una tessera di StopSingleTilesList
         /// se confina anche con un PathCluster diverso) e si aggiunge a quel PathCluster;
-        /// altrimenti diventa una tessera singola da EventSingleTilesList. Con questa
-        /// passata nessuna tessera della griglia resta senza contenuto esplicito.
+        /// altrimenti diventa una tessera singola dal manifest EventSingleTilesList. Con
+        /// questa passata nessuna tessera della griglia resta senza contenuto esplicito.
         /// </summary>
         private void PatchResidualGaps(
             Dictionary<HexCoord, HexTileData> tiles, HexCoord start, HexCoord end,
@@ -487,7 +567,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     }
                     else
                     {
-                        ResetTile(tileData, TileType.Path, hpRestore: 0, moneteGained: 0);
+                        ResetTile(tileData, TileType.Road, hpRestore: 0, moneteGained: 0);
                         tileData.DifficultyLevel = 0;
                     }
 

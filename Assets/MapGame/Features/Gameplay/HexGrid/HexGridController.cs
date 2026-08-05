@@ -103,6 +103,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private SurvivalConfig      _survival;
         private LevelConfig         _level;
         private EconomyConfig       _economy;
+        private ElementCatalog      _elementCatalog;
 
         // Cap runtime della run, inizializzati dalla baseline SurvivalConfig e alzati dai
         // potenziamenti dello shop. Non modificano mai l'asset SurvivalConfig.
@@ -170,6 +171,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _survival  = _configs.Get<SurvivalConfig>();
             _level     = _configs.Get<LevelConfig>();
             _economy   = _configs.Get<EconomyConfig>();
+            _elementCatalog = _configs.Get<ElementCatalog>();
 
             BuildGrid();
         }
@@ -242,7 +244,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
 
             int seed = (_context?.CurrentRunSeed != 0) ? _context.CurrentRunSeed : _mapConfig.Seed;
-            var result = _mapGenerationService.GenerateMap(_mapConfig, _level, seed);
+            var result = _mapGenerationService.GenerateMap(_mapConfig, _level, _elementCatalog, seed);
 
             // Rigenerazione = nessun incontro può sopravvivere: la coordinata pending
             // apparterrebbe a una mappa che non esiste più e bloccherebbe ogni click.
