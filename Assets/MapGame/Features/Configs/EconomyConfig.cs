@@ -31,5 +31,17 @@ namespace hp55games.MapGame.Features.Configs
         [Header("Rifornimento Cibo")]
         [Min(1)] public int FoodRefillCost = 5;
         [Min(1)] public int FoodRefillAmount = 2;
+        private void OnValidate()
+        {
+            MaxHpUpgradeCost = Mathf.Max(1, MaxHpUpgradeCost);
+            MaxHpUpgradeAmount = Mathf.Max(0, MaxHpUpgradeAmount);
+            FoodSlotUpgradeCost = Mathf.Max(1, FoodSlotUpgradeCost);
+            FoodSlotUpgradeAmount = Mathf.Max(0, FoodSlotUpgradeAmount);
+            HealCost = Mathf.Max(1, HealCost);
+            HealAmount = Mathf.Max(0, HealAmount);
+            FoodRefillCost = Mathf.Max(1, FoodRefillCost);
+            FoodRefillAmount = Mathf.Max(0, FoodRefillAmount);
+        }
     }
 }
+

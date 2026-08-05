@@ -64,8 +64,9 @@ namespace hp55games.Mobile.Core.Architecture.States
                 // has cleared them, avoiding the Awake/ResetRun ordering race.
                 _bus.Publish(new GameStartedEvent());
 
-                var navigation = ServiceRegistry.Resolve<IUINavigationService>();
-                await navigation.ReplaceAsync(hp55games.Addr.Content.UI.Screens.GameplayHUD);
+                // MapGameGameplayHudService owns the MapGame HUD instance under UIRoot.hud.
+                // The old Addressables gameplay_hud page no longer exists.
+
             }
 
             await Task.Yield();

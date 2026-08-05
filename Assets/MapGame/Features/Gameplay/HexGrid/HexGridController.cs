@@ -213,11 +213,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 return;
             }
 
-            _currentMaxHp   = _survival.MaxHp;
-            _currentMaxFood = _survival.MaxFood;
+            _currentMaxHp   = Mathf.Max(1, _survival.MaxHp);
+            _currentMaxFood = Mathf.Max(0, _survival.MaxFood);
 
-            _context.Lives = _survival.StartHp;
-            _context.Food  = _survival.StartFood;
+            _context.Lives = Mathf.Clamp(_survival.StartHp, 1, _currentMaxHp);
+            _context.Food  = Mathf.Clamp(_survival.StartFood, 0, _currentMaxFood);
             _context.Score = 0;
 
             _bus?.Publish(new HpChangedEvent());
@@ -337,20 +337,41 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// </summary>
         public bool TryRevealTile(HexCoord target)
         {
-            if (_pendingEncounterCoord.HasValue) return false;
-            if (!_tiles.TryGetValue(target, out var tile)) return false;
-            if (!IsClickable(target)) return false;
+            Debug.Log($"[HexGrid] TryRevealTile → target={target}  playerCoord={_playerCoord}  HP={_context?.Lives}/{_currentMaxHp}  Food={_context?.Food}/{_currentMaxFood}");
+
+            if (_pendingEncounterCoord.HasValue)
+            {
+                Debug.Log($"[HexGrid] TryRevealTile BLOCKED — encounter already pending at {_pendingEncounterCoord.Value}");
+                return false;
+            }
+            if (!_tiles.TryGetValue(target, out var tile))
+            {
+                Debug.Log($"[HexGrid] TryRevealTile BLOCKED — coordinate {target} not found in grid ({_tiles.Count} tiles)");
+                return false;
+            }
+            if (!IsClickable(target))
+            {
+                Debug.Log($"[HexGrid] TryRevealTile BLOCKED — tile {target} not clickable (Exploration={tile.Exploration}, Spotting={tile.Spotting}, Type={tile.Type})");
+                return false;
+            }
+
+            Debug.Log($"[HexGrid] TryRevealTile ACCEPTED — tile={target}  Type={tile.Type}  DL={tile.DifficultyLevel}  Exploration={tile.Exploration}  IsObjective={tile.IsObjective}");
 
             if (tile.Type == TileType.Enemy)
             {
                 // Miniboss/Boss non sono piu' TileType a se' (2026-07-25): sono varianti di
                 // Enemy via ElementConfig, quindi passano tutte da qui.
+                Debug.Log($"[HexGrid] TryRevealTile → Enemy tile, starting encounter (DL={tile.DifficultyLevel}, IsObjective={tile.IsObjective})");
                 StartEncounter(target, tile);
                 return true;
             }
 
             tile.Exploration = ExplorationState.Explored; tile.Spotting = SpottingState.Spotted;
             _playerCoord = target;
+
+            int hpBefore = _context.Lives;
+            int foodBefore = _context.Food;
+            int scoreBefore = _context.Score;
 
             ApplyMovementCost();
             AccumulateHp(tile);
@@ -359,8 +380,13 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             var (keysChanged, coinsFromElement) = ApplyImmediateElement(tile);
             moneteEarned |= coinsFromElement;
 
+            Debug.Log($"[HexGrid] TryRevealTile effects — HP {hpBefore}→{_context.Lives}  Food {foodBefore}→{_context.Food}  Score {scoreBefore}→{_context.Score}  moneteEarned={moneteEarned}  keysChanged={keysChanged}");
+
             if (tile.Type == TileType.Road)
+            {
+                Debug.Log($"[HexGrid] TryRevealTile → Road tile, cascading strada from {target}");
                 CascadeStrada(target);
+            }
 
             RecomputeReachability();
 
@@ -380,6 +406,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             if (_context.Lives <= 0)
             {
+                Debug.Log($"[HexGrid] TryRevealTile → HP reached 0, publishing PlayerDeathEvent");
                 _feedbackService?.Play("game_over");
                 _bus?.Publish(new PlayerDeathEvent());
             }
@@ -401,18 +428,26 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// </summary>
         private void StartEncounter(HexCoord target, HexTileData tile)
         {
+            int hpBefore = _context.Lives;
+            int foodBefore = _context.Food;
+
             ApplyMovementCost();
+
+            Debug.Log($"[HexGrid] StartEncounter — movement cost applied: HP {hpBefore}→{_context.Lives}  Food {foodBefore}→{_context.Food}");
+
             _bus?.Publish(new HpChangedEvent());
             _bus?.Publish(new FoodChangedEvent());
             _feedbackService?.Play("hp_changed");
 
             if (_context.Lives <= 0)
             {
+                Debug.Log($"[HexGrid] StartEncounter → HP reached 0 during movement cost, PlayerDeathEvent (no popup)");
                 _feedbackService?.Play("game_over");
                 _bus?.Publish(new PlayerDeathEvent());
                 return;
             }
 
+            Debug.Log($"[HexGrid] StartEncounter → opening encounter popup (CanFlee={CanFlee})");
             _pendingEncounterCoord = target;
             _bus?.Publish(new EncounterStartedEvent(tile, this));
         }
@@ -539,10 +574,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// </summary>
         private void ApplyMovementCost()
         {
-            if (_context.Food >= _survival.FoodCostPerClick)
-                _context.Food -= _survival.FoodCostPerClick;
+            var foodCost = Mathf.Max(0, _survival.FoodCostPerClick);
+            var noFoodPenalty = Mathf.Max(0, _survival.NoFoodHpPenalty);
+            if (_context.Food >= foodCost)
+                _context.Food -= foodCost;
             else
-                _context.Lives = Mathf.Clamp(_context.Lives - _survival.NoFoodHpPenalty, 0, _currentMaxHp);
+                _context.Lives = Mathf.Clamp(_context.Lives - noFoodPenalty, 0, _currentMaxHp);
         }
 
         private void AccumulateHp(HexTileData tile)
@@ -642,7 +679,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (!CanSpend(_economy?.MaxHpUpgradeCost)) return false;
 
             Spend(_economy.MaxHpUpgradeCost);
-            _currentMaxHp += _economy.MaxHpUpgradeAmount;
+            _currentMaxHp += Mathf.Max(0, _economy.MaxHpUpgradeAmount);
 
             _bus?.Publish(new ScoreChangedEvent());
             _bus?.Publish(new HpChangedEvent()); // il cap e' cambiato, la UI degli stack deve saperlo
@@ -655,7 +692,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (!CanSpend(_economy?.FoodSlotUpgradeCost)) return false;
 
             Spend(_economy.FoodSlotUpgradeCost);
-            _currentMaxFood += _economy.FoodSlotUpgradeAmount;
+            _currentMaxFood += Mathf.Max(0, _economy.FoodSlotUpgradeAmount);
 
             _bus?.Publish(new ScoreChangedEvent());
             _bus?.Publish(new FoodChangedEvent());
@@ -669,7 +706,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (!CanSpend(_economy?.HealCost)) return false;
 
             Spend(_economy.HealCost);
-            _context.Lives = Mathf.Clamp(_context.Lives + _economy.HealAmount, 0, _currentMaxHp);
+            _context.Lives = Mathf.Clamp(_context.Lives + Mathf.Max(0, _economy.HealAmount), 0, _currentMaxHp);
 
             _bus?.Publish(new ScoreChangedEvent());
             _bus?.Publish(new HpChangedEvent());
@@ -683,7 +720,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (!CanSpend(_economy?.FoodRefillCost)) return false;
 
             Spend(_economy.FoodRefillCost);
-            _context.Food = Mathf.Clamp(_context.Food + _economy.FoodRefillAmount, 0, _currentMaxFood);
+            _context.Food = Mathf.Clamp(_context.Food + Mathf.Max(0, _economy.FoodRefillAmount), 0, _currentMaxFood);
 
             _bus?.Publish(new ScoreChangedEvent());
             _bus?.Publish(new FoodChangedEvent());
@@ -693,9 +730,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// <summary>null-safe: false se EconomyConfig manca dal catalogo o le Monete non bastano.</summary>
         private bool CanSpend(int? cost)
         {
-            if (!cost.HasValue)
+            if (!cost.HasValue || cost.Value < 1)
             {
-                Debug.LogError("[HexGridController] EconomyConfig non risolto dal catalogo: acquisto rifiutato.", this);
+                Debug.LogError("[HexGridController] EconomyConfig contiene un costo non valido: acquisto rifiutato.", this);
                 return false;
             }
             return _context.Score >= cost.Value;

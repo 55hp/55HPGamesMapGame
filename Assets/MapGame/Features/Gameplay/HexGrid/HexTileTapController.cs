@@ -8,7 +8,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// <summary>
     /// Collega il Tap di IInputService (Core) al reveal delle tile.
     /// Pipeline: screen point -> world point (via camera) -> cella Grid -> HexCoord assiale
-    /// -> HexGridController.TryRevealTile. Nessuna logica di gameplay qui, solo traduzione
+    /// -> HexGridController.TryRevealTile. Nessuna LogErrorica di gameplay qui, solo traduzione
     /// input -> chiamata al controller.
     ///
     /// Doppio tap su tile Scoperta: centra la camera sulla tile senza modificarne la size.

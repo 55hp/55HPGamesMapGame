@@ -46,8 +46,8 @@ namespace hp55games.MapGame.Features.UI
 
         private void Awake()
         {
-            _context = ServiceRegistry.Resolve<IGameContextService>();
-            _bus     = ServiceRegistry.Resolve<IEventBus>();
+            ServiceRegistry.TryResolve(out _context);
+            ServiceRegistry.TryResolve(out _bus);
 
             if (_bus != null)
             {
@@ -75,8 +75,8 @@ namespace hp55games.MapGame.Features.UI
             SyncPool(_foodPool,  _foodContainer,   _foodPrefab,   _context?.Food  ?? 0);
         }
 
-        private void OnHpChanged(HpChangedEvent _)     => SyncPool(_heartPool, _heartsContainer, _heartPrefab, _context.Lives);
-        private void OnFoodChanged(FoodChangedEvent _) => SyncPool(_foodPool,  _foodContainer,   _foodPrefab,   _context.Food);
+        private void OnHpChanged(HpChangedEvent _)     => SyncPool(_heartPool, _heartsContainer, _heartPrefab, _context?.Lives ?? 0);
+        private void OnFoodChanged(FoodChangedEvent _) => SyncPool(_foodPool,  _foodContainer,   _foodPrefab,   _context?.Food ?? 0);
 
         /// <summary>
         /// Fa in modo che nel container siano visibili esattamente `count` icone. Il pool
