@@ -173,7 +173,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _economy   = _configs.Get<EconomyConfig>();
             _elementCatalog = _configs.Get<ElementCatalog>();
 
-            BuildGrid();
+            // BuildGrid() NON viene piu' chiamato qui (2026-08-06, vedi InitializeSession):
+            // farlo in Awake pubblica GridInitialized troppo presto — Unity non garantisce
+            // che l'Awake/OnEnable di QUESTO componente vada prima di quelli di ALTRI
+            // componenti sulla stessa scena (HexGridViewSpawner, MapCameraController), solo
+            // che Awake preceda OnEnable per lo STESSO oggetto. Se il loro OnEnable (dove si
+            // iscrivono a GridInitialized) capitava dopo questo Awake, perdevano il primo
+            // GridInitialized della run senza errori visibili: nessuna vista ridisegnata,
+            // nessuna camera inquadrata sulla griglia nuova. Sospettato causare (in parte)
+            // anche il retry rotto segnalato da Franci il 2026-08-05.
         }
 
         private void Start()
@@ -219,6 +227,13 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _context.Lives = Mathf.Clamp(_survival.StartHp, 1, _currentMaxHp);
             _context.Food  = Mathf.Clamp(_survival.StartFood, 0, _currentMaxFood);
             _context.Score = 0;
+
+            // Spostato qui da Awake (2026-08-06): sia GameStartedEvent (pubblicato da
+            // GameplayState.EnterAsync, sempre dopo che l'intera scena ha finito
+            // Awake/OnEnable/Start) sia il fallback qui sotto in Start() garantiscono che
+            // ogni altro componente si sia gia' iscritto a GridInitialized prima che questa
+            // venga chiamata — niente piu' corsa contro HexGridViewSpawner/MapCameraController.
+            BuildGrid();
 
             _bus?.Publish(new HpChangedEvent());
             _bus?.Publish(new FoodChangedEvent());

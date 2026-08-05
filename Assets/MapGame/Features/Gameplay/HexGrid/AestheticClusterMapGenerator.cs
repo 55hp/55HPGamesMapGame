@@ -262,9 +262,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// <summary>
         /// Assegna una tessera singola (EventCluster da 1 tessera, o rammendo senza
         /// PathCluster adiacente) pescando dal manifest EventSingleTilesList. Se il
-        /// manifest e' esaurito (o il LevelConfig manca), la tile resta al default
-        /// (Strada) invece di crashare — degrado silenzioso, coerente con "LevelConfig
-        /// puo' restare parzialmente autorato" descritto sul LevelConfig stesso.
+        /// manifest e' esaurito (o il LevelConfig manca), ripiega su TileType.Void
+        /// (DifficultyLevel 0) — stesso fallback di AssignStopTile. FIX 2026-08-06: prima
+        /// non faceva nulla in questo caso, e "nulla" per una HexTileData appena
+        /// costruita significa restare al default del costruttore (TileType.Road) — su
+        /// una griglia piu' grande del contenuto disponibile questo produceva un'unica
+        /// macchia di decine di tessere Road silenziosamente fuse insieme, invece di
+        /// tante Void separate. Degrado silenzioso, coerente con "LevelConfig puo'
+        /// restare parzialmente autorato" descritto sul LevelConfig stesso.
         /// </summary>
         private void AssignSingleTile(HexTileData tile, HexCoord coord, Dictionary<HexCoord, HexTileData> tiles, Random rng)
         {
@@ -273,6 +278,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 int level = ResolveDifficulty(entry.DifficultyLevel, coord, tiles);
                 ApplyElementStats(tile, entry.Type, level, rng);
                 tile.DifficultyLevel = level;
+            }
+            else
+            {
+                ResetTile(tile, TileType.Void, hpRestore: 0, moneteGained: 0);
+                tile.DifficultyLevel = 0;
             }
         }
 

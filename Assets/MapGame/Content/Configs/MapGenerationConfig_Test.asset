@@ -13,9 +13,8 @@ MonoBehaviour:
   m_Name: MapGenerationConfig_Test
   m_EditorClassIdentifier: 
   Width: 16
-  Height: 16
+  Height: 10
   Seed: 12345
-  LevelConfig: {fileID: 11400000, guid: 158949a1d82d5d94cb90452ebd0107d0, type: 2}
   EndDistanceWeights:
   - Distance: 8
     Weight: 1
@@ -40,10 +39,6 @@ MonoBehaviour:
   PlaceholderBalance:
     GoodsFoodRestoreMin: 1
     GoodsFoodRestoreMax: 3
-    EnemyHpLossMin: 1
-    EnemyHpLossMax: 4
-    EnemyMoneteMin: 1
-    EnemyMoneteMax: 5
   EventClusters:
     Catalog: {fileID: 11400000, guid: 789979cd866a8e0419cc4e0affd6482b, type: 2}
     MaxConsecutiveFailures: 200

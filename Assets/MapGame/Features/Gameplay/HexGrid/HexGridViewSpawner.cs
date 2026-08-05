@@ -32,6 +32,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             return transform.TransformPoint(localPos);
         }
 
+        /// <summary>
+        /// Dimensione (world unit) di una cella secondo il Grid nativo di Unity
+        /// sottostante (Cell Layout: Hexagon, Flat). Per un layout flat-top x e' la
+        /// larghezza orizzontale massima di una tile (i due lati piatti), y
+        /// l'incremento verticale tra righe. Usato da MapCameraController per
+        /// calcolare l'offset di inquadratura (2026-08-06).
+        /// </summary>
+        public Vector2 CellSize => _unityGrid != null ? (Vector2)_unityGrid.cellSize : Vector2.zero;
+
         private void Awake()
         {
             if (_grid == null || _tileViewPrefab == null || _unityGrid == null)
