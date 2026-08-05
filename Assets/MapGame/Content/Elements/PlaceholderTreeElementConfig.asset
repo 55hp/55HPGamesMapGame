@@ -18,6 +18,6 @@ MonoBehaviour:
   Reveal: 0
   DifficultyLevel: 1
   CoinReward: 0
-  FoodRestore: 2
+  FoodRestore: 3
   HpRestore: 0
   Icon: {fileID: 21300000, guid: e8e71fd1b72d8fe48ad3e0fd06d03520, type: 3}

@@ -83,11 +83,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private const int FleeFoodCost = 2;
 
         /// <summary>
-        /// True se il giocatore ha abbastanza Cibo per fuggire dall'incontro pending.
-        /// La UI del popup lo usa per disabilitare il bottone Fuggi; ResolveEncounterFlee
-        /// applica lo stesso gate come difesa in profondita'.
+        /// True se il giocatore ha abbastanza Cibo per fuggire dall'incontro pending E la
+        /// tile pending non e' l'obiettivo (2026-07-25: niente fuga sulla tile finale, il
+        /// player deve combattere). La UI del popup lo usa per disabilitare il bottone
+        /// Fuggi; ResolveEncounterFlee applica lo stesso gate come difesa in profondita'.
         /// </summary>
-        public bool CanFlee => _context != null && _context.Food >= FleeFoodCost;
+        public bool CanFlee => _context != null
+                               && _context.Food >= FleeFoodCost
+                               && (PendingEncounterTile == null || !PendingEncounterTile.IsObjective);
 
         private IMapGenerationService _mapGenerationService;
         private IConfigCatalogService _configs;
@@ -336,8 +339,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (!_tiles.TryGetValue(target, out var tile)) return false;
             if (!IsClickable(target)) return false;
 
-            if (tile.Type == TileType.Enemy || tile.Type == TileType.Miniboss)
+            if (tile.Type == TileType.Enemy)
             {
+                // Miniboss/Boss non sono piu' TileType a se' (2026-07-25): sono varianti di
+                // Enemy via ElementConfig, quindi passano tutte da qui.
                 StartEncounter(target, tile);
                 return true;
             }
@@ -349,9 +354,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             AccumulateHp(tile);
             AccumulateFood(tile);
             bool moneteEarned = AccumulateMonete(tile);
-            bool keysChanged  = ApplyImmediateElement(tile);
+            var (keysChanged, coinsFromElement) = ApplyImmediateElement(tile);
+            moneteEarned |= coinsFromElement;
 
-            if (tile.Type == TileType.Path)
+            if (tile.Type == TileType.Road)
                 CascadeStrada(target);
 
             RecomputeReachability();
@@ -375,21 +381,16 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 _feedbackService?.Play("game_over");
                 _bus?.Publish(new PlayerDeathEvent());
             }
-            else if (tile.IsObjective)
-            {
-                // Win Condition (2026-07-20): rivelare la tile obiettivo (Boss, IsObjective
-                // da generazione) da vivi = vittoria. La morte prevale: se il costo movimento
-                // dell'ultimo click azzera gli HP proprio sull'obiettivo, e' una sconfitta.
-                // UIResultsPage inferisce vittoria da Lives > 0, coerente con questa regola.
-                _feedbackService?.Play("victory");
-                _bus?.Publish(new PlayerVictoryEvent());
-            }
+            // Nessun controllo IsObjective qui (branch dead rimosso 2026-07-25): la tile
+            // obiettivo e' sempre un Enemy, quindi passa sempre da StartEncounter sopra
+            // prima di arrivare a questo punto — la vittoria si risolve in
+            // ResolveEncounterFight, non qui.
 
             return true;
         }
 
         /// <summary>
-        /// Avvia un incontro Enemy/Miniboss: applica il costo movimento (una tantum, come
+        /// Avvia un incontro Enemy: applica il costo movimento (una tantum, come
         /// ogni click) ma NON marca la tile Scoperta e NON risolve il combattimento — resta
         /// in attesa che il popup di Combattimento chiami ResolveEncounterFight/Flee. Non
         /// tocca _playerCoord: finche' l'incontro e' pending il giocatore non si e' "mosso"
@@ -413,15 +414,16 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _pendingEncounterCoord = target;
             _bus?.Publish(new EncounterStartedEvent(tile, this));
         }
-
-        /// <summary>
-        /// Il giocatore ha scelto di combattere l'incontro pending. Risolve come il vecchio
-        /// reveal istantaneo: Scoperta, danno Enemy da DifficultyLevel (no-op per Miniboss
-        /// finche' il suo bilanciamento non e' definito), guadagni della tessera,
-        /// reachability, eventi. Ritorna false se non c'e' nessun incontro pending.
-        /// Ricompensa del combattimento: nessuna per ora — l'XP e' stato rimosso (Economia,
-        /// 2026-07-20) e la ricompensa in Monete e' una decisione di design aperta (vedi
-        /// Franci Tasks).
+/// <summary>
+        /// Il giocatore ha scelto di combattere l'incontro pending. Risolve: Scoperta,
+        /// danno Enemy da DifficultyLevel, guadagni della tessera, ricompensa in Monete
+        /// (Coins += DifficultyLevel, modificatori da Item posseduti deferiti), reachability,
+        /// eventi. Ritorna false se non c'e' nessun incontro pending.
+        /// Win Condition (spostata qui 2026-07-25, prima era un branch dead in
+        /// TryRevealTile): la tile obiettivo e' sempre un Enemy con IsObjective = true, e
+        /// passa sempre da qui — mai da un reveal diretto — quindi questo e' l'unico punto
+        /// che puo' davvero far scattare la vittoria. La morte nello stesso combattimento
+        /// prevale sempre sulla vittoria.
         /// </summary>
         public bool ResolveEncounterFight()
         {
@@ -443,6 +445,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             AccumulateFood(tile);
             bool moneteEarned = AccumulateMonete(tile);
 
+            // Ricompensa combattimento (GDD, Resources — Coins, revisione 2026-07-25):
+            // sempre = DifficultyLevel dell'Enemy. Modificatori da Item posseduti deferiti.
+            int combatReward = Mathf.Max(0, tile.DifficultyLevel);
+            if (combatReward > 0)
+            {
+                _context.Score += combatReward;
+                moneteEarned = true;
+            }
+
             RecomputeReachability();
 
             var neighbors = GetNeighbors(target);
@@ -463,9 +474,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
             else if (tile.IsObjective)
             {
-                // Stessa regola di TryRevealTile: l'obiettivo oggi non passa da qui (Boss
-                // non e' nel ramo encounter), ma se in futuro il Boss diventera' un
-                // incontro, la vittoria post-combattimento e' gia' coperta. Morte prevale.
+                // Unico punto raggiungibile per la vittoria (vedi doc comment sopra).
                 _feedbackService?.Play("victory");
                 _bus?.Publish(new PlayerVictoryEvent());
             }
@@ -506,10 +515,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Effetto Enemy: perdita HP pari al DifficultyLevel della tessera. No-op per i tipi
-        /// non-Enemy (Miniboss: bilanciamento non definito, vedi backlog). L'XP e' stato
-        /// rimosso (Economia, 2026-07-20): la progressione passa dalle Monete e dallo shop.
-        /// Non pubblica eventi — il publish e' centralizzato nel chiamante.
+        /// Effetto Enemy: perdita HP pari al DifficultyLevel della tessera. Vale anche per
+        /// le varianti Miniboss/Boss (2026-07-25: non sono piu' TileType separati, sono
+        /// Enemy via ElementConfig, stesso Type=Enemy). Non pubblica eventi — il publish e'
+        /// centralizzato nel chiamante.
         /// </summary>
         private void ApplyEnemyDamage(HexTileData tile)
         {
@@ -553,22 +562,28 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Effetti degli Element a RevealEffect Immediate (GDD, Tile Types, revisione
-        /// 2026-07-23), applicati al reveal senza popup. Ritorna true se lo stato delle
-        /// chiavi di sessione e' cambiato (il chiamante pubblica KeysChangedEvent — il
-        /// publish resta centralizzato in TryRevealTile come per gli altri eventi).
+        /// 2026-07-25), applicati al reveal senza popup. Ritorna (keysChanged, coinsChanged):
+        /// il chiamante pubblica KeysChangedEvent/ScoreChangedEvent di conseguenza — il
+        /// publish resta centralizzato in TryRevealTile come per gli altri eventi.
         ///
         /// Trap:     HP -= DifficultyLevel (stessa formula placeholder del danno Enemy,
         ///           vedi ApplyEnemyDamage — regola autorevole in GDD, Tile Types → Enemy).
         /// Fountain: ripristina tutti gli HP al cap runtime corrente.
-        /// Tree:     ripristina tutto il Cibo al cap runtime corrente.
         /// Key:      attiva la chiave di sessione per il proprio DifficultyLevel (4/5/6);
         ///           idempotente, le chiavi non si consumano ne' si disattivano.
+        /// MoneyBag: Coins += DifficultyLevel (2026-07-25, standard provvisorio — il GDD
+        ///           originale indicava 1-3 random, superato da questa decisione).
         /// Chest:    inerte — RevealEffect Loot, il popup non esiste ancora (vedi GDD,
         ///           Reveal Effects). Nessun effetto qui finche' il flusso Loot non c'e'.
-        /// Goods:    NON gestito qui — il suo +Food viaggia gia' su HexTileData.FoodRestore
-        ///           (AccumulateFood), assegnato dal generatore. Non duplicare l'effetto.
+        /// Tree/Bush/BeeHive/TurnipSprout: NON gestiti qui (2026-07-25) — il loro +Food
+        ///           viaggia gia' su HexTileData.FoodRestore (AccumulateFood, chiamata
+        ///           incondizionatamente per ogni reveal), assegnato dal generatore da
+        ///           ElementConfig.FoodRestore per specie. Tree in precedenza riempiva il
+        ///           Cibo al massimo qui: override rimosso, ora si comporta come
+        ///           Bush/BeeHive/TurnipSprout. Non duplicare l'effetto reintroducendo un
+        ///           case qui.
         /// </summary>
-        private bool ApplyImmediateElement(HexTileData tile)
+        private (bool keysChanged, bool coinsChanged) ApplyImmediateElement(HexTileData tile)
         {
             switch (tile.Type)
             {
@@ -577,30 +592,37 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     int level = Mathf.Max(0, tile.DifficultyLevel);
                     if (level > 0)
                         _context.Lives = Mathf.Clamp(_context.Lives - level, 0, _currentMaxHp);
-                    return false;
+                    return (false, false);
                 }
 
                 case TileType.Fountain:
                     _context.Lives = _currentMaxHp;
-                    return false;
-
-                case TileType.Tree:
-                    _context.Food = _currentMaxFood;
-                    return false;
+                    return (false, false);
 
                 case TileType.Key:
                     switch (tile.DifficultyLevel)
                     {
-                        case 4: _context.HasKeyDL4 = true; return true;
-                        case 5: _context.HasKeyDL5 = true; return true;
-                        case 6: _context.HasKeyDL6 = true; return true;
+                        case 4: _context.HasKeyDL4 = true; return (true, false);
+                        case 5: _context.HasKeyDL5 = true; return (true, false);
+                        case 6: _context.HasKeyDL6 = true; return (true, false);
                         default:
                             Debug.LogWarning($"[HexGridController] Tile Key con DifficultyLevel {tile.DifficultyLevel} fuori dal set 4/5/6: nessuna chiave attivata. Verifica le LevelTileEntry del LevelConfig.", this);
-                            return false;
+                            return (false, false);
                     }
 
+                case TileType.MoneyBag:
+                {
+                    int coins = Mathf.Max(0, tile.DifficultyLevel);
+                    if (coins > 0)
+                    {
+                        _context.Score += coins;
+                        return (false, true);
+                    }
+                    return (false, false);
+                }
+
                 default:
-                    return false;
+                    return (false, false);
             }
         }
 
@@ -694,7 +716,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 var coord = queue.Dequeue();
                 foreach (var neighbor in GetNeighbors(coord))
                 {
-                    if (neighbor.Type == TileType.Path && !(neighbor.Exploration == ExplorationState.Explored && neighbor.Spotting == SpottingState.Spotted))
+                    if (neighbor.Type == TileType.Road && !(neighbor.Exploration == ExplorationState.Explored && neighbor.Spotting == SpottingState.Spotted))
                     {
                         neighbor.Exploration = ExplorationState.Explored; neighbor.Spotting = SpottingState.Spotted;
                         AccumulateHp(neighbor);

@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5603ae892c91d7f4c9728c8f9369da6e, type: 3}
-  m_Name: PlaceholderBossElementConfig
+  m_Name: PlaceholderHunterElementConfig
   m_EditorClassIdentifier: 
-  SpeciesId: Dragon
-  DisplayName: A Dragon
-  Type: 5
-  Reveal: 0
-  DifficultyLevel: 6
+  SpeciesId: Hunter
+  DisplayName: The Hunter
+  Type: 21
+  Reveal: 4
+  DifficultyLevel: 1
   CoinReward: 0
   FoodRestore: 0
   HpRestore: 0
-  Icon: {fileID: 21300000, guid: 9db357d94706fd2438a25d7f3d4c69b4, type: 3}
+  Icon: {fileID: 21300000, guid: 3904a9f147cee8843a49f15fbd794983, type: 3}

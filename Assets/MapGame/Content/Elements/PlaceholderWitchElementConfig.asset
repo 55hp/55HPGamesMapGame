@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SpeciesId: Witch
   DisplayName: The Witch
-  Type: 3
+  Type: 19
   Reveal: 4
   DifficultyLevel: 1
   CoinReward: 0

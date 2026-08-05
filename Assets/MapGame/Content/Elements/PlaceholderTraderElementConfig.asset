@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SpeciesId: Trader
   DisplayName: The Trader
-  Type: 3
+  Type: 4
   Reveal: 3
   DifficultyLevel: 1
   CoinReward: 0
