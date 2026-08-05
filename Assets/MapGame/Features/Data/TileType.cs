@@ -36,9 +36,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     {
         Void = 0,
 
-        [Obsolete("Path e' stato rinominato Road (2026-07-25). Alias mantenuto solo per compatibilita' con codice non ancora aggiornato — non usarlo in codice nuovo, usa Road.")]
-        Path = 1,
         Road = 1,
+        [Obsolete("Path e' stato rinominato Road (2026-07-25). Alias mantenuto solo per compatibilita' con codice non ancora aggiornato — non usarlo in codice nuovo, usa Road. Dichiarato DOPO Road (2026-08-05) cosi' Unity mostra \"Road\" nell'Inspector per il valore 1, non \"Path\": C#/Unity risolvono il nome da un int all'ordine di dichiarazione, non il contrario — nessun valore e' cambiato, solo l'ordine.")]
+        Path = 1,
 
         [Obsolete("Boss eliminato dal design (2026-07-25): la tile obiettivo e' un Enemy con IsObjective = true, differenziato via ElementConfig. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
         Boss = 2,
@@ -46,9 +46,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         [Obsolete("Npc eliminato dal design (2026-07-25): si divide in Inn/Trader/Witch/Farmer/Hunter. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
         Npc = 3,
 
-        [Obsolete("Shop e' stato rinominato Trader (2026-07-25). Alias mantenuto solo per compatibilita' con codice non ancora aggiornato — non usarlo in codice nuovo, usa Trader.")]
-        Shop = 4,
         Trader = 4,
+        [Obsolete("Shop e' stato rinominato Trader (2026-07-25). Alias mantenuto solo per compatibilita' con codice non ancora aggiornato — non usarlo in codice nuovo, usa Trader. Dichiarato DOPO Trader (2026-08-05) cosi' Unity mostra \"Trader\" nell'Inspector per il valore 4, non \"Shop\" — nessun valore e' cambiato, solo l'ordine.")]
+        Shop = 4,
 
         Enemy = 5,
 
