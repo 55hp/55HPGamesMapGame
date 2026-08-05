@@ -15,7 +15,7 @@ MonoBehaviour:
   SpeciesId: Dragon
   DisplayName: A Dragon
   Type: 5
-  Reveal: 0
+  Reveal: 1
   DifficultyLevel: 6
   CoinReward: 0
   FoodRestore: 0

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using hp55games.MapGame.Features.Configs;
-//using UnityEngine;
 
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
@@ -179,14 +178,32 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
+        /// TileType strutturali/meccanici che non hanno mai avuto (ne' dovrebbero avere)
+        /// una specie in ElementCatalog: il loro effetto e' una formula diretta su
+        /// DifficultyLevel dentro HexGridController (Trap: HP -= DifficultyLevel via
+        /// ApplyImmediateElement; Fountain: HP al massimo, DifficultyLevel ignorato;
+        /// Key: attiva HasKeyDL4/5/6; Chest: inerte, RevealEffect Loot non costruito),
+        /// mai da FoodRestore/CoinReward di una specie. Trovato 2026-08-05: senza questa
+        /// esclusione ApplyElementStats logga un warning per OGNI Trap/Fountain/Key/Chest
+        /// piazzata, sempre — rumore fuorviante, non un problema di configurazione da
+        /// segnalare al designer.
+        /// </summary>
+        private static readonly HashSet<TileType> TypesWithoutSpecies = new HashSet<TileType>
+        {
+            TileType.Trap, TileType.Fountain, TileType.Key, TileType.Chest,
+        };
+
+        /// <summary>
         /// Risolve una specie eleggibile da ElementCatalog per {type, difficultyLevel} e
         /// ne copia FoodRestore/CoinReward sulla tile. HpRestore resta sempre 0: nessun
         /// path del gioco applica oggi danno o cura tramite questo campo (Trap ed Enemy
         /// agiscono direttamente su IGameContextService.Lives, non su HexTileData.HpRestore
         /// — vedi HexGridController.ApplyImmediateElement/ApplyEnemyDamage). Se non esiste
-        /// nessuna specie eleggibile per la combinazione (catalogo incompleto per quel
-        /// livello, o ElementCatalog non risolto), la tile resta a valori neutri e viene
-        /// loggato un warning: degrado silenzioso, mai un crash.
+        /// nessuna specie eleggibile per la combinazione, la tile resta a valori neutri;
+        /// viene loggato un warning solo se il tipo e' de facto "una creatura/risorsa con
+        /// specie" (vedi TypesWithoutSpecies) — per Trap/Fountain/Key/Chest l'assenza di
+        /// specie e' normale, non un problema di autoria da segnalare. Degrado sempre
+        /// silenzioso lato gameplay, mai un crash.
         /// </summary>
         private void ApplyElementStats(HexTileData tile, TileType type, int difficultyLevel, Random rng)
         {
@@ -203,7 +220,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             {
                 tile.FoodRestore = 0;
                 tile.MoneteGained = 0;
-                UnityEngine.Debug.LogWarning($"[AestheticClusterMapGenerator] Nessuna specie eleggibile in ElementCatalog per {type} DifficultyLevel {difficultyLevel}: tile lasciata a valori neutri (FoodRestore/CoinReward 0).");
+                if (!TypesWithoutSpecies.Contains(type))
+                    UnityEngine.Debug.LogWarning($"[AestheticClusterMapGenerator] Nessuna specie eleggibile in ElementCatalog per {type} DifficultyLevel {difficultyLevel}: tile lasciata a valori neutri (FoodRestore/CoinReward 0).");
             }
         }
 

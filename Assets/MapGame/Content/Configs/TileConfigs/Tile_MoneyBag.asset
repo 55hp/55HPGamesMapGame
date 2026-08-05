@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4ae8864e5e063e04c9571d5e929a5c26, type: 3}
-  m_Name: Tile_Void
+  m_Name: Tile_MoneyBag
   m_EditorClassIdentifier: 
-  Type: 0
-  Icon: {fileID: 21300000, guid: 6f1788a221d9f9d45bb5ef164fe9ed3c, type: 3}
+  Type: 17
+  Icon: {fileID: 21300000, guid: d86fecc402280d449bdeb55d07129d20, type: 3}
