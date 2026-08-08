@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Type: 11
   Icon: {fileID: 21300000, guid: e8e71fd1b72d8fe48ad3e0fd06d03520, type: 3}
+  Label: Albero

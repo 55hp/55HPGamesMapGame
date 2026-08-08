@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Type: 1
   Icon: {fileID: 21300000, guid: 216041f4d5d4ffa418dc3abc6f06f221, type: 3}
+  Label: 

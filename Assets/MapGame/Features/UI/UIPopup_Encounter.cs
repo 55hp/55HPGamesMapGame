@@ -7,7 +7,7 @@ using hp55games.MapGame.Features.Gameplay.HexGrid;
 namespace hp55games.MapGame.Features.UI
 {
     /// <summary>
-    /// Popup di incontro Enemy/Miniboss. Istanziato da EncounterPopupTrigger via
+    /// Popup di incontro Enemy/Miniboss. Istanziato da RevealEffectPopupDispatcher via
     /// IUIPopupService quando HexGridController pubblica EncounterStarted. Mostra
     /// tile.Type e tile.DifficultyLevel come placeholder di info nemico (nessun dato
     /// di lore/nome esiste ancora, non aggiungerne). Bottone Combatti chiama
@@ -27,7 +27,7 @@ namespace hp55games.MapGame.Features.UI
 
         private HexGridController _grid;
 
-        /// <summary>Chiamato da EncounterPopupTrigger subito dopo l'istanziazione.</summary>
+        /// <summary>Chiamato da RevealEffectPopupDispatcher subito dopo l'istanziazione.</summary>
         public void Open(HexTileData tile, HexGridController grid)
         {
             _grid = grid;

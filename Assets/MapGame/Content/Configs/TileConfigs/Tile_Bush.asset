@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Type: 14
   Icon: {fileID: 21300000, guid: 442e9e8a22fbd224e916552a0ed8d958, type: 3}
+  Label: Cespuglio

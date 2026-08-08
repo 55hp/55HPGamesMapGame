@@ -54,6 +54,20 @@ namespace hp55games.MapGame.Features.UI
             RefreshMonete();
         }
 
+        /// <summary>
+        /// Libera il gate _pendingTradeCoord di HexGridController (2026-08-06, fix bug
+        /// morte/Shop) qualunque sia la via di chiusura: bottone Chiudi, tap sullo scrim
+        /// (UIScrimCatcher.CloseTop, che non passa da nessun metodo di questa classe) o
+        /// CloseAll/teardown scena. OnDestroy e' l'unico punto che tutte le vie attraversano
+        /// — legare la resolve al solo bottone Chiudi avrebbe lasciato TryRevealTile
+        /// bloccato per il resto della run se il giocatore chiudeva lo shop toccando fuori.
+        /// </summary>
+        protected override void OnDestroy()
+        {
+            _grid?.ResolveTrade();
+            base.OnDestroy();
+        }
+
         private void Purchase(bool success, string successLabel)
         {
             if (_resultLabel != null)

@@ -67,6 +67,25 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// Win Condition (2026-07-20): rivelare la tile IsObjective da vivi pubblica
     /// PlayerVictoryEvent; la morte nello stesso click prevale.
     ///
+    /// Trader (RevealEffect.Trade, collegato 2026-08-06): a differenza di Enemy la tile si
+    /// rivela subito come qualunque altra (nessun effetto economico, vedi
+    /// PlaceholderTraderElementConfig: CoinReward/FoodRestore/HpRestore tutti 0) — non c'e'
+    /// una scelta combatti/fuggi che ne condizioni lo stato. In coda a TryRevealTile pubblica
+    /// TradeStartedEvent (vedi TradeEvents.cs), consumato da RevealEffectPopupDispatcher che
+    /// apre UIPopup_Shop — stesso popup gia' usato per test/debug, ora raggiungibile dal
+    /// reveal reale. TryBuy*/prezzi in EconomyConfig non toccati.
+    ///
+    /// _pendingTradeCoord (2026-08-06, fix bug morte/Shop): pur non avendo una scelta da
+    /// risolvere, il Trader USA comunque un gate pending come Enemy, per tutta la durata del
+    /// popup Shop (non solo il caricamento Addressables) — vedi doc sul campo. Necessario
+    /// perche' HexTileTapController legge input grezzo (IInputService.Tap), non bloccato
+    /// dallo scrim del popup: senza il gate, un tap letale su un'altra tile mentre lo Shop e'
+    /// aperto apriva/lasciava aperto il popup su un giocatore gia' morto. Liberato da
+    /// ResolveTrade(), chiamato da UIPopup_Shop.OnDestroy qualunque sia la via di chiusura
+    /// (bottone Chiudi, tap sullo scrim, CloseAll) — legarlo al solo bottone avrebbe
+    /// lasciato TryRevealTile bloccato per il resto della run se il giocatore chiudeva lo
+    /// shop toccando fuori.
+    ///
     /// Inizializzazione avviene in OnGameStarted (GameStartedEvent), non in BuildGrid, per
     /// evitare la race con GameplayState.ResetRun(). Fallback in Start() per standalone.
     /// </summary>
@@ -128,6 +147,21 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// null se nessun incontro e' pending. Vedi ResolveEncounterFight/ResolveEncounterFlee.
         /// </summary>
         private HexCoord? _pendingEncounterCoord;
+
+        /// <summary>
+        /// Coordinata del Trader in attesa di chiusura del popup Shop, null se nessun trade
+        /// e' pending (2026-08-06, fix bug morte/Shop). Stesso precedente di
+        /// _pendingEncounterCoord: TryRevealTile blocca ogni altro click finche' resta
+        /// impostato. Necessario perche' HexTileTapController legge IInputService.Tap
+        /// grezzo (Input.GetTouch/GetMouseButton diretti, vedi InputService.Tick) — lo scrim
+        /// del popup blocca solo i raycast di Unity UI, NON questo input, quindi senza
+        /// questo gate un tap letale su un'altra tile mentre lo Shop e' ancora aperto (anche
+        /// durante il solo caricamento Addressables del popup) uccideva il giocatore mentre
+        /// il popup restava/veniva comunque mostrato. Impostata alla pubblicazione di
+        /// TradeStartedEvent, liberata da ResolveTrade() (chiamato da UIPopup_Shop.OnDestroy,
+        /// qualunque sia la via di chiusura del popup — bottone, scrim, CloseAll).
+        /// </summary>
+        private HexCoord? _pendingTradeCoord;
 
         public HexCoord PlayerCoord    => _playerCoord;
         public HexCoord ObjectiveCoord => _objectiveCoord;
@@ -233,7 +267,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             // Awake/OnEnable/Start) sia il fallback qui sotto in Start() garantiscono che
             // ogni altro componente si sia gia' iscritto a GridInitialized prima che questa
             // venga chiamata — niente piu' corsa contro HexGridViewSpawner/MapCameraController.
-            BuildGrid();
+            if (!BuildGrid())
+            {
+                // Livello non avviato (2026-08-07): BuildGrid ha gia' loggato il motivo.
+                // Niente eventi Hp/Food/Score — pubblicarli implicherebbe una run attiva
+                // che l'HUD dovrebbe mostrare, ma senza una griglia non c'e' nessuna run:
+                // resterebbe un HUD con numeri validi sopra una scena vuota/non interagibile.
+                Debug.LogError("[HexGridController] InitializeSession interrotta: generazione mappa fallita, livello non avviato.", this);
+                return;
+            }
 
             _bus?.Publish(new HpChangedEvent());
             _bus?.Publish(new FoodChangedEvent());
@@ -241,25 +283,38 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Rigenera la griglia da zero.
+        /// Rigenera la griglia da zero. Ritorna false (2026-08-07) se il livello non deve
+        /// avviarsi: config/servizio mancante, o MapGenerationResult.Success = false — il
+        /// generatore ha gia' loggato un Debug.LogError col motivo tecnico (vincolo
+        /// MinPathClusters, vedi AestheticClusterMapGenerator) in quel caso, qui si logga
+        /// solo la conseguenza. Su fallimento _tiles/_playerCoord/_objectiveCoord NON
+        /// vengono toccati (restano quello che erano prima, vuoti al primo avvio) e
+        /// GridInitialized non viene pubblicato: nessuna vista si popola, nessuna camera
+        /// si posiziona — il gioco resta fermo invece di mostrare una mappa non valida.
         /// Seed: da IGameContextService.CurrentRunSeed se != 0, altrimenti da _mapConfig.Seed.
         /// </summary>
-        public void BuildGrid()
+        public bool BuildGrid()
         {
             if (_mapConfig == null)
             {
                 Debug.LogError("[HexGridController] MapGenerationConfig non risolto dal catalogo. Impossibile generare la mappa.", this);
-                return;
+                return false;
             }
 
             if (_mapGenerationService == null)
             {
                 Debug.LogError("[HexGridController] IMapGenerationService non risolto dal ServiceRegistry. Verifica che MapGenerationServiceInstaller sia in scena e attivo.", this);
-                return;
+                return false;
             }
 
             int seed = (_context?.CurrentRunSeed != 0) ? _context.CurrentRunSeed : _mapConfig.Seed;
             var result = _mapGenerationService.GenerateMap(_mapConfig, _level, _elementCatalog, seed);
+
+            if (!result.Success)
+            {
+                Debug.LogError($"[HexGridController] Generazione mappa fallita, livello non avviato: {result.FailureReason}", this);
+                return false;
+            }
 
             // Rigenerazione = nessun incontro può sopravvivere: la coordinata pending
             // apparterrebbe a una mappa che non esiste più e bloccherebbe ogni click.
@@ -274,6 +329,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             RecomputeReachability();
             GridInitialized?.Invoke();
+            return true;
         }
 
         private void RecomputeReachability()
@@ -343,12 +399,13 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Tenta di rivelare una tile. Ritorna false se non in griglia, non cliccabile, o se
-        /// un incontro e' gia' pending. Per Enemy/Miniboss non risolve subito: applica il
-        /// costo movimento e apre un incontro pending (vedi StartEncounter). Per tutti gli
-        /// altri tipi risolve come sempre: costo movimento (una volta) → HpRestore/
-        /// FoodRestore/Monete della tessera → cascata Strada gratuita se Strada. Eventi
-        /// pubblicati una sola volta a fine azione. PlayerDeathEvent una sola volta se HP
-        /// arriva a 0.
+        /// un incontro o un trade sono gia' pending (vedi _pendingEncounterCoord/
+        /// _pendingTradeCoord). Per Enemy/Miniboss non risolve subito: applica il costo
+        /// movimento e apre un incontro pending (vedi StartEncounter). Per tutti gli altri
+        /// tipi risolve come sempre: costo movimento (una volta) → HpRestore/FoodRestore/
+        /// Monete della tessera → cascata Strada gratuita se Strada; se la tile e' un Trader
+        /// resta pending fino alla chiusura del popup Shop. Eventi pubblicati una sola volta
+        /// a fine azione. PlayerDeathEvent una sola volta se HP arriva a 0.
         /// </summary>
         public bool TryRevealTile(HexCoord target)
         {
@@ -357,6 +414,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (_pendingEncounterCoord.HasValue)
             {
                 Debug.Log($"[HexGrid] TryRevealTile BLOCKED — encounter already pending at {_pendingEncounterCoord.Value}");
+                return false;
+            }
+            if (_pendingTradeCoord.HasValue)
+            {
+                Debug.Log($"[HexGrid] TryRevealTile BLOCKED — trade already pending at {_pendingTradeCoord.Value}");
                 return false;
             }
             if (!_tiles.TryGetValue(target, out var tile))
@@ -424,6 +486,21 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 Debug.Log($"[HexGrid] TryRevealTile → HP reached 0, publishing PlayerDeathEvent");
                 _feedbackService?.Play("game_over");
                 _bus?.Publish(new PlayerDeathEvent());
+            }
+            else if (tile.Type == TileType.Trader)
+            {
+                // Trader (RevealEffect.Trade, vedi TradeEvents.cs): la tile e' gia' Scoperta a
+                // questo punto (a differenza di Enemy non c'e' scelta combatti/fuggi che ne
+                // condizioni lo stato). _pendingTradeCoord pero' resta impostato per tutta la
+                // durata del popup Shop — stesso precedente di _pendingEncounterCoord — perche'
+                // altrimenti un tap letale su un'altra tile mentre lo Shop e' ancora aperto
+                // (HexTileTapController non e' bloccato dallo scrim UI, vedi doc su
+                // _pendingTradeCoord) aprirebbe/lascerebbe aperto il popup su un giocatore
+                // gia' morto. La morte per costo movimento di QUESTO click prevale comunque
+                // (stesso pattern del branch IsObjective in ResolveEncounterFight): niente
+                // trade pending se il click che rivela il Trader e' gia' quello fatale.
+                _pendingTradeCoord = target;
+                _bus?.Publish(new TradeStartedEvent(this));
             }
             // Nessun controllo IsObjective qui (branch dead rimosso 2026-07-25): la tile
             // obiettivo e' sempre un Enemy, quindi passa sempre da StartEncounter sopra
@@ -565,6 +642,17 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             return true;
         }
+
+        /// <summary>
+        /// Il popup Shop si e' chiuso, per qualunque via (bottone Chiudi, tap sullo scrim,
+        /// CloseAll/teardown scena — vedi UIPopup_Shop.OnDestroy, l'unico punto comune a
+        /// tutte). Libera il gate di Trade pending (vedi doc su _pendingTradeCoord): finche'
+        /// non viene chiamato, TryRevealTile blocca ogni altro click. Nessun altro effetto —
+        /// a differenza di ResolveEncounterFlee non c'e' un costo da pagare per "uscire": lo
+        /// shop non e' un incontro da risolvere, solo un popup che va richiuso. Sicura da
+        /// chiamare anche senza trade pending (no-op).
+        /// </summary>
+        public void ResolveTrade() => _pendingTradeCoord = null;
 
         /// <summary>
         /// Effetto Enemy: perdita HP pari al DifficultyLevel della tessera. Vale anche per

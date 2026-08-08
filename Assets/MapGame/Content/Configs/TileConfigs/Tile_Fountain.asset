@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Type: 10
   Icon: {fileID: 21300000, guid: 47e32a7b7a689ea499fdc7264dde30b2, type: 3}
+  Label: Fontana

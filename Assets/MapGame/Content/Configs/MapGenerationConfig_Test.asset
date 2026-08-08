@@ -47,7 +47,7 @@ MonoBehaviour:
   StradaNetwork:
     MinBranchLength: 3
     MaxBranchLength: 7
-    MaxBranches: 4
+    MaxBranches: 6
     MaxTotalTiles: 15
     StopWeight: 60
     Fork3Weight: 35

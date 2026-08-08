@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Type: 17
   Icon: {fileID: 21300000, guid: d86fecc402280d449bdeb55d07129d20, type: 3}
+  Label: Monete

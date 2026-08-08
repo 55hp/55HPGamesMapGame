@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Type: 18
   Icon: {fileID: 21300000, guid: b5e9fbd87e381dc4e8f048b3f34540a3, type: 3}
+  Label: Locanda

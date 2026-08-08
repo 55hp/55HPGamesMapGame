@@ -21,11 +21,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     {
         public MapGenerationResult GenerateMap(MapGenerationConfig config, LevelConfig level, ElementCatalog elementCatalog, int seed)
         {
-            // PlaceholderBalanceSettings non e' piu' passato al generatore (revisione
-            // 2026-08-05): il vecchio bilanciamento hardcoded/random e' sostituito dalla
-            // risoluzione via ElementCatalog dentro AestheticClusterMapGenerator. Il campo
-            // resta su MapGenerationConfig per non rompere gli asset serializzati
-            // esistenti, ma non e' piu' letto da nessuno.
+            // Il vecchio bilanciamento hardcoded/random (PlaceholderBalanceSettings) e'
+            // stato sostituito dalla revisione 2026-08-05 con la risoluzione via
+            // ElementCatalog dentro AestheticClusterMapGenerator, e il campo — rimasto
+            // inutilizzato su MapGenerationConfig da allora — e' stato rimosso del tutto
+            // il 2026-08-07 insieme al resto della roba deprecata (vedi MapGenerationConfig.cs).
             IMapGenerator generator = new AestheticClusterMapGenerator(
                 config.EndDistanceWeights,
                 config.StartMinBorderDistance,

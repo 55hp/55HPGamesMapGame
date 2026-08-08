@@ -25,6 +25,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         [Header("Config per tipo (un HexTileConfig per TileType)")]
         public HexTileConfig[] TileConfigs;
 
+        [Header("Colore bordo per DifficultyLevel (componente 1 dell'anatomia visiva, 2026-08-06)")]
+        [Tooltip("Indice = DifficultyLevel (0..6; 0 = Road/Void, strutturali, vedi HexTileData.DifficultyLevel). Voci non assegnate restano Color.clear finche' non impostate qui.")]
+        public Color[] DifficultyLevelBorderColors = new Color[7];
+
         /// <summary>Null se il tipo non ha ancora una HexTileConfig assegnata in TileConfigs.</summary>
         public Sprite GetIcon(TileType type)
         {
@@ -36,6 +40,28 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
 
             return null;
+        }
+
+        /// <summary>Null/vuoto se il tipo non ha ancora una HexTileConfig assegnata, o la sua Label e' vuota.</summary>
+        public string GetLabel(TileType type)
+        {
+            if (TileConfigs == null) return null;
+
+            foreach (var entry in TileConfigs)
+            {
+                if (entry != null && entry.Type == type) return entry.Label;
+            }
+
+            return null;
+        }
+
+        /// <summary>Color.clear (non un colore di bordo valido) se difficultyLevel e' fuori dal range configurato — cosi' un bordo non assegnato e' visibilmente "mancante" invece di sembrare intenzionale.</summary>
+        public Color GetDifficultyLevelColor(int difficultyLevel)
+        {
+            if (DifficultyLevelBorderColors == null || difficultyLevel < 0 || difficultyLevel >= DifficultyLevelBorderColors.Length)
+                return Color.clear;
+
+            return DifficultyLevelBorderColors[difficultyLevel];
         }
     }
 }

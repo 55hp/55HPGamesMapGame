@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace hp55games.Mobile.Core.InputSystem
 {
@@ -7,6 +8,24 @@ namespace hp55games.Mobile.Core.InputSystem
     /// Default mobile/desktop implementation for IInputService.
     /// It supports single-pointer gestures: tap, swipe, hold.
     /// This class is ticked from a MonoBehaviour driver (InputServiceDriver).
+    ///
+    /// UI ownership (2026-08-06, fix: popups not blocking gameplay taps underneath them):
+    /// a press that BEGINS over a UI element (EventSystem.IsPointerOverGameObject — the
+    /// scrim behind an open popup included, since it's a full-screen raycastTarget Image)
+    /// belongs to UI for its whole lifetime, not gameplay: no PointerDown/PointerUp/Tap/
+    /// Swipe/Hold fires for it. Checked once at press-begin, not per-frame: if you started
+    /// on the map and drag onto a button before releasing, that's still a map gesture (and
+    /// vice versa) — matches how uGUI itself decides pointer target on press, not release.
+    /// Consumers (today only HexTileTapController) get this for free without checking UI
+    /// themselves; the project uses the legacy StandaloneInputModule (not
+    /// InputSystemUIInputModule), so IsPointerOverGameObject reads the same
+    /// Input.mousePosition/GetTouch state this class already polls — no mismatch.
+    ///
+    /// This does NOT replace per-RevealEffect pending gates (HexGridController's
+    /// _pendingEncounterCoord/_pendingTradeCoord): those also cover the async window before
+    /// a popup (and its scrim) exists at all — Addressables instantiate takes at least one
+    /// frame, during which there is no UI object yet for IsPointerOverGameObject to find.
+    /// This fix and the pending gates close two different halves of the same race.
     /// </summary>
     public sealed class InputService : IInputService
     {
@@ -26,6 +45,7 @@ namespace hp55games.Mobile.Core.InputSystem
 
         bool   _isDown;
         bool   _holdFired;
+        bool   _suppressedByUI;
         float  _downTime;
         Vector2 _downPos;
         Vector2 _lastPos;
@@ -39,11 +59,13 @@ namespace hp55games.Mobile.Core.InputSystem
             // - Else -> use mouse left button as pointer
             bool isPressed;
             Vector2 currentPos;
+            int touchId = -1;
 
             if (UnityEngine.Input.touchSupported && UnityEngine.Input.touchCount > 0)
             {
                 var t = UnityEngine.Input.GetTouch(0);
                 currentPos = t.position;
+                touchId    = t.fingerId;
                 isPressed  = t.phase == TouchPhase.Began ||
                              t.phase == TouchPhase.Moved ||
                              t.phase == TouchPhase.Stationary;
@@ -65,10 +87,18 @@ namespace hp55games.Mobile.Core.InputSystem
                     _downPos   = currentPos;
                     _lastPos   = currentPos;
 
+                    // Decided once, at press-begin: see class doc for why not per-frame.
+                    _suppressedByUI = IsPointerOverUI(touchId);
+                    if (_suppressedByUI)
+                        return;
+
                     PointerDown?.Invoke(currentPos);
                 }
                 else
                 {
+                    if (_suppressedByUI)
+                        return;
+
                     // Pointer is held
                     _lastPos = currentPos;
 
@@ -88,6 +118,12 @@ namespace hp55games.Mobile.Core.InputSystem
                 {
                     // Pointer just released
                     _isDown = false;
+
+                    bool wasSuppressed = _suppressedByUI;
+                    _suppressedByUI = false;
+                    if (wasSuppressed)
+                        return;
+
                     PointerUp?.Invoke(_lastPos);
 
                     var totalTime   = Time.unscaledTime - _downTime;
@@ -109,6 +145,20 @@ namespace hp55games.Mobile.Core.InputSystem
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// True if the press starting now is over a UI element. Touch uses the per-finger
+        /// overload (matches the same touch this method is reading), mouse uses the
+        /// parameterless one — same pair EventSystem/StandaloneInputModule expect.
+        /// </summary>
+        private static bool IsPointerOverUI(int touchId)
+        {
+            if (EventSystem.current == null) return false;
+
+            return touchId >= 0
+                ? EventSystem.current.IsPointerOverGameObject(touchId)
+                : EventSystem.current.IsPointerOverGameObject();
         }
     }
 }

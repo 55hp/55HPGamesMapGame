@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Type: 9
   Icon: {fileID: 21300000, guid: 59deb77aac25fb54789b5fee56e5736a, type: 3}
+  Label: Trappola

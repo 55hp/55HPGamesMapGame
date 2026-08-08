@@ -1,7 +1,6 @@
 using System;
 using hp55games.Mobile.Core.Config;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace hp55games.MapGame.Features.Configs
 {
@@ -10,21 +9,6 @@ namespace hp55games.MapGame.Features.Configs
     {
         public int Distance;
         public int Weight;
-    }
-
-    /// <summary>
-    /// Valori placeholder di bilanciamento, non definitivi.
-    /// Oggi copre solo Goods (rifornimento Cibo, clampato a MaxFood a runtime).
-    /// </summary>
-    [Serializable]
-    public struct PlaceholderBalanceSettings
-    {
-        [Header("Goods — rifornimento Cibo")]
-        [FormerlySerializedAs("RisorsaHpRestoreMin")] public int GoodsFoodRestoreMin;
-        [FormerlySerializedAs("RisorsaHpRestoreMax")] public int GoodsFoodRestoreMax;
-
-        // Enemy non ha campi qui: danno e XP derivano dal DifficultyLevel della tile e
-        // sono applicati al reveal in HexGridController.
     }
 
     /// <summary>
@@ -52,15 +36,19 @@ namespace hp55games.MapGame.Features.Configs
     }
 
     /// <summary>
-    /// Parametri per il piazzamento degli EventCluster (forme dal catalogo) e delle
-    /// tessere singole via rejection sampling.
+    /// Parametri per il piazzamento degli EventCluster (generati proceduralmente a runtime
+    /// da LevelConfig.Entries, vedi AestheticClusterMapGenerator.TryBuildProceduralCluster)
+    /// e delle tessere singole via rejection sampling.
+    ///
+    /// 2026-08-07: rimosso il campo Catalog (EventClusterCatalog/EventClusterShape) — le
+    /// forme autorate a mano erano un fallback per quando la generazione procedurale non
+    /// bastava, ma i cluster sono ora generati interamente a runtime, i tipi
+    /// EventClusterCatalog/EventClusterShape restano nel progetto (non toccati, nessuna
+    /// perdita di asset) ma non sono piu' referenziati dal generatore.
     /// </summary>
     [Serializable]
     public struct EventClusterPlacementSettings
     {
-        [Tooltip("Trascina qui l'asset EventClusterCatalog con le forme disponibili.")]
-        public hp55games.MapGame.Features.Gameplay.HexGrid.EventClusterCatalog Catalog;
-
         [Tooltip("Tentativi consecutivi falliti prima di considerare la griglia piena e fermarsi.")]
         public int MaxConsecutiveFailures;
 
@@ -69,6 +57,14 @@ namespace hp55games.MapGame.Features.Configs
         public int ClusterToSingleRatioMax;
     }
 
+    /// <summary>
+    /// 2026-08-07: rimosso PlaceholderBalanceSettings/PlaceholderBalance — bilanciamento
+    /// placeholder (Goods FoodRestore min/max) mai piu' letto dal generatore dalla
+    /// revisione 2026-08-05 (sostituito dalla risoluzione via ElementCatalog, vedi
+    /// AestheticClusterMapGenerator.ApplyElementStats), restava solo per non rompere gli
+    /// asset serializzati esistenti. Vedi anche EventClusterPlacementSettings per la
+    /// rimozione di Catalog, stessa pulizia.
+    /// </summary>
     [CreateAssetMenu(menuName = "MapGame/Map Generation Config", fileName = "MapGenerationConfig")]
     public sealed class MapGenerationConfig : ScriptableObject, IConfigAsset
     {
@@ -94,16 +90,9 @@ namespace hp55games.MapGame.Features.Configs
         [Min(0)] public int StartMinBorderDistance = 3;
         [Min(0)] public int ClusterMinDistanceFromStartEnd = 2;
 
-        [Header("Bilanciamento placeholder (NON valori finali)")]
-        public PlaceholderBalanceSettings PlaceholderBalance = new PlaceholderBalanceSettings
-        {
-            GoodsFoodRestoreMin  = 1, GoodsFoodRestoreMax  = 6,
-        };
-
         [Header("Piazzamento EventCluster e singole")]
         public EventClusterPlacementSettings EventClusters = new EventClusterPlacementSettings
         {
-            Catalog = null,
             MaxConsecutiveFailures = 200,
             ClusterToSingleRatioMin = 2,
             ClusterToSingleRatioMax = 3,

@@ -8,7 +8,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// raccoglitore e' HexTileConfigCatalog. Sostituisce le entry TypeIcons di
     /// TileVisualConfig, revisione 2026-07-10.
     ///
-    /// Permette anche di dare a una entry di StopSingleTilesList (es. un NPC riskinnato)
+    /// Permette anche di dare a una entry ListType.StopSingle (es. un NPC riskinnato)
     /// uno sprite tematico diverso da quello "standard" dello stesso TileType: basta
     /// creare un secondo HexTileConfig per lo stesso TileType e scegliere quale asset
     /// mettere nel catalogo/nella entry pertinente — la ricerca in
@@ -21,5 +21,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     {
         public TileType Type;
         public Sprite Icon;
+
+        [Tooltip("Etichetta TMP mostrata insieme a Icon sulla tile (componente 2b dell'anatomia visiva, 2026-08-06). Vuota = nessun testo mostrato per questo tipo.")]
+        public string Label;
     }
 }
