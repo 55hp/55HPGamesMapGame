@@ -149,7 +149,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         // volta per singola chiamata a Generate (vedi MapGenerationService), mai riusato
         // ne' chiamato in parallelo su piu' thread.
         private List<SingleTile> _singleManifest;
-        private List<StopTyle> _stopManifest;
+        private List<StopTile> _stopManifest;
 
         /// <summary>
         /// Combinazioni (Type, DifficultyLevel) del centro gia' usate come cluster in

@@ -57,7 +57,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// un'unica entry con Amount=N.
     /// </summary>
     [Serializable]
-    public class StopTyle : LevelTile
+    public class StopTile : LevelTile
     {
         public override int Amount => 1;
     }
@@ -76,6 +76,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public List<SingleTile> SingleTileEntries;
 
         [Tooltip("Separatori tra PathCluster distinti — vedi AestheticClusterMapGenerator.AssignStopTile. Amount ignorato: un'entry = un'istanza.")]
-        public List<StopTyle> StopTileEntries;
+        public List<StopTile> StopTileEntries;
     }
 }
