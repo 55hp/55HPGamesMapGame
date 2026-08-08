@@ -4,14 +4,13 @@ using UnityEngine;
 namespace hp55games.MapGame.Features.Configs
 {
     /// <summary>
-    /// Parametri dell'economia Monete (Economia, 2026-07-20): prezzi ed entita' degli
-    /// effetti dei potenziamenti acquistabili nello shop. Ricomprabili nella stessa run.
-    /// Stesso pattern di SurvivalConfig: risolto a runtime via IConfigCatalogService, il
-    /// bilanciamento si fa sull'asset in editor, mai nel codice.
+    /// Parametri dell'economia Monete: prezzi ed entita' degli effetti dei potenziamenti
+    /// acquistabili nello shop. Ricomprabili nella stessa run. Stesso pattern di
+    /// SurvivalConfig: risolto a runtime via IConfigCatalogService, il bilanciamento si fa
+    /// sull'asset in editor, mai nel codice.
     ///
-    /// I valori di default sono segnaposto NON bilanciati (vedi Franci Tasks). ATK/DEF,
-    /// chiavi e vision boost arriveranno quando esisteranno i sistemi che li consumano
-    /// (Combattimento / Knowledge).
+    /// I valori di default sono segnaposto NON bilanciati. ATK/DEF, chiavi e vision boost
+    /// arriveranno quando esisteranno i sistemi che li consumano (Combattimento / Knowledge).
     /// </summary>
     [CreateAssetMenu(menuName = "MapGame/Economy Config", fileName = "EconomyConfig")]
     public sealed class EconomyConfig : ScriptableObject, IConfigAsset

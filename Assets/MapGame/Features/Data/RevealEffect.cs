@@ -4,8 +4,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
     /// Governa cosa succede al reveal di una tile con Element (GDD, sezione "Reveal
-    /// Effects", revisione 2026-07-25). Usato da ElementConfig per determinare quale
-    /// popup (se esiste) aprire. Non aggiungere valori senza istruzione esplicita.
+    /// Effects"). Usato da ElementConfig per determinare quale popup (se esiste) aprire.
+    /// Non aggiungere valori senza istruzione esplicita.
     ///
     /// Immediate — effetto applicato direttamente, nessun popup (Trap, Fountain, Tree,
     ///             Bush, BeeHive, TurnipSprout, MoneyBag, Key). Vedi HexGridController.ApplyImmediateElement.
@@ -25,7 +25,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         Immediate = 0,
         Fight = 1,
 
-        [Obsolete("Talk eliminato dal design (2026-07-25): Choice ora copre anche il caso di solo dialogo lineare (un nodo, una risposta/prosegui) — niente enum separato per quello. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
+        [Obsolete("Talk non e' piu' un RevealEffect a se': Choice copre anche il caso di solo dialogo lineare (un nodo, una risposta/prosegui) — niente enum separato per quello. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
         Talk = 2,
 
         Trade = 3,

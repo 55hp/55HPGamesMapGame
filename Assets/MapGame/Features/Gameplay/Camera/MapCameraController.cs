@@ -7,7 +7,7 @@ namespace hp55games.MapGame.Features.Gameplay.CameraControl
     /// <summary>
     /// Gestisce il movimento smooth della camera di gioco sulla griglia esagonale.
     ///
-    /// Due momenti distinti (2026-08-06, richiesta Franci):
+    /// Due momenti distinti:
     /// 1. Inquadratura iniziale: al primo GridInitialized della run (sia al vero avvio
     ///    sia dopo un retry, la griglia si rigenera sempre da capo) inquadra TUTTA la
     ///    plancia, non solo le tile Scoperte, con un offset k = larghezza orizzontale
@@ -16,8 +16,7 @@ namespace hp55games.MapGame.Features.Gameplay.CameraControl
     ///    dell'Inspector fino all'inquadratura calcolata, deve essere gia' corretta al
     ///    primo frame visibile.
     /// 2. A ogni reveal (TileRevealed) da li' in poi: ricentra smooth sul bounding box
-    ///    delle tile Scoperte, offset _scopertaOffset x 2 (raddoppiato su richiesta
-    ///    Franci 2026-08-05 rispetto al singolo _scopertaOffset di prima).
+    ///    delle tile Scoperte, offset _scopertaOffset x 2.
     ///
     /// FocusOn() è esposto pubblicamente per impulsi esterni (debug, cutscene, ecc.).
     /// </summary>
@@ -29,7 +28,7 @@ namespace hp55games.MapGame.Features.Gameplay.CameraControl
         [SerializeField] private HexGridViewSpawner _spawner;
 
         [Header("Framing")]
-        [Tooltip("Padding ortho-space aggiunto intorno al bounding box delle tile Scoperte. Usato x2 nella formula (2026-08-06) — vedi doc di classe.")]
+        [Tooltip("Padding ortho-space aggiunto intorno al bounding box delle tile Scoperte. Usato x2 nella formula — vedi doc di classe.")]
         [SerializeField] private float _scopertaOffset = 1.2f;
         [Tooltip("OrthoSize minimo garantito anche con una sola tile scoperta.")]
         [SerializeField] private float _minOrthoSize = 2f;
@@ -153,8 +152,8 @@ namespace hp55games.MapGame.Features.Gameplay.CameraControl
             Vector3 center = (bMin + bMax) * 0.5f;
             _targetPosition = new Vector3(center.x, center.y, _camera.transform.position.z);
 
-            // 2. OrthoSize = metà della dimensione maggiore dell'AABB + offset. Offset
-            // raddoppiato (2026-08-06, richiesta Franci) rispetto a _scopertaOffset da solo.
+            // 2. OrthoSize = metà della dimensione maggiore dell'AABB + offset (doppio di
+            // _scopertaOffset — vedi doc di classe).
             float width  = bMax.x - bMin.x;
             float height = bMax.y - bMin.y;
             float offset = _scopertaOffset * 2f;

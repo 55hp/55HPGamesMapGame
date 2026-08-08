@@ -4,14 +4,12 @@
 // a cell, matching the flat-top odd-q layout used by the game's hex map. Square
 // buttons are used; the visual offset ensures painted clusters are spatially correct.
 //
-// Revised 2026-07-10: painting now requires a LevelConfig reference. Paintable options
-// come from LevelConfig.Entries filtered to ListType.EventCluster (TileType +
-// DifficultyLevel pairs) instead of the full TileType enum — each click cycles through
-// eligible entries for that level, authoring stays per-cell manual, the LevelConfig only
-// filters what's available. Road and Void (structural, no DifficultyLevel) are excluded
-// from paintable entries. Revised 2026-08-07: LevelConfig.EventClusterTilesList replaced
-// by the unified Entries list, entries now distinguished by ListType instead of by which
-// array they live in — see LevelConfig.cs.
+// Painting requires a LevelConfig reference. Paintable options come from
+// LevelConfig.Entries filtered to ListType.EventCluster (TileType + DifficultyLevel
+// pairs) instead of the full TileType enum — each click cycles through eligible entries
+// for that level, authoring stays per-cell manual, the LevelConfig only filters what's
+// available. Road (structural, no DifficultyLevel) is excluded from paintable entries —
+// see LevelConfig.cs.
 using UnityEngine;
 using UnityEditor;
 using System;

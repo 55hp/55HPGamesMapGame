@@ -7,8 +7,8 @@ using hp55games.MapGame.Features.Gameplay.HexGrid;
 namespace hp55games.MapGame.Features.UI
 {
     /// <summary>
-    /// Popup dello shop (Economia, 2026-07-20): potenziamenti diretti in Monete,
-    /// ricomprabili nella stessa run. Chiama le TryBuy* di HexGridController — prezzi e
+    /// Popup dello shop: potenziamenti diretti in Monete, ricomprabili nella stessa run.
+    /// Chiama le TryBuy* di HexGridController — prezzi e
     /// logica vivono la' (config EconomyConfig), qui solo la presentazione. I bottoni
     /// restano sempre attivi: un acquisto impossibile (Monete insufficienti, cura a HP
     /// pieni) e' un TryBuy che ritorna false, mostrato nel label esito. Resta aperto dopo
@@ -55,8 +55,8 @@ namespace hp55games.MapGame.Features.UI
         }
 
         /// <summary>
-        /// Libera il gate _pendingTradeCoord di HexGridController (2026-08-06, fix bug
-        /// morte/Shop) qualunque sia la via di chiusura: bottone Chiudi, tap sullo scrim
+        /// Libera il gate _pendingTradeCoord di HexGridController qualunque sia la via di
+        /// chiusura: bottone Chiudi, tap sullo scrim
         /// (UIScrimCatcher.CloseTop, che non passa da nessun metodo di questa classe) o
         /// CloseAll/teardown scena. OnDestroy e' l'unico punto che tutte le vie attraversano
         /// — legare la resolve al solo bottone Chiudi avrebbe lasciato TryRevealTile

@@ -13,9 +13,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     ///
     /// Risoluzione (GDD, Tile &amp; Element Knowledge System): la run ha un numero fisso
     /// di Element per tipo dal LevelConfig; il generatore, per ogni tile content con
-    /// {TileType, DifficultyLevel} risolto, pesca una specie eleggibile da qui.
-    /// L'aggancio del generatore a questo catalogo e' lo step successivo — oggi il
-    /// catalogo espone solo l'API di lookup.
+    /// {TileType, DifficultyLevel} risolto, pesca una specie eleggibile da qui
+    /// (AestheticClusterMapGenerator.ApplyElementStats chiama PickRandom).
     /// </summary>
     [CreateAssetMenu(menuName = "MapGame/Element Catalog", fileName = "ElementCatalog")]
     public sealed class ElementCatalog : ScriptableObject, IConfigAsset

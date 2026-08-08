@@ -5,19 +5,17 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
     /// Definizione di una singola specie/archetipo di Element (GDD, sezione Tile &amp;
-    /// Element Knowledge System + Resources/Coins, decisione 2026-07-23): un asset
-    /// ScriptableObject per specie (es. OrcoBase.asset, Volpe.asset), NON un catalogo
-    /// unico indicizzato — la raccolta e la risoluzione per tipo/DifficultyLevel sono
-    /// responsabilita' di ElementCatalog.
+    /// Element Knowledge System + Resources/Coins): un asset ScriptableObject per specie
+    /// (es. OrcoBase.asset, Volpe.asset), NON un catalogo unico indicizzato — la raccolta
+    /// e la risoluzione per tipo/DifficultyLevel sono responsabilita' di ElementCatalog.
     ///
-    /// Divisione con EconomyConfig (decisione 2026-07-23): qui vivono ricompense e drop
-    /// del soggetto (CoinReward, FoodRestore, HpRestore); i prezzi dei potenziamenti
-    /// shop restano in EconomyConfig perche' non hanno un Element proprietario naturale.
+    /// Divisione con EconomyConfig: qui vivono ricompense e drop del soggetto (CoinReward,
+    /// FoodRestore, HpRestore); i prezzi dei potenziamenti shop restano in EconomyConfig
+    /// perche' non hanno un Element proprietario naturale.
     ///
     /// I valori numerici di default sono segnaposto NON bilanciati: il bilanciamento per
-    /// specie e' responsabilita' del designer sull'asset (vedi "Element Catalog — Design
-    /// Tables" in Notion, campi verdi = decisioni Franci), mai nel codice.
-    /// ATK/DEF arriveranno con il sistema Combat dedicato — non aggiungerli prima.
+    /// specie e' responsabilita' del designer sull'asset, mai nel codice. ATK/DEF
+    /// arriveranno con il sistema Combat dedicato — non aggiungerli prima.
     /// </summary>
     [CreateAssetMenu(menuName = "MapGame/Element Config", fileName = "ElementConfig")]
     public sealed class ElementConfig : ScriptableObject, IConfigAsset

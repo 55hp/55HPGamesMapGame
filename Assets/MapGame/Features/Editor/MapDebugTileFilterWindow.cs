@@ -57,6 +57,18 @@ namespace hp55games.MapGame.Features.Editor
         private bool _filterStart;
         private bool _filterEnd;
 
+        /// <summary>
+        /// Attivo → mostra solo le tile che appartengono a un piazzamento EventCluster
+        /// multi-tile (centro + ring da 7, vedi AestheticClusterMapGenerator.
+        /// TryBuildProceduralCluster), escluse le tessere singole isolate. EventPlacementId
+        /// e' condiviso sia dai cluster multi-tile sia dalle singole (assegnato per ogni
+        /// piazzamento in PlaceEventClusters/PatchResidualGaps) — non basta controllare
+        /// EventPlacementId >= 0, serve raggruppare per id e contare quante tile lo
+        /// condividono: >1 = cluster vero, ==1 = singola isolata. Vedi
+        /// _clusterPlacementIds/ComputeStats.
+        /// </summary>
+        private bool _filterEventCluster;
+
         // ── Cache riferimenti runtime ─────────────────────────────────────────────
         private HexGridViewSpawner _spawner;
         private HexGridController  _controller;
@@ -68,6 +80,12 @@ namespace hp55games.MapGame.Features.Editor
         private int  _startCount;
         private int  _endCount;
         private int  _totalCount;
+
+        // EventPlacementId → quante tile lo condividono, tally temporaneo di ComputeStats.
+        private readonly Dictionary<int, int> _eventPlacementCounts = new Dictionary<int, int>();
+        // Sottoinsieme di quegli id con conteggio > 1 — i cluster multi-tile veri, letto da ApplyFilter.
+        private readonly HashSet<int> _clusterPlacementIds = new HashSet<int>();
+        private int _clusterTileCount;
 
         // ── Statistiche — totali risorse (somma su tutta la mappa) ───────────────
         private int _totalMonete;
@@ -128,6 +146,7 @@ namespace hp55games.MapGame.Features.Editor
 
             _filterStart = false;
             _filterEnd   = false;
+            _filterEventCluster = false;
         }
 
         // ── Stili (lazy init — non disponibili fuori da OnGUI) ────────────────────
@@ -178,6 +197,8 @@ namespace hp55games.MapGame.Features.Editor
             _totalCibo   = 0;
             _totalHp     = 0;
 
+            _eventPlacementCounts.Clear();
+
             foreach (var kvp in _controller.Tiles)
             {
                 var data = kvp.Value;
@@ -204,6 +225,26 @@ namespace hp55games.MapGame.Features.Editor
                 _totalMonete += data.MoneteGained;
                 _totalCibo   += data.FoodRestore;
                 _totalHp     += data.HpRestore;
+
+                // EventPlacementId: tally per id, condiviso da cluster multi-tile e singole
+                // (vedi doc su _filterEventCluster) — chi e' un cluster vero si scopre solo
+                // dopo aver contato tutte le tile.
+                if (data.EventPlacementId >= 0)
+                {
+                    _eventPlacementCounts.TryGetValue(data.EventPlacementId, out int c);
+                    _eventPlacementCounts[data.EventPlacementId] = c + 1;
+                }
+            }
+
+            // Seconda passata: quali EventPlacementId sono cluster veri (>1 tile), e quante
+            // tile in totale ci appartengono — serve per la colonna stat della riga filtro.
+            _clusterPlacementIds.Clear();
+            _clusterTileCount = 0;
+            foreach (var pair in _eventPlacementCounts)
+            {
+                if (pair.Value <= 1) continue;
+                _clusterPlacementIds.Add(pair.Key);
+                _clusterTileCount += pair.Value;
             }
 
             _statsValid = true;
@@ -302,6 +343,10 @@ namespace hp55games.MapGame.Features.Editor
                     bool next = StatRow("End (Objective)", _filterEnd, _endCount);
                     if (next != _filterEnd) { _filterEnd = next; changed = true; }
                 }
+                {
+                    bool next = StatRow("EventCluster (multi-tile)", _filterEventCluster, _clusterTileCount);
+                    if (next != _filterEventCluster) { _filterEventCluster = next; changed = true; }
+                }
 
                 EditorGUI.indentLevel--;
             }
@@ -399,7 +444,7 @@ namespace hp55games.MapGame.Features.Editor
             foreach (var d in _dlFilters)
                 if (d) return true;
 
-            return _filterStart || _filterEnd;
+            return _filterStart || _filterEnd || _filterEventCluster;
         }
 
         private void RefreshRuntimeRefs()
@@ -453,6 +498,9 @@ namespace hp55games.MapGame.Features.Editor
                     matches = true;
 
                 if (!matches && _filterEnd && data.IsObjective)
+                    matches = true;
+
+                if (!matches && _filterEventCluster && _clusterPlacementIds.Contains(data.EventPlacementId))
                     matches = true;
 
                 view.gameObject.SetActive(matches);

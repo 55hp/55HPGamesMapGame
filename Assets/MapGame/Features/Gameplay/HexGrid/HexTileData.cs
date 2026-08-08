@@ -13,19 +13,13 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public SpottingState Spotting;
 
         /// <summary>
-        /// Default Void, non Road (2026-08-08, bug trovato: era Road prima di questo fix —
-        /// vedi il costruttore). Ogni tile finisce con un Type esplicito entro la fine di
-        /// Generate ("Rammendo: ... nessuna tessera resta senza contenuto esplicito"), ma
-        /// PRIMA di allora — durante PlaceEventClusters/GeneratePathClusterMesh — molte
-        /// tile della griglia non sono ancora state toccate. Con default Road, quelle tile
-        /// intoccate sembravano gia' Strada a WouldViolateConsecutiveSides (introdotto
-        /// 2026-08-07): su una griglia poco occupata la crescita PathCluster leggeva un
-        /// "blob" fantasma di Road ovunque e respingeva quasi ogni tentativo (vedi log
-        /// diagnostico: _rejectedByConsecutiveSides altissimo, attemptedClusters=0 pur con
-        /// centinaia di bordi disponibili). Void e' semanticamente corretto per una tile
-        /// non ancora decisa (e' gia' il fallback esplicito di AssignSingleTile/
-        /// AssignStopTile quando i manifest sono esauriti), Road invece implica "e' un
-        /// percorso" — falso per una tile appena costruita.
+        /// Default Void, non Road: una tile appena costruita non ha ancora contenuto
+        /// esplicito (assegnato entro la fine di Generate). Se il default fosse Road,
+        /// le tile ancora intoccate durante PlaceEventClusters/GeneratePathClusterMesh
+        /// sembrerebbero gia' Strada a WouldViolateConsecutiveSides, bloccando quasi ogni
+        /// crescita di PathCluster con un "blob" fantasma di Road. Void e' anche gia' il
+        /// fallback esplicito di AssignSingleTile/AssignStopTile quando i manifest sono
+        /// esauriti.
         /// </summary>
         public TileType Type;
 

@@ -38,13 +38,9 @@ namespace hp55games.MapGame.Features.Configs
     /// <summary>
     /// Parametri per il piazzamento degli EventCluster (generati proceduralmente a runtime
     /// da LevelConfig.Entries, vedi AestheticClusterMapGenerator.TryBuildProceduralCluster)
-    /// e delle tessere singole via rejection sampling.
-    ///
-    /// 2026-08-07: rimosso il campo Catalog (EventClusterCatalog/EventClusterShape) — le
-    /// forme autorate a mano erano un fallback per quando la generazione procedurale non
-    /// bastava, ma i cluster sono ora generati interamente a runtime, i tipi
-    /// EventClusterCatalog/EventClusterShape restano nel progetto (non toccati, nessuna
-    /// perdita di asset) ma non sono piu' referenziati dal generatore.
+    /// e delle tessere singole via rejection sampling. I tipi EventClusterCatalog/
+    /// EventClusterShape restano nel progetto per lo Shape Editor ma non sono referenziati
+    /// dal generatore, che costruisce i cluster interamente a runtime.
     /// </summary>
     [Serializable]
     public struct EventClusterPlacementSettings
@@ -57,14 +53,6 @@ namespace hp55games.MapGame.Features.Configs
         public int ClusterToSingleRatioMax;
     }
 
-    /// <summary>
-    /// 2026-08-07: rimosso PlaceholderBalanceSettings/PlaceholderBalance — bilanciamento
-    /// placeholder (Goods FoodRestore min/max) mai piu' letto dal generatore dalla
-    /// revisione 2026-08-05 (sostituito dalla risoluzione via ElementCatalog, vedi
-    /// AestheticClusterMapGenerator.ApplyElementStats), restava solo per non rompere gli
-    /// asset serializzati esistenti. Vedi anche EventClusterPlacementSettings per la
-    /// rimozione di Catalog, stessa pulizia.
-    /// </summary>
     [CreateAssetMenu(menuName = "MapGame/Map Generation Config", fileName = "MapGenerationConfig")]
     public sealed class MapGenerationConfig : ScriptableObject, IConfigAsset
     {

@@ -6,10 +6,9 @@ using UnityEngine;
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
-    /// A quale delle tre liste logiche del generatore appartiene una LevelTileEntry
-    /// (2026-08-07, sostituisce i tre array separati EventClusterTilesList/
-    /// EventSingleTilesList/StopSingleTilesList di LevelConfig — un'unica List
-    /// Entries, filtrata per ListType invece che tenuta in contenitori diversi).
+    /// A quale delle tre liste logiche del generatore appartiene una LevelTileEntry —
+    /// LevelConfig tiene un'unica List Entries, filtrata per ListType invece che divisa
+    /// in contenitori separati.
     /// </summary>
     public enum TileListType
     {
@@ -62,14 +61,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     }
 
     /// <summary>
-    /// Configurazione di contenuto per missione/livello. Revisione 2026-07-10, sostituisce
-    /// il vecchio sistema Pool A / Pool B a due pool globali fissi — vedi Architecture
-    /// Decisions Log e la Implementation Spec "Level Content System". Revisione 2026-08-07:
-    /// i tre array EventClusterTilesList/EventSingleTilesList/StopSingleTilesList sono
-    /// stati sostituiti da un'unica List Entries, ciascuna entry marcata con ListType (vedi
-    /// TileListType) invece che tenuta in un contenitore diverso per ciascuna lista — un
-    /// solo posto dove aggiungere/rimuovere contenuto, il generatore filtra per ListType
-    /// dove serve (vedi AestheticClusterMapGenerator.BuildManifest).
+    /// Configurazione di contenuto per missione/livello — vedi Architecture Decisions Log
+    /// e la Implementation Spec "Level Content System". Una sola List Entries, ciascuna
+    /// entry marcata con ListType (vedi TileListType): un solo posto dove aggiungere/
+    /// rimuovere contenuto, il generatore filtra per ListType dove serve (vedi
+    /// AestheticClusterMapGenerator.BuildManifest).
     ///
     /// Vive in una propria sottocartella insieme alle EventClusterShape autorate per quel
     /// livello (es. Assets/MapGame/Content/Levels/NomeLivello/).

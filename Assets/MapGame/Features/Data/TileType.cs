@@ -3,11 +3,10 @@ using System;
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
-    /// Tipi di tile come da GDD (sezione "Tile Types"), revisione 2026-07-25 (fonte: Map
-    /// game Franci GDD, priorita' massima). Tile-state-agnostico: ogni contenuto logico
-    /// che una tile puo' avere e' un membro. Valori int espliciti: non riordinare mai,
-    /// non riusare un valore libero per un membro nuovo — gli asset .asset serializzati
-    /// puntano all'int, non al nome.
+    /// Tipi di tile come da GDD (sezione "Tile Types"). Tile-state-agnostico: ogni
+    /// contenuto logico che una tile puo' avere e' un membro. Valori int espliciti: non
+    /// riordinare mai, non riusare un valore libero per un membro nuovo — gli asset
+    /// .asset serializzati puntano all'int, non al nome.
     ///
     /// Void e Road non hanno DifficultyLevel (strutturali, non content). Tutti gli altri
     /// tipi ricevono un DifficultyLevel (1-6) per-istanza da LevelConfig, vedi
@@ -18,16 +17,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// [Obsolete] solo per compatibilita' editor/debug esistenti, non usarlo in codice
     /// nuovo.
     ///
-    /// Revisione 2026-07-25: Path rinominato Road (stesso int, alias mantenuto
-    /// [Obsolete] perche' altri file — AestheticClusterMapGenerator, MapGenerationConfigEditor,
-    /// HP55_EventClusterShapeEditor, MapGameDebugFlags — referenziano ancora TileType.Path
-    /// come simbolo C#: rimuoverlo del tutto avrebbe rotto la compilazione fuori dallo
-    /// scope di questa consegna. Stesso trattamento per Shop→Trader.
-    /// Miniboss/Boss/Npc/Goods eliminati come TileType a se stanti (Miniboss/Boss diventano
-    /// varianti di Enemy via ElementConfig; Npc si divide in Inn/Trader/Witch/Farmer/Hunter;
-    /// Goods si divide in Bush/BeeHive/TurnipSprout, Tree resta) — marcati [Obsolete] con
-    /// int originali preservati, mai rimossi ne' riassegnati, per non corrompere gli .asset
-    /// gia' serializzati che li referenziano.
+    /// Path e' l'alias [Obsolete] di Road (stesso int), mantenuto perche' altri file —
+    /// AestheticClusterMapGenerator, MapGenerationConfigEditor, HP55_EventClusterShapeEditor,
+    /// MapGameDebugFlags — referenziano ancora TileType.Path come simbolo C#: rimuoverlo
+    /// del tutto romperebbe la compilazione di quei file. Stesso trattamento per
+    /// Shop→Trader. Miniboss/Boss/Npc/Goods non sono piu' TileType a se stanti
+    /// (Miniboss/Boss diventano varianti di Enemy via ElementConfig; Npc si divide in
+    /// Inn/Trader/Witch/Farmer/Hunter; Goods si divide in Bush/BeeHive/TurnipSprout, Tree
+    /// resta) — marcati [Obsolete] con int originali preservati, mai rimossi ne'
+    /// riassegnati, per non corrompere gli .asset gia' serializzati che li referenziano.
     ///
     /// Key: attiva la chiave di sessione corrispondente al proprio DifficultyLevel
     /// (4/5/6). Chest: DifficultyLevel 1/2/3, aperto dalla chiave DL+3.
@@ -37,28 +35,28 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         Void = 0,
 
         Road = 1,
-        [Obsolete("Path e' stato rinominato Road (2026-07-25). Alias mantenuto solo per compatibilita' con codice non ancora aggiornato — non usarlo in codice nuovo, usa Road. Dichiarato DOPO Road (2026-08-05) cosi' Unity mostra \"Road\" nell'Inspector per il valore 1, non \"Path\": C#/Unity risolvono il nome da un int all'ordine di dichiarazione, non il contrario — nessun valore e' cambiato, solo l'ordine.")]
+        [Obsolete("Path e' l'alias di Road. Mantenuto solo per compatibilita' con codice non ancora aggiornato — non usarlo in codice nuovo, usa Road. Dichiarato DOPO Road cosi' Unity mostra \"Road\" nell'Inspector per il valore 1, non \"Path\": C#/Unity risolvono il nome da un int all'ordine di dichiarazione, non il contrario — nessun valore e' cambiato, solo l'ordine.")]
         Path = 1,
 
-        [Obsolete("Boss eliminato dal design (2026-07-25): la tile obiettivo e' un Enemy con IsObjective = true, differenziato via ElementConfig. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
+        [Obsolete("Boss non e' piu' un TileType a se': la tile obiettivo e' un Enemy con IsObjective = true, differenziato via ElementConfig. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
         Boss = 2,
 
-        [Obsolete("Npc eliminato dal design (2026-07-25): si divide in Inn/Trader/Witch/Farmer/Hunter. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
+        [Obsolete("Npc non e' piu' un TileType a se': si divide in Inn/Trader/Witch/Farmer/Hunter. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
         Npc = 3,
 
         Trader = 4,
-        [Obsolete("Shop e' stato rinominato Trader (2026-07-25). Alias mantenuto solo per compatibilita' con codice non ancora aggiornato — non usarlo in codice nuovo, usa Trader. Dichiarato DOPO Trader (2026-08-05) cosi' Unity mostra \"Trader\" nell'Inspector per il valore 4, non \"Shop\" — nessun valore e' cambiato, solo l'ordine.")]
+        [Obsolete("Shop e' l'alias di Trader. Mantenuto solo per compatibilita' con codice non ancora aggiornato — non usarlo in codice nuovo, usa Trader. Dichiarato DOPO Trader cosi' Unity mostra \"Trader\" nell'Inspector per il valore 4, non \"Shop\" — nessun valore e' cambiato, solo l'ordine.")]
         Shop = 4,
 
         Enemy = 5,
 
-        [Obsolete("Miniboss eliminato dal design (2026-07-25): e' una variante di Enemy via ElementConfig (specie/estetica diverse, stesso Type=Enemy), bilanciamento non ancora definito. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
+        [Obsolete("Miniboss non e' piu' un TileType a se': e' una variante di Enemy via ElementConfig (specie/estetica diverse, stesso Type=Enemy), bilanciamento non ancora definito. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
         Miniboss = 6,
 
-        [Obsolete("Goods eliminato dal design (2026-07-25): si divide in Bush/BeeHive/TurnipSprout (Tree gia' esisteva a parte). Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
+        [Obsolete("Goods non e' piu' un TileType a se': si divide in Bush/BeeHive/TurnipSprout (Tree gia' esisteva a parte). Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
         Goods = 7,
 
-        [Obsolete("Chance e' stato eliminato dal design (2026-07-22): i suoi esiti sono ora Element propri (Trap, Fountain, Tree, Chest). Mantenuto solo per compatibilita' con editor/debug esistenti.")]
+        [Obsolete("Chance non e' piu' un TileType a se': i suoi esiti sono ora Element propri (Trap, Fountain, Tree, Chest). Mantenuto solo per compatibilita' con editor/debug esistenti.")]
         Chance = 8,
 
         Trap = 9,

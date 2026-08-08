@@ -37,7 +37,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// sottostante (Cell Layout: Hexagon, Flat). Per un layout flat-top x e' la
         /// larghezza orizzontale massima di una tile (i due lati piatti), y
         /// l'incremento verticale tra righe. Usato da MapCameraController per
-        /// calcolare l'offset di inquadratura (2026-08-06).
+        /// calcolare l'offset di inquadratura.
         /// </summary>
         public Vector2 CellSize => _unityGrid != null ? (Vector2)_unityGrid.cellSize : Vector2.zero;
 

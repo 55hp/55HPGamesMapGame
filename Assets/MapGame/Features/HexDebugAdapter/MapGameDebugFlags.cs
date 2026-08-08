@@ -6,8 +6,15 @@ namespace hp55games.MapGame.Features.HexDebugAdapter
     /// <summary>
     /// Mapping da TileType a HexDebugFlags per il progetto MapGame.
     /// I bit Custom0-Custom7 sono riservati al progetto consumer come da spec HexDebugFlags.
-    /// I nomi delle costanti seguono 1:1 i membri di TileType: rinominare un TileType
-    /// significa rinominare la costante corrispondente qui.
+    ///
+    /// Copertura parziale: le costanti/il case di FromTileType coprono solo i TileType
+    /// legacy (Void, Path/Road, Enemy, Shop/Trader, Goods, Npc, Chance, Boss, Miniboss) —
+    /// gli 8 bit Custom0-Custom7 disponibili sono gia' tutti assegnati a questi. I
+    /// TileType introdotti dopo lo split (Trap, Fountain, Tree, Key, Chest, Bush,
+    /// BeeHive, TurnipSprout, MoneyBag, Inn, Witch, Farmer, Hunter) non hanno una
+    /// costante/flag propria e FromTileType ritorna HexDebugFlags.None per loro: gli
+    /// analyzer che dipendono da questo mapping (es. EventClusterSpacingAnalyzer,
+    /// ReachabilityAnalyzer) non li vedono come "evento"/"tile chiave".
     /// </summary>
     public static class MapGameDebugFlags
     {

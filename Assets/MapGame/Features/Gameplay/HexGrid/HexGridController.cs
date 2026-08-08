@@ -11,12 +11,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
     /// Controller di griglia esagonale. Gestisce stato tile, reachability, reveal e la
-    /// progressione XP/Livello del personaggio. Nessuna logica di rendering: notifica gli
-    /// ascoltatori con eventi C# puri.
+    /// progressione del personaggio. Nessuna logica di rendering: notifica gli ascoltatori
+    /// con eventi C# puri.
     ///
     /// HP correnti: _context.Lives (clamped 0.._currentMaxHp).
     /// Cibo corrente: _context.Food (clamped 0.._currentMaxFood).
-    /// Monete correnti: _context.Score — unica valuta di progressione (Economia 2026-07-20).
+    /// Monete correnti: _context.Score — unica valuta di progressione.
     ///
     /// Configurazione: nessun config serializzato in scena. In Awake risolve
     /// IConfigCatalogService e pesca MapGenerationConfig, SurvivalConfig e il LevelConfig
@@ -25,66 +25,58 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     ///
     /// Cap runtime vs baseline: SurvivalConfig.MaxHp/MaxFood sono la BASELINE. Il cap
     /// effettivo di questa run vive in _currentMaxHp/_currentMaxFood, inizializzati dalla
-    /// baseline a inizio sessione e alzati dal level up — NON si tocca l'asset SurvivalConfig
-    /// (condiviso, le modifiche persisterebbero tra sessioni). StartHp/StartFood restano il
-    /// punto di partenza, distinto dal cap.
+    /// baseline a inizio sessione e alzati dagli acquisti shop — NON si tocca l'asset
+    /// SurvivalConfig (condiviso, le modifiche persisterebbero tra sessioni). StartHp/
+    /// StartFood restano il punto di partenza, distinto dal cap.
     ///
     /// Costo movimento (Dragonsweeper-style): ogni click costa _survival.FoodCostPerClick
     /// Cibo se disponibile, altrimenti _survival.NoFoodHpPenalty HP diretti. Una sola volta
     /// per click, PRIMA dell'effetto della tessera; la cascata Strada resta gratuita.
     ///
-    /// Incontro Enemy/Miniboss (2026-07-20, revisione Combat & NPC 2026-07-19): NON piu'
-    /// istantaneo. Il click su Enemy/Miniboss applica il costo movimento ma NON marca la
-    /// tile Scoperta ne' risolve il combattimento: apre un incontro pending
-    /// (HasPendingEncounter/PendingEncounterTile) e pubblica EncounterStartedEvent su
-    /// IEventBus (vedi EncounterEvents.cs). Il popup di Combattimento deve poi chiamare
-    /// ResolveEncounterFight() o
-    /// ResolveEncounterFlee(). Mentre un incontro e' pending, TryRevealTile ignora ogni
-    /// altro click. Fuga (revisione 2026-07-23): richiede Cibo >= FleeFoodCost — CanFlee
-    /// espone il gate alla UI (bottone disabilitato), ResolveEncounterFlee lo rifiuta come
-    /// difesa in profondita'. Con Cibo insufficiente l'unica opzione e' combattere. A fuga
-    /// riuscita la tile resta/torna Conosciuta (non e' mai stata marcata Scoperta) e il
-    /// giocatore non si sposta — nessuno snapshot da ripristinare, perche' il reveal non
-    /// era mai stato scritto. "L'informazione va persa" e' un fatto di UI (popup chiuso) e
-    /// di memoria del giocatore, non di dati (HexTileData non cambia, un nuovo tentativo
-    /// mostra le stesse info).
+    /// Incontro Enemy/Miniboss: NON istantaneo. Il click su Enemy/Miniboss applica il
+    /// costo movimento ma NON marca la tile Scoperta ne' risolve il combattimento: apre un
+    /// incontro pending (HasPendingEncounter/PendingEncounterTile) e pubblica
+    /// EncounterStartedEvent su IEventBus (vedi EncounterEvents.cs). Il popup di
+    /// Combattimento deve poi chiamare ResolveEncounterFight() o ResolveEncounterFlee().
+    /// Mentre un incontro e' pending, TryRevealTile ignora ogni altro click. Fuga: richiede
+    /// Cibo >= FleeFoodCost — CanFlee espone il gate alla UI (bottone disabilitato),
+    /// ResolveEncounterFlee lo rifiuta come difesa in profondita'. Con Cibo insufficiente
+    /// l'unica opzione e' combattere. A fuga riuscita la tile resta/torna Conosciuta (non
+    /// e' mai stata marcata Scoperta) e il giocatore non si sposta — nessuno snapshot da
+    /// ripristinare, perche' il reveal non era mai stato scritto. "L'informazione va persa"
+    /// e' un fatto di UI (popup chiuso) e di memoria del giocatore, non di dati (HexTileData
+    /// non cambia, un nuovo tentativo mostra le stesse info).
     ///
-    /// Element a effetto Immediate (revisione 2026-07-23, vedi ApplyImmediateElement):
-    /// Trap (HP -= DifficultyLevel), Fountain (HP al massimo), Tree (Cibo al massimo),
-    /// Key (attiva HasKeyDL4/5/6 sul contesto + KeysChangedEvent). Chest e' inerte al
-    /// reveal finche' il popup Loot non esiste.
+    /// Element a effetto Immediate (vedi ApplyImmediateElement): Trap (HP -= DifficultyLevel),
+    /// Fountain (HP al massimo), Tree (Cibo al massimo), Key (attiva HasKeyDL4/5/6 sul
+    /// contesto + KeysChangedEvent). Chest e' inerte al reveal finche' il popup Loot non
+    /// esiste.
     ///
-    /// Effetto Enemy al combattimento: HP -= DifficultyLevel (nessuna ricompensa: XP
-    /// rimosso 2026-07-20, ricompensa in Monete da definire — vedi Franci Tasks). No-op per
-    /// Miniboss finche' il suo bilanciamento non e' definito. Applicato in
-    /// ResolveEncounterFight, non in generazione, perche' il DifficultyLevel finale e'
-    /// noto solo dopo ResolveDifficulty.
+    /// Effetto Enemy al combattimento: HP -= DifficultyLevel, ricompensa in Monete pari al
+    /// DifficultyLevel. Applicato in ResolveEncounterFight, non in generazione, perche' il
+    /// DifficultyLevel finale e' noto solo dopo ResolveDifficulty.
     ///
-    /// Economia (2026-07-20): la progressione passa da Monete (_context.Score) e dallo shop
-    /// — vedi la sezione Shop in fondo (TryBuyMaxHpUpgrade/FoodSlotUpgrade/Heal/FoodRefill,
-    /// prezzi in EconomyConfig). XP/Livello rimossi.
+    /// Economia: la progressione passa da Monete (_context.Score) e dallo shop — vedi la
+    /// sezione Shop in fondo (TryBuyMaxHpUpgrade/FoodSlotUpgrade/Heal/FoodRefill, prezzi in
+    /// EconomyConfig).
     ///
-    /// Win Condition (2026-07-20): rivelare la tile IsObjective da vivi pubblica
-    /// PlayerVictoryEvent; la morte nello stesso click prevale.
+    /// Win Condition: rivelare la tile IsObjective da vivi pubblica PlayerVictoryEvent; la
+    /// morte nello stesso click prevale.
     ///
-    /// Trader (RevealEffect.Trade, collegato 2026-08-06): a differenza di Enemy la tile si
-    /// rivela subito come qualunque altra (nessun effetto economico, vedi
-    /// PlaceholderTraderElementConfig: CoinReward/FoodRestore/HpRestore tutti 0) — non c'e'
-    /// una scelta combatti/fuggi che ne condizioni lo stato. In coda a TryRevealTile pubblica
-    /// TradeStartedEvent (vedi TradeEvents.cs), consumato da RevealEffectPopupDispatcher che
-    /// apre UIPopup_Shop — stesso popup gia' usato per test/debug, ora raggiungibile dal
-    /// reveal reale. TryBuy*/prezzi in EconomyConfig non toccati.
+    /// Trader (RevealEffect.Trade): a differenza di Enemy la tile si rivela subito come
+    /// qualunque altra (nessun effetto economico) — non c'e' una scelta combatti/fuggi che
+    /// ne condizioni lo stato. In coda a TryRevealTile pubblica TradeStartedEvent (vedi
+    /// TradeEvents.cs), consumato da RevealEffectPopupDispatcher che apre UIPopup_Shop.
     ///
-    /// _pendingTradeCoord (2026-08-06, fix bug morte/Shop): pur non avendo una scelta da
-    /// risolvere, il Trader USA comunque un gate pending come Enemy, per tutta la durata del
-    /// popup Shop (non solo il caricamento Addressables) — vedi doc sul campo. Necessario
-    /// perche' HexTileTapController legge input grezzo (IInputService.Tap), non bloccato
-    /// dallo scrim del popup: senza il gate, un tap letale su un'altra tile mentre lo Shop e'
-    /// aperto apriva/lasciava aperto il popup su un giocatore gia' morto. Liberato da
-    /// ResolveTrade(), chiamato da UIPopup_Shop.OnDestroy qualunque sia la via di chiusura
-    /// (bottone Chiudi, tap sullo scrim, CloseAll) — legarlo al solo bottone avrebbe
-    /// lasciato TryRevealTile bloccato per il resto della run se il giocatore chiudeva lo
-    /// shop toccando fuori.
+    /// _pendingTradeCoord: pur non avendo una scelta da risolvere, il Trader USA comunque un
+    /// gate pending come Enemy, per tutta la durata del popup Shop (non solo il caricamento
+    /// Addressables) — vedi doc sul campo. Necessario perche' HexTileTapController legge
+    /// input grezzo (IInputService.Tap), non bloccato dallo scrim del popup: senza il gate,
+    /// un tap letale su un'altra tile mentre lo Shop e' aperto apriva/lasciava aperto il
+    /// popup su un giocatore gia' morto. Liberato da ResolveTrade(), chiamato da
+    /// UIPopup_Shop.OnDestroy qualunque sia la via di chiusura (bottone Chiudi, tap sullo
+    /// scrim, CloseAll) — legarlo al solo bottone avrebbe lasciato TryRevealTile bloccato
+    /// per il resto della run se il giocatore chiudeva lo shop toccando fuori.
     ///
     /// Inizializzazione avviene in OnGameStarted (GameStartedEvent), non in BuildGrid, per
     /// evitare la race con GameplayState.ResetRun(). Fallback in Start() per standalone.
@@ -92,20 +84,19 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     public sealed class HexGridController : MonoBehaviour
     {
         /// <summary>
-        /// Costo fisso in Cibo per fuggire da un incontro Enemy/Miniboss pending. Valore di
-        /// design confermato 2026-07-19, distinto da FoodCostPerClick/NoFoodHpPenalty
-        /// (SurvivalConfig): specifico dell'azione fuga, non un parametro di sopravvivenza
-        /// generico. Dal 2026-07-23 e' anche un GATE: la fuga richiede Cibo >= FleeFoodCost
-        /// (vedi CanFlee) — con Cibo insufficiente la fuga non e' permessa e l'unica
-        /// opzione e' combattere. La fuga non ricade mai su HP.
+        /// Costo fisso in Cibo per fuggire da un incontro Enemy/Miniboss pending, distinto
+        /// da FoodCostPerClick/NoFoodHpPenalty (SurvivalConfig): specifico dell'azione fuga,
+        /// non un parametro di sopravvivenza generico. E' anche un GATE: la fuga richiede
+        /// Cibo >= FleeFoodCost (vedi CanFlee) — con Cibo insufficiente la fuga non e'
+        /// permessa e l'unica opzione e' combattere. La fuga non ricade mai su HP.
         /// </summary>
         private const int FleeFoodCost = 2;
 
         /// <summary>
         /// True se il giocatore ha abbastanza Cibo per fuggire dall'incontro pending E la
-        /// tile pending non e' l'obiettivo (2026-07-25: niente fuga sulla tile finale, il
-        /// player deve combattere). La UI del popup lo usa per disabilitare il bottone
-        /// Fuggi; ResolveEncounterFlee applica lo stesso gate come difesa in profondita'.
+        /// tile pending non e' l'obiettivo (niente fuga sulla tile finale, il player deve
+        /// combattere). La UI del popup lo usa per disabilitare il bottone Fuggi;
+        /// ResolveEncounterFlee applica lo stesso gate come difesa in profondita'.
         /// </summary>
         public bool CanFlee => _context != null
                                && _context.Food >= FleeFoodCost
@@ -150,10 +141,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Coordinata del Trader in attesa di chiusura del popup Shop, null se nessun trade
-        /// e' pending (2026-08-06, fix bug morte/Shop). Stesso precedente di
-        /// _pendingEncounterCoord: TryRevealTile blocca ogni altro click finche' resta
-        /// impostato. Necessario perche' HexTileTapController legge IInputService.Tap
-        /// grezzo (Input.GetTouch/GetMouseButton diretti, vedi InputService.Tick) — lo scrim
+        /// e' pending. Stesso precedente di _pendingEncounterCoord: TryRevealTile blocca
+        /// ogni altro click finche' resta impostato. Necessario perche' HexTileTapController
+        /// legge IInputService.Tap grezzo (Input.GetTouch/GetMouseButton diretti, vedi
+        /// InputService.Tick) — lo scrim
         /// del popup blocca solo i raycast di Unity UI, NON questo input, quindi senza
         /// questo gate un tap letale su un'altra tile mentre lo Shop e' ancora aperto (anche
         /// durante il solo caricamento Addressables del popup) uccideva il giocatore mentre
@@ -207,15 +198,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _economy   = _configs.Get<EconomyConfig>();
             _elementCatalog = _configs.Get<ElementCatalog>();
 
-            // BuildGrid() NON viene piu' chiamato qui (2026-08-06, vedi InitializeSession):
-            // farlo in Awake pubblica GridInitialized troppo presto — Unity non garantisce
-            // che l'Awake/OnEnable di QUESTO componente vada prima di quelli di ALTRI
-            // componenti sulla stessa scena (HexGridViewSpawner, MapCameraController), solo
-            // che Awake preceda OnEnable per lo STESSO oggetto. Se il loro OnEnable (dove si
-            // iscrivono a GridInitialized) capitava dopo questo Awake, perdevano il primo
-            // GridInitialized della run senza errori visibili: nessuna vista ridisegnata,
-            // nessuna camera inquadrata sulla griglia nuova. Sospettato causare (in parte)
-            // anche il retry rotto segnalato da Franci il 2026-08-05.
+            // BuildGrid() NON viene chiamato qui (vedi InitializeSession): farlo in Awake
+            // pubblica GridInitialized troppo presto — Unity non garantisce che l'Awake/
+            // OnEnable di QUESTO componente vada prima di quelli di ALTRI componenti sulla
+            // stessa scena (HexGridViewSpawner, MapCameraController), solo che Awake preceda
+            // OnEnable per lo STESSO oggetto. Se il loro OnEnable (dove si iscrivono a
+            // GridInitialized) capitava dopo questo Awake, perdevano il primo GridInitialized
+            // della run senza errori visibili: nessuna vista ridisegnata, nessuna camera
+            // inquadrata sulla griglia nuova.
         }
 
         private void Start()
@@ -262,17 +252,17 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _context.Food  = Mathf.Clamp(_survival.StartFood, 0, _currentMaxFood);
             _context.Score = 0;
 
-            // Spostato qui da Awake (2026-08-06): sia GameStartedEvent (pubblicato da
+            // Chiamato da qui (non da Awake): sia GameStartedEvent (pubblicato da
             // GameplayState.EnterAsync, sempre dopo che l'intera scena ha finito
             // Awake/OnEnable/Start) sia il fallback qui sotto in Start() garantiscono che
             // ogni altro componente si sia gia' iscritto a GridInitialized prima che questa
-            // venga chiamata — niente piu' corsa contro HexGridViewSpawner/MapCameraController.
+            // venga chiamata — niente corsa contro HexGridViewSpawner/MapCameraController.
             if (!BuildGrid())
             {
-                // Livello non avviato (2026-08-07): BuildGrid ha gia' loggato il motivo.
-                // Niente eventi Hp/Food/Score — pubblicarli implicherebbe una run attiva
-                // che l'HUD dovrebbe mostrare, ma senza una griglia non c'e' nessuna run:
-                // resterebbe un HUD con numeri validi sopra una scena vuota/non interagibile.
+                // BuildGrid ha gia' loggato il motivo. Niente eventi Hp/Food/Score —
+                // pubblicarli implicherebbe una run attiva che l'HUD dovrebbe mostrare, ma
+                // senza una griglia non c'e' nessuna run: resterebbe un HUD con numeri
+                // validi sopra una scena vuota/non interagibile.
                 Debug.LogError("[HexGridController] InitializeSession interrotta: generazione mappa fallita, livello non avviato.", this);
                 return;
             }
@@ -283,8 +273,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Rigenera la griglia da zero. Ritorna false (2026-08-07) se il livello non deve
-        /// avviarsi: config/servizio mancante, o MapGenerationResult.Success = false — il
+        /// Rigenera la griglia da zero. Ritorna false se il livello non deve avviarsi:
+        /// config/servizio mancante, o MapGenerationResult.Success = false — il
         /// generatore ha gia' loggato un Debug.LogError col motivo tecnico (vincolo
         /// MinPathClusters, vedi AestheticClusterMapGenerator) in quel caso, qui si logga
         /// solo la conseguenza. Su fallimento _tiles/_playerCoord/_objectiveCoord NON
@@ -436,8 +426,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             if (tile.Type == TileType.Enemy)
             {
-                // Miniboss/Boss non sono piu' TileType a se' (2026-07-25): sono varianti di
-                // Enemy via ElementConfig, quindi passano tutte da qui.
+                // Miniboss/Boss non sono TileType a se' stanti: sono varianti di Enemy via
+                // ElementConfig, quindi passano tutte da qui.
                 Debug.Log($"[HexGrid] TryRevealTile → Enemy tile, starting encounter (DL={tile.DifficultyLevel}, IsObjective={tile.IsObjective})");
                 StartEncounter(target, tile);
                 return true;
@@ -502,10 +492,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 _pendingTradeCoord = target;
                 _bus?.Publish(new TradeStartedEvent(this));
             }
-            // Nessun controllo IsObjective qui (branch dead rimosso 2026-07-25): la tile
-            // obiettivo e' sempre un Enemy, quindi passa sempre da StartEncounter sopra
-            // prima di arrivare a questo punto — la vittoria si risolve in
-            // ResolveEncounterFight, non qui.
+            // Nessun controllo IsObjective qui: la tile obiettivo e' sempre un Enemy, quindi
+            // passa sempre da StartEncounter sopra prima di arrivare a questo punto — la
+            // vittoria si risolve in ResolveEncounterFight, non qui.
 
             return true;
         }
@@ -543,13 +532,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _pendingEncounterCoord = target;
             _bus?.Publish(new EncounterStartedEvent(tile, this));
         }
-/// <summary>
+        /// <summary>
         /// Il giocatore ha scelto di combattere l'incontro pending. Risolve: Scoperta,
         /// danno Enemy da DifficultyLevel, guadagni della tessera, ricompensa in Monete
         /// (Coins += DifficultyLevel, modificatori da Item posseduti deferiti), reachability,
         /// eventi. Ritorna false se non c'e' nessun incontro pending.
-        /// Win Condition (spostata qui 2026-07-25, prima era un branch dead in
-        /// TryRevealTile): la tile obiettivo e' sempre un Enemy con IsObjective = true, e
+        /// Win Condition: la tile obiettivo e' sempre un Enemy con IsObjective = true, e
         /// passa sempre da qui — mai da un reveal diretto — quindi questo e' l'unico punto
         /// che puo' davvero far scattare la vittoria. La morte nello stesso combattimento
         /// prevale sempre sulla vittoria.
@@ -574,8 +562,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             AccumulateFood(tile);
             bool moneteEarned = AccumulateMonete(tile);
 
-            // Ricompensa combattimento (GDD, Resources — Coins, revisione 2026-07-25):
-            // sempre = DifficultyLevel dell'Enemy. Modificatori da Item posseduti deferiti.
+            // Ricompensa combattimento (GDD, Resources — Coins): sempre = DifficultyLevel
+            // dell'Enemy. Modificatori da Item posseduti deferiti.
             int combatReward = Mathf.Max(0, tile.DifficultyLevel);
             if (combatReward > 0)
             {
@@ -612,8 +600,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Il giocatore ha scelto di fuggire dall'incontro pending. Gate (2026-07-23):
-        /// richiede Cibo >= FleeFoodCost, altrimenti ritorna false senza effetti — la UI
+        /// Il giocatore ha scelto di fuggire dall'incontro pending. Gate: richiede
+        /// Cibo >= FleeFoodCost, altrimenti ritorna false senza effetti — la UI
         /// dovrebbe aver gia' disabilitato il bottone (CanFlee), questo e' il controllo di
         /// difesa in profondita'. A fuga riuscita: costo FleeFoodCost in Cibo (mai HP), la
         /// tile resta/torna Conosciuta — non e' mai stata marcata Scoperta — e _playerCoord
@@ -656,8 +644,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Effetto Enemy: perdita HP pari al DifficultyLevel della tessera. Vale anche per
-        /// le varianti Miniboss/Boss (2026-07-25: non sono piu' TileType separati, sono
-        /// Enemy via ElementConfig, stesso Type=Enemy). Non pubblica eventi — il publish e'
+        /// le varianti Miniboss/Boss (non sono TileType separati, sono Enemy via
+        /// ElementConfig, stesso Type=Enemy). Non pubblica eventi — il publish e'
         /// centralizzato nel chiamante.
         /// </summary>
         private void ApplyEnemyDamage(HexTileData tile)
@@ -703,27 +691,23 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Effetti degli Element a RevealEffect Immediate (GDD, Tile Types, revisione
-        /// 2026-07-25), applicati al reveal senza popup. Ritorna (keysChanged, coinsChanged):
-        /// il chiamante pubblica KeysChangedEvent/ScoreChangedEvent di conseguenza — il
-        /// publish resta centralizzato in TryRevealTile come per gli altri eventi.
+        /// Effetti degli Element a RevealEffect Immediate (GDD, Tile Types), applicati al
+        /// reveal senza popup. Ritorna (keysChanged, coinsChanged): il chiamante pubblica
+        /// KeysChangedEvent/ScoreChangedEvent di conseguenza — il publish resta
+        /// centralizzato in TryRevealTile come per gli altri eventi.
         ///
         /// Trap:     HP -= DifficultyLevel (stessa formula placeholder del danno Enemy,
         ///           vedi ApplyEnemyDamage — regola autorevole in GDD, Tile Types → Enemy).
         /// Fountain: ripristina tutti gli HP al cap runtime corrente.
         /// Key:      attiva la chiave di sessione per il proprio DifficultyLevel (4/5/6);
         ///           idempotente, le chiavi non si consumano ne' si disattivano.
-        /// MoneyBag: Coins += DifficultyLevel (2026-07-25, standard provvisorio — il GDD
-        ///           originale indicava 1-3 random, superato da questa decisione).
+        /// MoneyBag: Coins += DifficultyLevel.
         /// Chest:    inerte — RevealEffect Loot, il popup non esiste ancora (vedi GDD,
         ///           Reveal Effects). Nessun effetto qui finche' il flusso Loot non c'e'.
-        /// Tree/Bush/BeeHive/TurnipSprout: NON gestiti qui (2026-07-25) — il loro +Food
-        ///           viaggia gia' su HexTileData.FoodRestore (AccumulateFood, chiamata
-        ///           incondizionatamente per ogni reveal), assegnato dal generatore da
-        ///           ElementConfig.FoodRestore per specie. Tree in precedenza riempiva il
-        ///           Cibo al massimo qui: override rimosso, ora si comporta come
-        ///           Bush/BeeHive/TurnipSprout. Non duplicare l'effetto reintroducendo un
-        ///           case qui.
+        /// Tree/Bush/BeeHive/TurnipSprout: NON gestiti qui — il loro +Food viaggia gia' su
+        ///           HexTileData.FoodRestore (AccumulateFood, chiamata incondizionatamente
+        ///           per ogni reveal), assegnato dal generatore da ElementConfig.FoodRestore
+        ///           per specie. Non duplicare l'effetto reintroducendo un case qui.
         /// </summary>
         private (bool keysChanged, bool coinsChanged) ApplyImmediateElement(HexTileData tile)
         {
@@ -768,13 +752,13 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
         }
 
-        // ------------------------- Shop (Economia, 2026-07-20) -------------------------
+        // ------------------------------------ Shop ---------------------------------------
         // Potenziamenti diretti acquistabili in Monete (_context.Score), ricomprabili nella
-        // stessa run. Sostituiscono il level up XP (rimosso). Prezzi ed entita' degli
-        // effetti in EconomyConfig (bilanciamento in editor, mai hardcoded qui).
-        // ATK/DEF/chiavi/vision boost: deferiti, i sistemi che li consumano non esistono
-        // ancora (Combattimento / Knowledge). Ogni TryBuy ritorna false senza effetti se
-        // le Monete non bastano o l'acquisto sarebbe inutile (es. cura a HP pieni).
+        // stessa run. Prezzi ed entita' degli effetti in EconomyConfig (bilanciamento in
+        // editor, mai hardcoded qui). ATK/DEF/chiavi/vision boost: deferiti, i sistemi che
+        // li consumano non esistono ancora (Combattimento / Knowledge). Ogni TryBuy ritorna
+        // false senza effetti se le Monete non bastano o l'acquisto sarebbe inutile (es.
+        // cura a HP pieni).
 
         /// <summary>Alza il cap HP della run di EconomyConfig.MaxHpUpgradeAmount (le Monete lo consentono sempre: mai "inutile").</summary>
         public bool TryBuyMaxHpUpgrade()

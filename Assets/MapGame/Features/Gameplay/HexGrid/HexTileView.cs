@@ -5,32 +5,29 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
     /// Rappresentazione visiva di una tile. Cinque componenti separati, sorting order
-    /// front-to-back (2026-08-06, anatomia corretta — sostituisce quanto il vecchio GDD
-    /// descriveva): 1) _border (SpriteRenderer, uguale su ogni tile, colore da
+    /// front-to-back: 1) _border (SpriteRenderer, uguale su ogni tile, colore da
     /// DifficultyLevel), 2) _icon + _iconLabel (SpriteRenderer + TMP, stesso sorting
     /// layer, rappresentano insieme cosa nasconde la tile: icona = Element/evento, testo =
     /// la sua etichetta), 3) _alpha (SpriteRenderer, identico su ogni tile, nessuna
     /// variazione), 4) _background (SpriteRenderer, varia per tipo di ambiente). Sorting
-    /// layer/order effettivi restano lavoro Editor (Bezi) — qui solo i riferimenti e la
-    /// logica che li pilota.
+    /// layer/order effettivi restano lavoro Editor — qui solo i riferimenti e la logica
+    /// che li pilota.
     ///
     /// ApplyState gestisce l'aspetto non-risolto (Sconosciuta / Conosciuta).
     /// Reveal mostra l'ambiente scoperto: l'arte ambientale è il sistema di hint.
     /// SetClickable attiva/disattiva l'indicatore di clickability.
     /// Nessuna logica di gameplay qui: solo rendering.
     ///
-    /// Gli sprite/etichette sono centralizzati in HexTileConfigCatalog (asset condiviso,
-    /// sostituisce TileVisualConfig dal 2026-07-10) invece che assegnati per-istanza qui —
-    /// un solo posto da aggiornare quando cambia un tipo o se ne aggiunge uno nuovo, anche
-    /// con più varianti di prefab in futuro.
+    /// Gli sprite/etichette sono centralizzati in HexTileConfigCatalog (asset condiviso)
+    /// invece che assegnati per-istanza qui — un solo posto da aggiornare quando cambia un
+    /// tipo o se ne aggiunge uno nuovo, anche con più varianti di prefab in futuro.
     ///
-    /// _background "varia per tipo di ambiente" (spec 2026-08-06): il Three-Axis Visual
-    /// Model (Bioma/Ambiente/Variante) è ancora design-only, nessun tipo/enum Ambiente
-    /// esiste in codice (vedi MapGameHexDebugSetup.cs). Finche' non esiste, ApplyState
-    /// continua a usare Sconosciuta/Conosciuta come sostituto (stesso comportamento di
-    /// prima), ma passa sempre da SetBackground: quando un catalogo per-ambiente arrivera',
-    /// bastera' chiamare SetBackground con lo sprite risolto da quello, senza toccare
-    /// HexTileView.
+    /// _background "varia per tipo di ambiente": il Three-Axis Visual Model (Bioma/
+    /// Ambiente/Variante) è ancora design-only, nessun tipo/enum Ambiente esiste in codice
+    /// (vedi MapGameHexDebugSetup.cs). Finche' non esiste, ApplyState continua a usare
+    /// Sconosciuta/Conosciuta come sostituto, ma passa sempre da SetBackground: quando un
+    /// catalogo per-ambiente arrivera', bastera' chiamare SetBackground con lo sprite
+    /// risolto da quello, senza toccare HexTileView.
     /// </summary>
     public sealed class HexTileView : MonoBehaviour
     {

@@ -7,9 +7,12 @@ using UnityEngine;
 namespace hp55games.MapGame.Features.HexDebugAdapter
 {
     /// <summary>
-    /// Esegue una BFS a movimento libero adiacente dalla tile Start verso End e verso
-    /// ogni Goods, NPC, Boss, per confermare che tutta la mappa generata sia
+    /// Esegue una BFS a movimento libero adiacente dalla tile Start verso ogni tile
+    /// marcata da KeyTileFlags, per confermare che tutta la mappa generata sia
     /// effettivamente raggiungibile. Requisito diretto dei pillar P2 e P3.
+    /// KeyTileFlags copre solo i TileType legacy (Boss/Goods/Npc) e PointOfInterest
+    /// (IsObjective) — stesso gap di copertura documentato su MapGameDebugFlags: i
+    /// TileType post-split non hanno un flag proprio e non vengono controllati qui.
     /// Accede a HexGridController dalla scena per recuperare le coordinate di Start.
     /// </summary>
     public sealed class ReachabilityAnalyzer : IHexAnalyzer

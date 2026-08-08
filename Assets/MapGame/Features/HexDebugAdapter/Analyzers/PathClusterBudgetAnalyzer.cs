@@ -10,7 +10,7 @@ namespace hp55games.MapGame.Features.HexDebugAdapter
     /// Verifica che ogni PathCluster (componente connessa di tile Strada) rispetti i budget
     /// di StradaNetworkSettings: tile totali, numero di rami, lunghezza per ramo.
     /// Segnala visivamente gli scostamenti tramite DebugSeverity per individuare
-    /// immediatamente regressioni come il bug storico sul MinBranchLength.
+    /// immediatamente regressioni sui vincoli di StradaNetwork (es. MinBranchLength).
     /// </summary>
     public sealed class PathClusterBudgetAnalyzer : IHexAnalyzer
     {

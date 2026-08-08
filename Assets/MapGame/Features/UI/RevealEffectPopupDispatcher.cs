@@ -11,13 +11,11 @@ namespace hp55games.MapGame.Features.UI
     /// <summary>
     /// Dispatcher unico per i popup di RevealEffect (GDD, sezione "Reveal Effects"): ascolta
     /// sul bus l'evento "Started" di ogni RevealEffect che apre un popup e lo istanzia via
-    /// IUIPopupService. Accorpa EncounterPopupTrigger (Fight -> UIPopup_Encounter) e
-    /// ShopPopupTrigger (Trade -> UIPopup_Shop), rimossi (2026-08-06): stesso identico
-    /// scheletro ripetuto due volte, un solo componente scala meglio sui prossimi
-    /// RevealEffect con popup (Choice, Loot, Info — vedi RevealEffect.cs, non ancora
-    /// costruiti in HexGridController). Puro ascoltatore: zero campi Inspector, zero vincoli
-    /// di posizionamento in scena (il riferimento a grid/tile viaggia nel payload
-    /// dell'evento), come i due componenti che sostituisce.
+    /// IUIPopupService — un solo componente per Fight (-> UIPopup_Encounter) e Trade
+    /// (-> UIPopup_Shop), che scala meglio sui prossimi RevealEffect con popup (Choice,
+    /// Loot, Info — vedi RevealEffect.cs, non ancora costruiti in HexGridController). Puro
+    /// ascoltatore: zero campi Inspector, zero vincoli di posizionamento in scena (il
+    /// riferimento a grid/tile viaggia nel payload dell'evento).
     ///
     /// Per aggiungere un nuovo RevealEffect con popup:
     /// 1) l'evento "XStartedEvent" (Grid, e Tile se il popup ne ha bisogno) accanto agli

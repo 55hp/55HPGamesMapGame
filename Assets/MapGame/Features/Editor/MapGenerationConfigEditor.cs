@@ -15,17 +15,15 @@ namespace hp55games.MapGame.Editor
         private const int CellGap =  1;
 
         // ── Color palette: one distinct color per TileType ───────────────────
-        // Revisione 2026-08-05 per l'allineamento GDD 2026-07-25: Path/Shop erano alias
-        // [Obsolete] di Road/Trader sullo stesso int, quindi qui restano una voce sola a
-        // testa (una Dictionary<TileType,Color> non puo' avere due chiavi con lo stesso
-        // valore sottostante). Boss/Npc/Goods/Miniboss/Chance restano in tavolozza per
-        // sicurezza (dati serializzati vecchi potrebbero ancora referenziarli, es.
-        // LevelConfig_Test_1.asset ha entry Npc/Goods non ancora sistemate) anche se il
-        // generatore non li piazza piu'. Le 8 nuove voci (Bush/BeeHive/TurnipSprout/
-        // MoneyBag/Inn/Witch/Farmer/Hunter) hanno colori placeholder scelti solo per
-        // restare leggibili accanto agli altri, non dalla palette ufficiale Isle of
-        // Lore 2 — -- Franci TASK -- se vuoi allinearli alla palette asset pack, non
-        // l'ho fatto qui.
+        // Path/Shop sono alias [Obsolete] di Road/Trader sullo stesso int, quindi qui
+        // restano una voce sola a testa (una Dictionary<TileType,Color> non puo' avere
+        // due chiavi con lo stesso valore sottostante). Boss/Npc/Goods/Miniboss/Chance
+        // restano in tavolozza per sicurezza (dati serializzati vecchi potrebbero ancora
+        // referenziarli, es. LevelConfig_Test_1.asset ha entry Npc/Goods non ancora
+        // sistemate) anche se il generatore non li piazza piu'. Le voci Bush/BeeHive/
+        // TurnipSprout/MoneyBag/Inn/Witch/Farmer/Hunter hanno colori placeholder scelti
+        // solo per restare leggibili accanto agli altri, non dalla palette ufficiale
+        // asset pack — se serve allinearli alla palette ufficiale, non e' stato fatto qui.
         //   Start marker: white inner square. End marker: black inner square.
 
         private static readonly Dictionary<TileType, Color> TileColors = new()
@@ -75,8 +73,8 @@ namespace hp55games.MapGame.Editor
         // di uno esplicito: assegnabile qui, con default al primo LevelConfig trovato.
         private LevelConfig _previewLevel;
 
-        // ElementCatalog (2026-08-05): il generatore ora risolve le specie da qui per
-        // FoodRestore/CoinReward. Stesso pattern di _previewLevel: assegnabile a mano,
+        // ElementCatalog: il generatore risolve le specie da qui per FoodRestore/
+        // CoinReward. Stesso pattern di _previewLevel: assegnabile a mano,
         // default al primo ElementCatalog trovato in progetto.
         private ElementCatalog _previewElementCatalog;
 
@@ -176,13 +174,12 @@ namespace hp55games.MapGame.Editor
 
         private void DrawLegend()
         {
-            // Nota (2026-08-05): la tavolozza e' passata da 9 a 22 voci (nuovi TileType +
-            // legacy mantenuti per sicurezza, vedi commento sopra TileColors). La riga
-            // singola qui sotto e' la stessa struttura di prima, solo piu' lunga —
-            // volutamente non ho aggiunto wrapping su piu' righe: e' codice Editor IMGUI
-            // che non posso testare in questo ambiente, e la struttura originale gia'
-            // funzionante e' piu' sicura di un wrapping scritto alla cieca. Se in Unity
-            // risulta troppo larga, e' un cambiamento cosmetico facile da fare li'.
+            // La tavolozza include sia i TileType correnti sia quelli legacy mantenuti per
+            // sicurezza (vedi commento sopra TileColors), quindi la riga e' lunga.
+            // Volutamente nessun wrapping su piu' righe qui: codice Editor IMGUI non
+            // testabile in questo ambiente, e una singola riga e' piu' sicura di un
+            // wrapping scritto alla cieca. Se in Unity risulta troppo larga, e' un
+            // cambiamento cosmetico facile da fare li'.
             EditorGUILayout.LabelField("Tipi", EditorStyles.miniLabel);
             EditorGUILayout.BeginHorizontal();
             foreach (var kvp in TileColors)
