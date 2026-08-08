@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MapGenerationConfig_Test
   m_EditorClassIdentifier: 
   Width: 18
-  Height: 12
+  Height: 13
   Seed: 12345
   EndDistanceWeights:
   - Distance: 8
@@ -40,9 +40,9 @@ MonoBehaviour:
     MaxConsecutiveFailures: 200
   StradaNetwork:
     MinBranchLength: 3
-    MaxBranchLength: 7
-    MaxBranches: 6
-    MaxTotalTiles: 15
+    MaxBranchLength: 6
+    MaxBranches: 3
+    MaxTotalTiles: 14
     StopWeight: 60
     Fork3Weight: 35
     Fork5Weight: 5

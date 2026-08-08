@@ -53,6 +53,10 @@ MonoBehaviour:
     DifficultyLevel: 2
   - Type: 17
     DifficultyLevel: 2
+  - Type: 14
+    DifficultyLevel: 2
+  - Type: 1
+    DifficultyLevel: 1
   SingleTileEntries:
   - Type: 5
     DifficultyLevel: 1
