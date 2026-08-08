@@ -37,20 +37,21 @@ namespace hp55games.MapGame.Features.Configs
 
     /// <summary>
     /// Parametri per il piazzamento degli EventCluster (generati proceduralmente a runtime
-    /// da LevelConfig.Entries, vedi AestheticClusterMapGenerator.TryBuildProceduralCluster)
+    /// da LevelConfig.ClusterTileEntries, vedi AestheticClusterMapGenerator.TryBuildProceduralCluster)
     /// e delle tessere singole via rejection sampling. I tipi EventClusterCatalog/
     /// EventClusterShape restano nel progetto per lo Shape Editor ma non sono referenziati
-    /// dal generatore, che costruisce i cluster interamente a runtime.
+    /// dal generatore, che costruisce i cluster interamente a runtime. Nessun rapporto
+    /// cluster:singola qui: ogni tipo di cluster (Type+DifficultyLevel del centro) compare
+    /// al massimo una volta per mappa, e ogni tessera singola ha gia' il proprio Amount
+    /// esplicito su LevelConfig.SingleTileEntries — PlaceEventClusters piazza tutti i
+    /// cluster disponibili, poi tutte le singole del manifest, in due fasi separate
+    /// anziche' alternate.
     /// </summary>
     [Serializable]
     public struct EventClusterPlacementSettings
     {
         [Tooltip("Tentativi consecutivi falliti prima di considerare la griglia piena e fermarsi.")]
         public int MaxConsecutiveFailures;
-
-        [Header("Rapporto cluster : singola (es. 2-3 cluster per ogni singola)")]
-        public int ClusterToSingleRatioMin;
-        public int ClusterToSingleRatioMax;
     }
 
     [CreateAssetMenu(menuName = "MapGame/Map Generation Config", fileName = "MapGenerationConfig")]
@@ -82,8 +83,6 @@ namespace hp55games.MapGame.Features.Configs
         public EventClusterPlacementSettings EventClusters = new EventClusterPlacementSettings
         {
             MaxConsecutiveFailures = 200,
-            ClusterToSingleRatioMin = 2,
-            ClusterToSingleRatioMax = 3,
         };
 
         [Header("Rete Strada (PathCluster)")]

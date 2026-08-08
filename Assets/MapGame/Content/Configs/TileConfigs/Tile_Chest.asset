@@ -15,3 +15,4 @@ MonoBehaviour:
   Type: 13
   Icon: {fileID: 21300000, guid: 35b8eac0fcd89c24198b8f716a009211, type: 3}
   Label: Forziere
+  Reveal: 5

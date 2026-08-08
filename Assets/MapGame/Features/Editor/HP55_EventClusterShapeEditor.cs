@@ -5,11 +5,10 @@
 // buttons are used; the visual offset ensures painted clusters are spatially correct.
 //
 // Painting requires a LevelConfig reference. Paintable options come from
-// LevelConfig.Entries filtered to ListType.EventCluster (TileType + DifficultyLevel
-// pairs) instead of the full TileType enum — each click cycles through eligible entries
-// for that level, authoring stays per-cell manual, the LevelConfig only filters what's
-// available. Road (structural, no DifficultyLevel) is excluded from paintable entries —
-// see LevelConfig.cs.
+// LevelConfig.ClusterTileEntries (TileType + DifficultyLevel pairs) instead of the full
+// TileType enum — each click cycles through eligible entries for that level, authoring
+// stays per-cell manual, the LevelConfig only filters what's available. Road (structural,
+// no DifficultyLevel) is excluded from paintable entries — see LevelConfig.cs.
 using UnityEngine;
 using UnityEditor;
 using System;
@@ -39,7 +38,7 @@ namespace hp55games.MapGame.Features.Editor
 
         [SerializeField] private LevelConfig _levelConfig;
 
-        private LevelTileEntry[] _paintableEntries;
+        private ClusterTile[] _paintableEntries;
         private Color[] _entryColors;
 
         private int[,] _cellState; // [row, col], -1 = empty, altrimenti indice in _paintableEntries
@@ -60,13 +59,16 @@ namespace hp55games.MapGame.Features.Editor
                 ResetGrid();
         }
 
+        /// <summary>
+        /// Rebuilds the list of paintable entries from the current LevelConfig, filtering out excluded types.
+        /// </summary>
         private void RebuildPaintableEntries()
         {
-            var source = _levelConfig != null ? _levelConfig.Entries : null;
+            var source = _levelConfig != null ? _levelConfig.ClusterMainTileEntries.Concat(_levelConfig.ClusterFillerTileEntries) : null;
 
             _paintableEntries = source == null
-                ? Array.Empty<LevelTileEntry>()
-                : source.Where(e => e.ListType == TileListType.EventCluster && !ExcludedTypes.Contains(e.Type)).ToArray();
+                ? Array.Empty<ClusterTile>()
+                : source.Where(e => !ExcludedTypes.Contains(e.Type)).ToArray();
 
             _entryColors = new Color[_paintableEntries.Length];
             for (int i = 0; i < _paintableEntries.Length; i++)
@@ -100,14 +102,14 @@ namespace hp55games.MapGame.Features.Editor
 
             if (_levelConfig == null)
             {
-                EditorGUILayout.HelpBox("Assegna un LevelConfig per popolare le tipologie disponibili (Entries con ListType = EventCluster).", MessageType.Warning);
+                EditorGUILayout.HelpBox("Assegna un LevelConfig per popolare le tipologie disponibili (ClusterTileEntries).", MessageType.Warning);
                 EditorGUILayout.EndScrollView();
                 return;
             }
 
             if (_paintableEntries.Length == 0)
             {
-                EditorGUILayout.HelpBox("Nessuna entry con ListType = EventCluster su questo LevelConfig. Aggiungi almeno una entry Type/DifficultyLevel/ListType=EventCluster per poter dipingere.", MessageType.Warning);
+                EditorGUILayout.HelpBox("Nessuna entry in ClusterTileEntries su questo LevelConfig. Aggiungi almeno una entry Type/DifficultyLevel per poter dipingere.", MessageType.Warning);
                 EditorGUILayout.EndScrollView();
                 return;
             }

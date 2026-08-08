@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 630ef2dc180896a4cb358e13dc093483, type: 3}
-  m_Name: PlaceholderEconomyConfig
+  m_Name: EconomyConfig
   m_EditorClassIdentifier: 
   MaxHpUpgradeCost: 10
   MaxHpUpgradeAmount: 1

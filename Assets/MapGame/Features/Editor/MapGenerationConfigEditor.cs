@@ -73,11 +73,6 @@ namespace hp55games.MapGame.Editor
         // di uno esplicito: assegnabile qui, con default al primo LevelConfig trovato.
         private LevelConfig _previewLevel;
 
-        // ElementCatalog: il generatore risolve le specie da qui per FoodRestore/
-        // CoinReward. Stesso pattern di _previewLevel: assegnabile a mano,
-        // default al primo ElementCatalog trovato in progetto.
-        private ElementCatalog _previewElementCatalog;
-
         // ── Inspector GUI ────────────────────────────────────────────────────
 
         public override void OnInspectorGUI()
@@ -97,21 +92,10 @@ namespace hp55games.MapGame.Editor
                     "Nessun LevelConfig assegnato: la preview genera con contenuto di default (nessuna istanza da piazzare). Assegnane uno per una preview realistica.",
                     MessageType.Warning);
 
-            if (_previewElementCatalog == null)
-                _previewElementCatalog = FindFirstElementCatalog();
-
-            _previewElementCatalog = (ElementCatalog)EditorGUILayout.ObjectField(
-                "Element Catalog (preview)", _previewElementCatalog, typeof(ElementCatalog), false);
-
-            if (_previewElementCatalog == null)
-                EditorGUILayout.HelpBox(
-                    "Nessun ElementCatalog assegnato: le tessere content avranno FoodRestore/CoinReward a 0 (nessuna specie risolta). Assegnane uno per una preview realistica.",
-                    MessageType.Warning);
-
             if (GUILayout.Button("Genera Preview"))
             {
                 var cfg = (MapGenerationConfig)target;
-                _preview = new MapGenerationService().GenerateMap(cfg, _previewLevel, _previewElementCatalog, cfg.Seed);
+                _preview = new MapGenerationService().GenerateMap(cfg, _previewLevel, cfg.Seed);
                 Repaint();
             }
 
@@ -235,14 +219,6 @@ namespace hp55games.MapGame.Editor
             if (guids.Length == 0) return null;
             string path = AssetDatabase.GUIDToAssetPath(guids[0]);
             return AssetDatabase.LoadAssetAtPath<LevelConfig>(path);
-        }
-
-        private static ElementCatalog FindFirstElementCatalog()
-        {
-            string[] guids = AssetDatabase.FindAssets("t:ElementCatalog");
-            if (guids.Length == 0) return null;
-            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-            return AssetDatabase.LoadAssetAtPath<ElementCatalog>(path);
         }
 
 }

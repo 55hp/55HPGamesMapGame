@@ -15,3 +15,4 @@ MonoBehaviour:
   Type: 5
   Icon: {fileID: 21300000, guid: efcef74fe12d97a41a553615027774b1, type: 3}
   Label: Nemico
+  Reveal: 1

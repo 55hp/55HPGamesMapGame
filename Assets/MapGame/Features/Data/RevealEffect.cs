@@ -3,14 +3,14 @@ using System;
 namespace hp55games.MapGame.Features.Gameplay.HexGrid
 {
     /// <summary>
-    /// Governa cosa succede al reveal di una tile con Element (GDD, sezione "Reveal
-    /// Effects"). Usato da ElementConfig per determinare quale popup (se esiste) aprire.
-    /// Non aggiungere valori senza istruzione esplicita.
+    /// Governa cosa succede al reveal di una tile (GDD, sezione "Reveal Effects"). Usato
+    /// da HexTileConfig.Reveal per determinare quale popup (se esiste) aprire. Non
+    /// aggiungere valori senza istruzione esplicita.
     ///
     /// Immediate — effetto applicato direttamente, nessun popup (Trap, Fountain, Tree,
     ///             Bush, BeeHive, TurnipSprout, MoneyBag, Key). Vedi HexGridController.ApplyImmediateElement.
     /// Fight     — apre UIPopup_Encounter con scelta combatti/fuggi (Enemy, incluse le
-    ///             varianti Miniboss/Boss via ElementConfig).
+    ///             varianti Miniboss/Boss — Enemy con DifficultyLevel piu' alto).
     /// Trade     — apre UIPopup_Shop con inventario (Trader).
     /// Choice    — popup con testo + scelte a nodi, esito finale automatico. Copre sia
     ///             dialoghi lineari (un solo nodo/risposta) sia scelte mutualmente

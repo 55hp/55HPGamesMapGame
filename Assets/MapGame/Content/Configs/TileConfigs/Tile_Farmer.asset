@@ -15,3 +15,4 @@ MonoBehaviour:
   Type: 20
   Icon: {fileID: 21300000, guid: f343ce95fd41d8e4aa95c0a443c307b1, type: 3}
   Label: Contadino
+  Reveal: 4

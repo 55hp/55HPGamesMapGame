@@ -15,3 +15,4 @@ MonoBehaviour:
   Type: 15
   Icon: {fileID: 21300000, guid: e802a36fcba737643864961c7d73e154, type: 3}
   Label: Alveare
+  Reveal: 0

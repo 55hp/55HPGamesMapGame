@@ -18,14 +18,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// nuovo.
     ///
     /// Path e' l'alias [Obsolete] di Road (stesso int), mantenuto perche' altri file —
-    /// AestheticClusterMapGenerator, MapGenerationConfigEditor, HP55_EventClusterShapeEditor,
+    /// MapClusterGenerator, MapGenerationConfigEditor, HP55_EventClusterShapeEditor,
     /// MapGameDebugFlags — referenziano ancora TileType.Path come simbolo C#: rimuoverlo
     /// del tutto romperebbe la compilazione di quei file. Stesso trattamento per
     /// Shop→Trader. Miniboss/Boss/Npc/Goods non sono piu' TileType a se stanti
-    /// (Miniboss/Boss diventano varianti di Enemy via ElementConfig; Npc si divide in
-    /// Inn/Trader/Witch/Farmer/Hunter; Goods si divide in Bush/BeeHive/TurnipSprout, Tree
-    /// resta) — marcati [Obsolete] con int originali preservati, mai rimossi ne'
-    /// riassegnati, per non corrompere gli .asset gia' serializzati che li referenziano.
+    /// (Miniboss/Boss diventano varianti di Enemy con DifficultyLevel piu' alto; Npc si
+    /// divide in Inn/Trader/Witch/Farmer/Hunter; Goods si divide in Bush/BeeHive/
+    /// TurnipSprout, Tree resta) — marcati [Obsolete] con int originali preservati, mai
+    /// rimossi ne' riassegnati, per non corrompere gli .asset gia' serializzati che li
+    /// referenziano.
     ///
     /// Key: attiva la chiave di sessione corrispondente al proprio DifficultyLevel
     /// (4/5/6). Chest: DifficultyLevel 1/2/3, aperto dalla chiave DL+3.
@@ -38,7 +39,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         [Obsolete("Path e' l'alias di Road. Mantenuto solo per compatibilita' con codice non ancora aggiornato — non usarlo in codice nuovo, usa Road. Dichiarato DOPO Road cosi' Unity mostra \"Road\" nell'Inspector per il valore 1, non \"Path\": C#/Unity risolvono il nome da un int all'ordine di dichiarazione, non il contrario — nessun valore e' cambiato, solo l'ordine.")]
         Path = 1,
 
-        [Obsolete("Boss non e' piu' un TileType a se': la tile obiettivo e' un Enemy con IsObjective = true, differenziato via ElementConfig. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
+        [Obsolete("Boss non e' piu' un TileType a se': la tile obiettivo e' un Enemy con IsObjective = true. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
         Boss = 2,
 
         [Obsolete("Npc non e' piu' un TileType a se': si divide in Inn/Trader/Witch/Farmer/Hunter. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
@@ -50,7 +51,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         Enemy = 5,
 
-        [Obsolete("Miniboss non e' piu' un TileType a se': e' una variante di Enemy via ElementConfig (specie/estetica diverse, stesso Type=Enemy), bilanciamento non ancora definito. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
+        [Obsolete("Miniboss non e' piu' un TileType a se': e' un Enemy con DifficultyLevel piu' alto (stesso Type=Enemy), bilanciamento non ancora definito. Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]
         Miniboss = 6,
 
         [Obsolete("Goods non e' piu' un TileType a se': si divide in Bush/BeeHive/TurnipSprout (Tree gia' esisteva a parte). Mantenuto solo per compatibilita' con .asset serializzati esistenti.")]

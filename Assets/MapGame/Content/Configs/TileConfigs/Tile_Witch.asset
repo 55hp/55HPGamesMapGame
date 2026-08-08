@@ -15,3 +15,4 @@ MonoBehaviour:
   Type: 19
   Icon: {fileID: 21300000, guid: 73b14b8d4b703014aaf13d41f0d71005, type: 3}
   Label: Strega
+  Reveal: 4

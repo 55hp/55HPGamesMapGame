@@ -54,6 +54,19 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             return null;
         }
 
+        /// <summary>RevealEffect.Immediate (valore di default) se il tipo non ha ancora una HexTileConfig assegnata.</summary>
+        public RevealEffect GetReveal(TileType type)
+        {
+            if (TileConfigs == null) return RevealEffect.Immediate;
+
+            foreach (var entry in TileConfigs)
+            {
+                if (entry != null && entry.Type == type) return entry.Reveal;
+            }
+
+            return RevealEffect.Immediate;
+        }
+
         /// <summary>Color.clear (non un colore di bordo valido) se difficultyLevel e' fuori dal range configurato — cosi' un bordo non assegnato e' visibilmente "mancante" invece di sembrare intenzionale.</summary>
         public Color GetDifficultyLevelColor(int difficultyLevel)
         {

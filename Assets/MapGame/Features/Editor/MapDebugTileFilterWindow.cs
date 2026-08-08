@@ -1,9 +1,11 @@
 // MapDebugTileFilterWindow.cs
 // Finestra editor per il debug del filtro tile sulla mappa in Play Mode.
-// Ogni booleano attivato fa sì che le tile che soddisfano almeno una delle
-// caratteristiche selezionate abbiano il proprio root GameObject attivo; le
-// altre vengono disattivate. Con tutti i booleani a false (default) tutta la
-// visibilità viene ripristinata.
+// Sincronizzata automaticamente con HexGridController.GridInitialized (vedi
+// RefreshRuntimeRefs/OnGridDataChanged): non serve cliccare "Aggiorna stats" dopo che
+// la mappa e' stata (ri)generata, la finestra si aggiorna da sola.
+// Combinazione filtri: AND tra categorie (TileType/DifficultyLevel/Start/End/
+// EventCluster), OR tra i toggle della stessa categoria — vedi doc su ApplyFilter. Con
+// tutti i booleani a false (default) tutta la visibilità viene ripristinata.
 // Colonne stat per ogni riga:
 //   #   — conteggio tessere di quella categoria
 //   %   — percentuale sul totale (1 decimale)
@@ -117,23 +119,62 @@ namespace hp55games.MapGame.Features.Editor
         {
             InitFilters();
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            EditorApplication.update += OnEditorUpdate;
         }
 
         private void OnDisable()
         {
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            EditorApplication.update -= OnEditorUpdate;
+            UnsubscribeFromController();
         }
 
         private void OnPlayModeStateChanged(PlayModeStateChange state)
         {
             if (state == PlayModeStateChange.ExitingPlayMode)
             {
+                UnsubscribeFromController();
                 _spawner    = null;
                 _controller = null;
                 _statsValid = false;
                 InitFilters();
                 Repaint();
             }
+        }
+
+        /// <summary>
+        /// Tick Editor (anche fuori da OnGUI, che scatta solo quando la finestra e' visibile/
+        /// dirty): l'unico modo per accorgersi che un HexGridController e' comparso in scena
+        /// (Play appena avviato) senza aspettare che l'utente muova il mouse sulla finestra o
+        /// prema "Aggiorna stats". Una volta trovato, RefreshRuntimeRefs si aggancia al suo
+        /// GridInitialized (vedi sotto) e da li' in poi la sync e' guidata dall'evento, non
+        /// piu' da questo polling.
+        /// </summary>
+        private void OnEditorUpdate()
+        {
+            if (!Application.isPlaying) return;
+            RefreshRuntimeRefs();
+        }
+
+        /// <summary>
+        /// La griglia e' stata (ri)generata — vedi HexGridController.GridInitialized,
+        /// pubblicato anche su ogni retry/rigenerazione, non solo al primo avvio. Invalida
+        /// le stats cache e riapplica subito i filtri correnti ai dati nuovi, cosi' la
+        /// finestra resta sincronizzata con la mappa senza richiedere un click su
+        /// "Aggiorna stats" o un OnGUI casuale.
+        /// </summary>
+        private void OnGridDataChanged()
+        {
+            _statsValid = false;
+            EnsureStats();
+            ApplyFilter();
+            Repaint();
+        }
+
+        private void UnsubscribeFromController()
+        {
+            if (_controller != null)
+                _controller.GridInitialized -= OnGridDataChanged;
         }
 
         private void InitFilters()
@@ -451,10 +492,32 @@ namespace hp55games.MapGame.Features.Editor
         {
             if (_spawner == null)
                 _spawner = FindObjectOfType<HexGridViewSpawner>();
+
             if (_controller == null)
+            {
                 _controller = FindObjectOfType<HexGridController>();
+                if (_controller != null)
+                {
+                    // Aggancio one-shot alla scoperta: da qui in poi la sync e' guidata
+                    // dall'evento (vedi OnGridDataChanged), non serve ripetere la ricerca.
+                    // Se la griglia e' gia' pronta al momento dell'aggancio (finestra aperta
+                    // dopo il primo GridInitialized), sincronizza subito invece di aspettare
+                    // la prossima rigenerazione.
+                    _controller.GridInitialized += OnGridDataChanged;
+                    OnGridDataChanged();
+                }
+            }
         }
 
+        /// <summary>
+        /// Combinazione filtri: AND tra categorie (TileType / DifficultyLevel / Start / End /
+        /// EventCluster), OR tra i toggle DENTRO la stessa categoria. Una categoria con
+        /// nessun toggle acceso non partecipa all'AND (nessun vincolo). Es. "Enemy" +
+        /// "Trap" (stessa categoria TileType) mostra le tile Enemy O Trap; aggiungendo anche
+        /// "DL 3" (categoria diversa) restringe a (Enemy O Trap) E DL3 — non piu' un OR
+        /// globale su tutti i toggle come prima, dove attivare TileType e DifficultyLevel
+        /// insieme mostrava l'unione invece dell'intersezione.
+        /// </summary>
         private void ApplyFilter()
         {
             RefreshRuntimeRefs();
@@ -464,6 +527,14 @@ namespace hp55games.MapGame.Features.Editor
                 return;
 
             bool anyActive = AnyFilterActive();
+
+            bool typeCategoryActive = false;
+            foreach (var t in ActiveTileTypes)
+                if (_typeFilters.TryGetValue(t, out bool on) && on) { typeCategoryActive = true; break; }
+
+            bool dlCategoryActive = false;
+            foreach (var d in _dlFilters)
+                if (d) { dlCategoryActive = true; break; }
 
             foreach (var kvp in _spawner.Views)
             {
@@ -482,26 +553,26 @@ namespace hp55games.MapGame.Features.Editor
                     continue;
                 }
 
-                bool matches = false;
+                bool matches = true;
 
-                if (_typeFilters.TryGetValue(data.Type, out bool typeOn) && typeOn)
-                    matches = true;
+                if (typeCategoryActive && !(_typeFilters.TryGetValue(data.Type, out bool typeOn) && typeOn))
+                    matches = false;
 
-                if (!matches)
+                if (matches && dlCategoryActive)
                 {
                     int dl = data.DifficultyLevel;
-                    if (dl >= 0 && dl <= 6 && _dlFilters[dl])
-                        matches = true;
+                    bool dlOn = dl >= 0 && dl <= 6 && _dlFilters[dl];
+                    if (!dlOn) matches = false;
                 }
 
-                if (!matches && _filterStart && data.Coord.Equals(_controller.PlayerCoord))
-                    matches = true;
+                if (matches && _filterStart && !data.Coord.Equals(_controller.PlayerCoord))
+                    matches = false;
 
-                if (!matches && _filterEnd && data.IsObjective)
-                    matches = true;
+                if (matches && _filterEnd && !data.IsObjective)
+                    matches = false;
 
-                if (!matches && _filterEventCluster && _clusterPlacementIds.Contains(data.EventPlacementId))
-                    matches = true;
+                if (matches && _filterEventCluster && !_clusterPlacementIds.Contains(data.EventPlacementId))
+                    matches = false;
 
                 view.gameObject.SetActive(matches);
             }

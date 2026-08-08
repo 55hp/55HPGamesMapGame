@@ -14,21 +14,20 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// </summary>
     public interface IMapGenerationService
     {
-        MapGenerationResult GenerateMap(MapGenerationConfig config, LevelConfig level, ElementCatalog elementCatalog, int seed);
+        MapGenerationResult GenerateMap(MapGenerationConfig config, LevelConfig level, int seed);
     }
 
     public sealed class MapGenerationService : IMapGenerationService
     {
-        public MapGenerationResult GenerateMap(MapGenerationConfig config, LevelConfig level, ElementCatalog elementCatalog, int seed)
+        public MapGenerationResult GenerateMap(MapGenerationConfig config, LevelConfig level, int seed)
         {
-            IMapGenerator generator = new AestheticClusterMapGenerator(
+            IMapGenerator generator = new MapClusterGenerator(
                 config.EndDistanceWeights,
                 config.StartMinBorderDistance,
                 config.ClusterMinDistanceFromStartEnd,
                 config.StradaNetwork,
                 config.EventClusters,
-                level,
-                elementCatalog);
+                level);
 
             return generator.Generate(config.Width, config.Height, seed);
         }

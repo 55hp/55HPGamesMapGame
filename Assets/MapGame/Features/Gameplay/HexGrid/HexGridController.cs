@@ -113,7 +113,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private SurvivalConfig      _survival;
         private LevelConfig         _level;
         private EconomyConfig       _economy;
-        private ElementCatalog      _elementCatalog;
 
         // Cap runtime della run, inizializzati dalla baseline SurvivalConfig e alzati dai
         // potenziamenti dello shop. Non modificano mai l'asset SurvivalConfig.
@@ -196,7 +195,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _survival  = _configs.Get<SurvivalConfig>();
             _level     = _configs.Get<LevelConfig>();
             _economy   = _configs.Get<EconomyConfig>();
-            _elementCatalog = _configs.Get<ElementCatalog>();
 
             // BuildGrid() NON viene chiamato qui (vedi InitializeSession): farlo in Awake
             // pubblica GridInitialized troppo presto — Unity non garantisce che l'Awake/
@@ -298,7 +296,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
 
             int seed = (_context?.CurrentRunSeed != 0) ? _context.CurrentRunSeed : _mapConfig.Seed;
-            var result = _mapGenerationService.GenerateMap(_mapConfig, _level, _elementCatalog, seed);
+            var result = _mapGenerationService.GenerateMap(_mapConfig, _level, seed);
 
             if (!result.Success)
             {
@@ -426,8 +424,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             if (tile.Type == TileType.Enemy)
             {
-                // Miniboss/Boss non sono TileType a se' stanti: sono varianti di Enemy via
-                // ElementConfig, quindi passano tutte da qui.
+                // Miniboss/Boss non sono piu' usati come TileType a se' stanti dal design:
+                // un nemico di fascia alta e' semplicemente un Enemy con DifficultyLevel
+                // piu' alto, quindi passano tutte da qui.
                 Debug.Log($"[HexGrid] TryRevealTile → Enemy tile, starting encounter (DL={tile.DifficultyLevel}, IsObjective={tile.IsObjective})");
                 StartEncounter(target, tile);
                 return true;
@@ -644,9 +643,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Effetto Enemy: perdita HP pari al DifficultyLevel della tessera. Vale anche per
-        /// le varianti Miniboss/Boss (non sono TileType separati, sono Enemy via
-        /// ElementConfig, stesso Type=Enemy). Non pubblica eventi — il publish e'
-        /// centralizzato nel chiamante.
+        /// le varianti Miniboss/Boss (non sono TileType separati, sono Enemy con
+        /// DifficultyLevel piu' alto, stesso Type=Enemy). Non pubblica eventi — il publish
+        /// e' centralizzato nel chiamante.
         /// </summary>
         private void ApplyEnemyDamage(HexTileData tile)
         {
@@ -706,8 +705,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         ///           Reveal Effects). Nessun effetto qui finche' il flusso Loot non c'e'.
         /// Tree/Bush/BeeHive/TurnipSprout: NON gestiti qui — il loro +Food viaggia gia' su
         ///           HexTileData.FoodRestore (AccumulateFood, chiamata incondizionatamente
-        ///           per ogni reveal), assegnato dal generatore da ElementConfig.FoodRestore
-        ///           per specie. Non duplicare l'effetto reintroducendo un case qui.
+        ///           per ogni reveal), calcolo fisso = DifficultyLevel assegnato dal
+        ///           generatore (vedi MapClusterGenerator.ApplyElementStats). Non duplicare
+        ///           l'effetto reintroducendo un case qui.
         /// </summary>
         private (bool keysChanged, bool coinsChanged) ApplyImmediateElement(HexTileData tile)
         {
@@ -732,7 +732,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                         case 5: _context.HasKeyDL5 = true; return (true, false);
                         case 6: _context.HasKeyDL6 = true; return (true, false);
                         default:
-                            Debug.LogWarning($"[HexGridController] Tile Key con DifficultyLevel {tile.DifficultyLevel} fuori dal set 4/5/6: nessuna chiave attivata. Verifica le LevelTileEntry del LevelConfig.", this);
+                            Debug.LogWarning($"[HexGridController] Tile Key con DifficultyLevel {tile.DifficultyLevel} fuori dal set 4/5/6: nessuna chiave attivata. Verifica le entry Key del LevelConfig.", this);
                             return (false, false);
                     }
 

@@ -7,69 +7,80 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// <summary>
     /// Generatore di mappa, pipeline "macchie di leopardo" (GDD):
     /// 1. Piazzamento Start/End (weighted distance). Start diventa Road, End diventa
-    ///    Enemy con IsObjective = true, DifficultyLevel 6 (placeholder "boss finale",
-    ///    coerente con PlaceholderBossElementConfig — vedi Generate).
+    ///    Enemy con IsObjective = true, DifficultyLevel 6 (placeholder "boss finale" —
+    ///    vedi Generate).
     /// 2. Piazzamento EventCluster (cluster da 7 tessere generati interamente a runtime
-    ///    dalle entry ListType.EventCluster di LevelConfig — vedi TryBuildProceduralCluster;
-    ///    un cluster fallito degrada direttamente a tessera singola) e tessere singole via
-    ///    rejection sampling, con almeno una tessera di distacco tra due piazzamenti. Un
-    ///    solo cluster per tipo di centro sull'intera mappa: il tipo di un cluster e' la
-    ///    coppia (Type, DifficultyLevel) del suo centro — Enemy DL4 ed Enemy DL5 sono due
-    ///    tipi distinti, ciascuno piazzabile al massimo una volta — vedi
-    ///    _usedClusterCenterTypes, popolato in PlaceEventClusters solo dopo un piazzamento
-    ///    validato, mai ripescato.
-    /// 3. Mesh di PathCluster: parte da ogni bordo di ogni EventCluster/singola piazzata,
-    ///    cresce a budget (15 tessere / 5 rami / rami 3-7) per ciascun PathCluster, si
-    ///    ferma sui bordi degli EventCluster (fanno da muro, nessuna separazione
-    ///    necessaria lì) e pesca dalle entry LevelConfig.Entries con ListType.StopSingle
-    ///    dove tocca un PathCluster diverso già piazzato (per non farli fondere in
-    ///    un'unica cascata).
+    ///    dalle entry LevelConfig.ClusterMainTileEntries/ClusterFillerTileEntries — vedi
+    ///    TryBuildProceduralCluster) e tessere singole, in due fasi separate via rejection
+    ///    sampling (vedi
+    ///    PlaceEventClusters), con almeno una tessera di distacco tra due piazzamenti: prima
+    ///    tutti i cluster disponibili, poi tutte le singole del manifest — nessun rapporto
+    ///    cluster:singola, ogni tipo di cluster compare al massimo una volta e ogni singola
+    ///    ha gia' il proprio Amount esplicito, quantita' note in anticipo. Un solo cluster
+    ///    per tipo di centro sull'intera mappa: il tipo di un cluster e' la coppia (Type,
+    ///    DifficultyLevel) del suo centro — Enemy DL4 ed Enemy DL5 sono due tipi distinti,
+    ///    ciascuno piazzabile al massimo una volta — vedi _usedClusterCenterTypes, popolato
+    ///    in PlaceEventClusters solo dopo un piazzamento validato, mai ripescato.
+    /// 3. Mesh di PathCluster: parte da ogni bordo di ogni EventCluster/singola piazzata
+    ///    (i semi Road di ogni cluster per primi, vedi punto 12), cresce a budget (15
+    ///    tessere / 5 rami / rami 3-7) per ciascun PathCluster, si ferma sui bordi degli
+    ///    EventCluster (fanno da muro, nessuna separazione necessaria lì) e pesca dalle
+    ///    entry LevelConfig.StopTileEntries dove tocca un PathCluster diverso già piazzato
+    ///    (per non farli fondere in un'unica cascata).
     /// 4. Rammendo: ogni tessera ancora priva di contenuto diventa Strada extra su un
-    ///    PathCluster confinante (massimo 2 per PathCluster, o una entry ListType.StopSingle
+    ///    PathCluster confinante (massimo 2 per PathCluster, o una entry StopTileEntries
     ///    se confina anche con un PathCluster diverso) oppure, se non c'è un PathCluster a
-    ///    cui attaccarsi, una tessera singola da un'entry ListType.EventSingle. Nessuna
+    ///    cui attaccarsi, una tessera singola da un'entry SingleTileEntries. Nessuna
     ///    tessera resta senza contenuto esplicito.
     /// 5. Vincolo DifficultyLevel: ogni tessera pescata porta con se' un DifficultyLevel
     ///    (1-6) dalla entry scelta; se la posizione finale non ha abbastanza vicini
     ///    validi in griglia per quel livello, il livello viene abbassato fino al valore
     ///    supportato (minimo 1), stesso TileType — vedi ResolveDifficulty.
-    /// 6. Composizione fissa e deterministica: le entry LevelConfig.Entries con
-    ///    ListType.EventSingle o ListType.StopSingle NON sono pool pesati con
-    ///    reinserimento. Sono manifest: ogni entry rappresenta UNA istanza da piazzare (o
-    ///    Amount istanze per EventSingle, vedi sotto), consumata quando viene usata.
-    ///    All'inizio di Generate, BuildManifest filtra Entries per ListType e mescola
-    ///    (Fisher-Yates) il risultato con lo stesso Random(seed) della run, poi TryDrawEntry
-    ///    pesca dalla coda senza mai reinserire — stesso seed produce sempre la stessa
-    ///    sequenza di pesche. Se il manifest si esaurisce prima che la griglia sia piena, il
-    ///    generatore degrada come per un manifest vuoto (vedi AssignSingleTile/
-    ///    AssignStopTile), non crasha. Le entry con ListType.EventCluster sono la palette
-    ///    per la generazione procedurale dei cluster: TryBuildProceduralCluster le usa per
-    ///    comporre centro (DL 4/5/6) e ring (DL 1/2) di ogni cluster generato a runtime.
-    ///    Amount (LevelTileEntry.Amount): SOLO per ListType.EventSingle, BuildManifest
-    ///    espande ogni entry in Amount copie PRIMA dello shuffle — un'entry con Amount=3
-    ///    sostituisce 3 entry duplicate a mano, senza cambiare la garanzia di determinismo
-    ///    (l'espansione e' deterministica, lo shuffle successivo e' comunque guidato solo
-    ///    dal seed). ListType.StopSingle ignora Amount, resta un'entry = un'istanza.
-    /// 7. ElementCatalog: ogni tessera content (EventCluster, singola, o stop) risolve una
-    ///    specie eleggibile per {TileType, DifficultyLevel finale} via
-    ///    ElementCatalog.PickRandom, e ne copia FoodRestore/CoinReward sulla
-    ///    HexTileData (HpRestore resta sempre 0: nessun path applica danno/cura tramite
-    ///    questo campo oggi, vedi HexGridController). Nessuna specie eleggibile per la
-    ///    combinazione richiesta → degrado silenzioso a valori neutri con un warning in
-    ///    Console, stesso principio del manifest vuoto: il designer se ne accorge, il
-    ///    gioco non crasha.
+    /// 6. Composizione fissa e deterministica: le entry di LevelConfig.SingleTileEntries e
+    ///    StopTileEntries NON sono pool pesati con reinserimento. Sono manifest: ogni entry
+    ///    rappresenta UNA istanza da piazzare (o Amount istanze per SingleTileEntries, vedi
+    ///    sotto), consumata quando viene usata. All'inizio di Generate, BuildManifest
+    ///    mescola (Fisher-Yates) ciascuna lista con lo stesso Random(seed) della run, poi
+    ///    TryDrawEntry pesca dalla coda senza mai reinserire — stesso seed produce sempre la
+    ///    stessa sequenza di pesche. Se il manifest si esaurisce prima che la griglia sia
+    ///    piena, il generatore degrada come per un manifest vuoto (vedi AssignSingleTile/
+    ///    AssignStopTile), non crasha. LevelConfig.ClusterMainTileEntries/
+    ///    ClusterFillerTileEntries sono la palette per la generazione procedurale dei
+    ///    cluster: TryBuildProceduralCluster le usa per comporre centro e ring di ogni
+    ///    cluster generato a runtime, Amount ignorato li'. Amount conta SOLO per
+    ///    SingleTileEntries: BuildManifest espande ogni entry in Amount copie PRIMA dello
+    ///    shuffle — un'entry con Amount=3 sostituisce 3 entry duplicate a mano, senza
+    ///    cambiare la garanzia di determinismo (l'espansione e' deterministica, lo shuffle
+    ///    successivo e' comunque guidato solo dal seed). StopTileEntries ignora Amount,
+    ///    resta un'entry = un'istanza.
+    /// 7. Calcoli fissi (ApplyElementStats): ogni tessera content ha Type e DifficultyLevel
+    ///    gia' risolti, e da questi soli deriva HexTileData.FoodRestore — fisso =
+    ///    DifficultyLevel per i tipi che concedono Cibo (vedi FoodGrantingTypes), 0 per
+    ///    tutti gli altri. HpRestore e MoneteGained restano sempre 0 qui: Trap/Fountain/
+    ///    Key/MoneyBag/Enemy calcolano i propri effetti direttamente da DifficultyLevel a
+    ///    runtime in HexGridController, non da questi campi. Nessun catalogo da
+    ///    interrogare, nessuna specie da scegliere a caso: la relazione TileType-
+    ///    comportamento e' 1:1 stabile (vedi HexTileConfig.Reveal), quindi non serve piu'
+    ///    risolvere nulla durante la generazione.
     /// 8. Rivelazione iniziale (Start ed End già Scoperte)
     /// 9. Vincolo adiacenza Strada: ogni tile Strada deve confinare con almeno un'altra
     ///    Strada (mai isolata), e puo' confinarne due o piu' ma MAI su due lati
-    ///    consecutivi dell'esagono (produrrebbe un tratto largo 2 celle). Applicato in modo
-    ///    costruttivo durante la crescita — vedi WouldViolateConsecutiveSides, controllato
-    ///    in GrowBranch (ogni tessera, incluse le origini dei rami) e in
-    ///    PatchResidualGaps (rammendo) — non come scarto post-hoc su una griglia gia'
-    ///    generata. Fork a 3 vie restano sempre validi per costruzione geometrica; fork a
-    ///    5 vie non possono mai esserlo (5 vicini su 6 lati garantiscono coppie
-    ///    consecutive) e degradano organicamente invece di creare un incrocio vietato.
-    ///    CollectClusterBorders semina anche i vicini di Start (oltre a quelli degli
-    ///    EventCluster) per ridurre il rischio di una Start isolata.
+    ///    consecutivi dell'esagono (produrrebbe un tratto largo 2 celle). Il vincolo "MAI
+    ///    due lati consecutivi" e' applicato in modo costruttivo durante la crescita —
+    ///    vedi WouldViolateConsecutiveSides, controllato in GrowBranch (ogni tessera,
+    ///    incluse le origini dei rami) e in PatchResidualGaps (rammendo) — non come scarto
+    ///    post-hoc su una griglia gia' generata. Fork a 3 vie restano sempre validi per
+    ///    costruzione geometrica; fork a 5 vie non possono mai esserlo (5 vicini su 6 lati
+    ///    garantiscono coppie consecutive) e degradano organicamente invece di creare un
+    ///    incrocio vietato. Il vincolo "almeno 1 vicino Strada" e' garantito per
+    ///    costruzione durante la crescita (ogni tessera nasce adiacente alla precedente)
+    ///    ma va verificato esplicitamente in PatchResidualGaps: una tessera di rammendo si
+    ///    aggancia a un PathCluster tramite un vicino con proprietario noto (tileOwner),
+    ///    che pero' potrebbe essere una tessera dello stesso cluster gia' demotata a Stop
+    ///    (da stopOverride o da un patch precedente) — senza un controllo esplicito
+    ///    (RoadNeighborDirections) diventerebbe Strada isolata pur avendo un "proprietario"
+    ///    valido. CollectClusterBorders semina anche i vicini di Start (oltre a quelli
+    ///    degli EventCluster) per ridurre il rischio di una Start isolata.
     ///    ValidateRoadAdjacencyRule fa da rete di sicurezza a fine Generate: solo log,
     ///    nessuna mutazione.
     /// 10. Vincolo numero minimo di PathCluster (MinPathClusters = 3): a differenza di
@@ -81,19 +92,39 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     ///     Debug.LogError. Il chiamante (HexGridController.BuildGrid) e' responsabile di
     ///     NON avviare il livello quando Success e' false — Generate stessa non puo'
     ///     "fermare" nulla, produce solo il segnale.
-    /// 11. MinBranchLength vale sul risultato finale, non solo sulla crescita grezza: un
-    ///     ramo puo' nascere >= MinBranchLength ma perdere tile per stopOverride (punto 3,
-    ///     separazione da un cluster diverso) — se dopo la demozione le Strade rimaste
-    ///     scendono sotto MinBranchLength, l'intero ramo viene scartato SENZA commit
-    ///     (GeneratePathClusterMesh, _rejectedByPostSeparationTooShort), invece di
-    ///     sopravvivere come frammento isolato da 1-2 tile. Le tile restano libere per un
-    ///     altro origine o per il rammendo. Non tocca PatchResidualGaps: le sue patch
-    ///     estendono un cluster GIA' validato al punto 11, non crescono un ramo nuovo con un
-    ///     proprio requisito di lunghezza minima.
+    /// 11. MinBranchLength vale sul risultato finale, non solo sulla crescita grezza, e per
+    ///     FRAMMENTO CONNESSO, non sul totale grezzo del cluster: un cluster puo' nascere
+    ///     con abbastanza tile ma perderne alcune per stopOverride (punto 3, separazione da
+    ///     un cluster diverso) — e stopOverride puo' colpire una tessera IN MEZZO a una
+    ///     catena o in un nodo di fork, non solo alle estremita', spezzando il cluster in
+    ///     piu' isole disconnesse la cui SOMMA supera MinBranchLength pur essendo,
+    ///     singolarmente, troppo corte. GeneratePathClusterMesh decompone quindi le tessere
+    ///     sopravvissute in componenti connesse: le componenti sotto soglia vengono
+    ///     aggiunte a stopOverride (demotate a Stop, _rejectedComponentsTooShort), e solo
+    ///     se NESSUNA componente raggiunge MinBranchLength l'intero cluster viene scartato
+    ///     SENZA commit (_rejectedByPostSeparationTooShort). Le tile di un cluster scartato
+    ///     restano libere per un altro origine o per il rammendo. Non tocca
+    ///     PatchResidualGaps: le sue patch estendono un cluster GIA' validato al punto 11,
+    ///     non crescono un ramo nuovo con un proprio requisito di lunghezza minima — devono
+    ///     pero' rispettare "almeno 1 vicino Strada" (punto 9, _patchDemotedNoRoadNeighbor).
+    /// 12. Seme Road per cluster: ogni EventCluster generato procedurale ha esattamente una
+    ///     posizione del ring forzata a Road (vedi TryBuildProceduralCluster), da cui la
+    ///     mesh PathCluster deve nascere una strada vera con le stesse identiche regole di
+    ///     qualunque altro PathCluster (budget, MinBranchLength, vincolo lati non
+    ///     consecutivi — nessuna eccezione o scorciatoia). "Deve nascere" e' un tentativo
+    ///     con PRIORITA' assoluta, non una garanzia matematica: CollectClusterBorders
+    ///     elabora i vicini dei semi Road PRIMA di ogni altro bordo (propria coda
+    ///     mescolata, concatenata davanti al resto), ma la crescita puo' comunque fallire
+    ///     per motivi geometrici (seme incastrato contro il bordo griglia o un altro
+    ///     cluster) — stesso degrado silenzioso del resto del generatore, la tile Road
+    ///     resta comunque parte del suo EventCluster anche se nessun PathCluster nasce da
+    ///     li'. La generazione dei cluster (punto 2) e' sempre completa PRIMA che la mesh
+    ///     PathCluster (punto 3) inizi: i semi Road sono raccolti durante PlaceEventClusters
+    ///     e passati a GeneratePathClusterMesh solo alla fine di quella fase, mai durante.
     /// </summary>
-    public sealed class AestheticClusterMapGenerator : IMapGenerator
+    public sealed class MapClusterGenerator : IMapGenerator
     {
-        /// <summary>DifficultyLevel della tile End/obiettivo. Coincide col DifficultyLevel di PlaceholderBossElementConfig (6) — se in futuro esistono piu' "boss" a livelli diversi, questo andra' reso configurabile invece che hardcoded.</summary>
+        /// <summary>DifficultyLevel della tile End/obiettivo (placeholder "boss finale", 6) — se in futuro esistono piu' "boss" a livelli diversi, questo andra' reso configurabile invece che hardcoded.</summary>
         private const int ObjectiveDifficultyLevel = 6;
 
         /// <summary>
@@ -111,15 +142,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private readonly StradaNetworkSettings _strada;
         private readonly EventClusterPlacementSettings _eventClusters;
         private readonly LevelConfig _levelConfig;
-        private readonly ElementCatalog _elementCatalog;
 
         // Manifest consumabili della run corrente, costruiti in Generate() e pescati da
         // TryDrawEntry. Campi di istanza invece di parametri passati a catena attraverso
         // mezza dozzina di metodi privati: sicuro perche' il generatore e' istanziato una
         // volta per singola chiamata a Generate (vedi MapGenerationService), mai riusato
         // ne' chiamato in parallelo su piu' thread.
-        private List<LevelTileEntry> _eventSingleManifest;
-        private List<LevelTileEntry> _stopSingleManifest;
+        private List<SingleTile> _singleManifest;
+        private List<StopTyle> _stopManifest;
 
         /// <summary>
         /// Combinazioni (Type, DifficultyLevel) del centro gia' usate come cluster in
@@ -161,25 +191,49 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private int _patchDemotedByOtherCluster;
 
         /// <summary>
-        /// Rami scartati DOPO la crescita perche' la separazione da un cluster diverso
-        /// (stopOverride, vedi GeneratePathClusterMesh) ha demotato a Stop abbastanza tile
-        /// da far scendere le Strade effettive rimaste sotto MinBranchLength — il minimo
-        /// vale sul risultato finale, non solo sulla crescita grezza, altrimenti un ramo
-        /// nato da 3+ tile poteva sopravvivere come frammento da 1-2 Strade isolate.
-        /// Distinto da _rejectedByShortBranch, che conta i rami mai
-        /// arrivati a MinBranchLength durante la crescita stessa — qui invece il ramo ERA
-        /// abbastanza lungo, e' la separazione a rovinarlo dopo.
+        /// Cluster scartati INTERAMENTE dopo la crescita perche', anche decomponendo le
+        /// tessere sopravvissute alla separazione (stopOverride, vedi
+        /// GeneratePathClusterMesh) in frammenti connessi, NESSUN frammento raggiunge
+        /// MinBranchLength — il cluster non produce nessun percorso valido. Distinto da
+        /// _rejectedByShortBranch, che conta i rami mai arrivati a MinBranchLength durante
+        /// la crescita stessa — qui invece il cluster ERA abbastanza lungo, e' la
+        /// separazione a rovinarlo dopo. Distinto da _rejectedComponentsTooShort, che
+        /// conta i singoli frammenti troppo corti scartati DENTRO un cluster che nel
+        /// complesso viene comunque committato (perche' ha almeno un altro frammento
+        /// valido).
         /// </summary>
         private int _rejectedByPostSeparationTooShort;
 
-        public AestheticClusterMapGenerator(
+        /// <summary>
+        /// Frammenti connessi troppo corti (&lt; MinBranchLength) demotati a Stop dentro un
+        /// PathCluster che nel complesso viene comunque committato — vedi
+        /// GeneratePathClusterMesh. La separazione da un cluster diverso (stopOverride)
+        /// puo' colpire una tessera IN MEZZO a una catena, non solo alle estremita':
+        /// contare solo il totale di tessere sopravvissute (come prima) non basta, perche'
+        /// due o piu' frammenti disconnessi possono sommare abbastanza tessere da superare
+        /// MinBranchLength pur essendo, singolarmente, isole da 1-2 Strade isolate — la
+        /// stessa situazione che _rejectedByPostSeparationTooShort previene a livello di
+        /// cluster intero, qui applicata a livello di singolo frammento.
+        /// </summary>
+        private int _rejectedComponentsTooShort;
+
+        /// <summary>
+        /// Tessere di rammendo (PatchResidualGaps) che avrebbero esteso un PathCluster
+        /// esistente ma il vicino usato per l'aggancio (extendOwner) non era esso stesso
+        /// Strada — era una tessera dello stesso cluster gia' demotata a Stop (da
+        /// stopOverride o da un patch precedente). Demotate a Stop anche loro invece di
+        /// diventare Strada isolata (zero vicini Strada reali) — vedi la regola
+        /// "ogni Strada confina con almeno un'altra Strada" (punto 9 della doc di classe).
+        /// </summary>
+        private int _patchDemotedNoRoadNeighbor;
+
+        public MapClusterGenerator(
             DistanceWeight[] endDistanceWeights,
             int startMinBorderDistance,
             int clusterMinDistanceFromStartEnd,
             StradaNetworkSettings strada,
             EventClusterPlacementSettings eventClusters,
-            LevelConfig levelConfig,
-            ElementCatalog elementCatalog)
+            LevelConfig levelConfig)
         {
             _endDistanceWeights = endDistanceWeights;
             _startMinBorderDistance = startMinBorderDistance;
@@ -187,7 +241,6 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _strada = strada;
             _eventClusters = eventClusters;
             _levelConfig = levelConfig;
-            _elementCatalog = elementCatalog;
         }
 
         public MapGenerationResult Generate(int width, int height, int seed)
@@ -198,8 +251,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _rejectedByBudget = 0;
             _patchDemotedByOtherCluster = 0;
             _rejectedByPostSeparationTooShort = 0;
+            _rejectedComponentsTooShort = 0;
+            _patchDemotedNoRoadNeighbor = 0;
             _usedClusterCenterTypes = new HashSet<(TileType, int)>();
             _warnedInsufficientClusterComposition = new HashSet<(TileType, int)>();
+
+            UnityEngine.Debug.Log($"[MapCluster] Generate avviata: seed={seed} griglia={width}x{height}");
 
             var rng = new Random(seed);
             var tiles = new Dictionary<HexCoord, HexTileData>(width * height);
@@ -211,14 +268,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 tiles[coord] = new HexTileData(coord);
             }
 
-            // Manifest per-run: filtrati per ListType da LevelConfig.Entries e mescolati
-            // una volta sola qui, poi consumati (mai reinseriti) da AssignSingleTile/
-            // AssignStopTile per tutta la Generate. expandByAmount=true SOLO per
-            // TileListType.EventSingle (vedi
-            // LevelTileEntry.Amount): StopSingle resta un'entry = un'istanza, come prima
-            // dell'introduzione del campo.
-            _eventSingleManifest = BuildManifest(_levelConfig?.Entries, TileListType.EventSingle, rng, expandByAmount: true);
-            _stopSingleManifest  = BuildManifest(_levelConfig?.Entries, TileListType.StopSingle, rng, expandByAmount: false);
+            // Manifest per-run: uno per LevelConfig.SingleTileEntries e uno per
+            // StopTileEntries, mescolati una volta sola qui, poi consumati (mai reinseriti)
+            // da AssignSingleTile/AssignStopTile per tutta la Generate. expandByAmount=true
+            // SOLO per SingleTileEntries (vedi LevelTile.Amount su SingleTile): StopTyle
+            // forza Amount a 1 nel costruttore e resta comunque un'entry = un'istanza.
+            _singleManifest = BuildManifest(_levelConfig?.SingleTileEntries, rng, expandByAmount: true);
+            _stopManifest   = BuildManifest(_levelConfig?.StopTileEntries, rng, expandByAmount: false);
+
+            UnityEngine.Debug.Log($"[MapCluster] Manifest costruiti: SingleTileEntries={_singleManifest.Count} tessere (da {_levelConfig?.SingleTileEntries?.Count ?? 0} entry autorate), StopTileEntries={_stopManifest.Count} tessere");
 
             var startCoord = PlaceStart(tiles, width, height, rng);
             var endCoord = PlaceEnd(tiles, startCoord, rng);
@@ -226,18 +284,26 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             ResetTile(tiles[startCoord], TileType.Road, hpRestore: 0, moneteGained: 0);
             tiles[startCoord].IsObjective = false;
 
+            UnityEngine.Debug.Log($"[MapCluster] Start piazzato a {startCoord}, End piazzato a {endCoord} (distanza={startCoord.DistanceTo(endCoord)})");
+
             // Obiettivo: sempre Enemy con IsObjective = true (Boss/Miniboss non sono
-            // TileType a se', la distinzione e' via ElementConfig). DifficultyLevel 6 come
-            // da placeholder "Dragon" — passa comunque da
-            // ResolveDifficulty per coerenza con tutte le altre tessere content, nel caso
-            // la posizione End non abbia 6 vicini validi in griglia.
+            // TileType a se', sono Enemy con DifficultyLevel piu' alto). DifficultyLevel 6
+            // come da placeholder "Dragon" — passa comunque da ResolveDifficulty per
+            // coerenza con tutte le altre tessere content, nel caso la posizione End non
+            // abbia 6 vicini validi in griglia.
             int objectiveLevel = ResolveDifficulty(ObjectiveDifficultyLevel, endCoord, tiles);
-            ApplyElementStats(tiles[endCoord], TileType.Enemy, objectiveLevel, rng);
+            ApplyElementStats(tiles[endCoord], TileType.Enemy, objectiveLevel);
             tiles[endCoord].DifficultyLevel = objectiveLevel;
             tiles[endCoord].IsObjective = true;
 
-            var eventOccupied = PlaceEventClusters(tiles, width, height, startCoord, endCoord, rng, out int nextEventId);
-            GeneratePathClusterMesh(tiles, startCoord, endCoord, eventOccupied, rng, out var globalClaimed, out var tileOwner, out int originsCount, out int attemptedClusters);
+            UnityEngine.Debug.Log($"[MapCluster] End risolto come Enemy obiettivo DL={objectiveLevel} (richiesto {ObjectiveDifficultyLevel})");
+
+            var eventOccupied = PlaceEventClusters(tiles, width, height, startCoord, endCoord, rng, out int nextEventId, out var clusterRoadSeeds);
+
+            UnityEngine.Debug.Log($"[MapCluster] Fase EventCluster/EventSingle completata: {_usedClusterCenterTypes.Count} cluster piazzati ({clusterRoadSeeds.Count} semi Road), {eventOccupied.Count} tessere totali occupate");
+
+            GeneratePathClusterMesh(tiles, startCoord, endCoord, eventOccupied, clusterRoadSeeds, rng, out var globalClaimed, out var tileOwner, out int originsCount, out int attemptedClusters);
+
             PatchResidualGaps(tiles, startCoord, endCoord, eventOccupied, globalClaimed, tileOwner, rng, nextEventId);
 
             RevealInitialTiles(tiles[startCoord], tiles[endCoord]);
@@ -258,7 +324,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 result.Success = false;
                 result.FailureReason = BuildInsufficientPathClustersReport(
                     pathClusterCount, originsCount, attemptedClusters, eventOccupied.Count, width, height, seed);
-                UnityEngine.Debug.LogError($"[AestheticClusterMapGenerator] {result.FailureReason}");
+                UnityEngine.Debug.LogError($"[MapCluster] {result.FailureReason}");
+            }
+            else
+            {
+                UnityEngine.Debug.Log($"[MapCluster] Generate completata con successo: {pathClusterCount} PathCluster reali (minimo richiesto {MinPathClusters})");
             }
 
             return result;
@@ -280,11 +350,19 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         ///   MaxTotalTiles/MaxBranches troppo stretti per la griglia.
         /// - _patchDemotedByOtherCluster alto → troppa densita' di PathCluster ravvicinati
         ///   (rammendo che continua a scontrarsi con cluster vicini invece di estendere).
-        /// - _rejectedByPostSeparationTooShort alto → i rami nascono abbastanza
+        /// - _rejectedByPostSeparationTooShort alto → i cluster nascono abbastanza
         ///   lunghi ma la separazione da cluster vicini (stopOverride) li erode sotto
         ///   MinBranchLength cosi' spesso da scartarli per intero — stessa causa di
         ///   _patchDemotedByOtherCluster ma sui rami appena cresciuti invece che sul
         ///   rammendo: troppa densita' di PathCluster ravvicinati.
+        /// - _rejectedComponentsTooShort alto → la separazione spezza spesso un cluster in
+        ///   piu' frammenti disconnessi invece di erodere l'intero cluster: il cluster nel
+        ///   complesso sopravvive (ha almeno un frammento valido) ma parte delle sue tile
+        ///   viene comunque persa a Stop — stessa densita' eccessiva di _patchDemotedByOtherCluster/
+        ///   _rejectedByPostSeparationTooShort, misurata a grana piu' fine.
+        /// - _patchDemotedNoRoadNeighbor alto → il rammendo agganciava spesso tessere il cui
+        ///   unico vicino con proprietario era gia' uno Stop dello stesso cluster (non una
+        ///   Strada vera): sintomo della stessa densita' eccessiva di PathCluster vicini.
         /// </summary>
         private string BuildInsufficientPathClustersReport(
             int pathClusterCount, int originsCount, int attemptedClusters, int eventOccupiedCount,
@@ -303,17 +381,19 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 $"    Vincolo lati non consecutivi (WouldViolateConsecutiveSides): {_rejectedByConsecutiveSides}\n" +
                 $"    Budget esaurito prima di poter crescere (MinBranchLength non raggiungibile): {_rejectedByBudget}\n" +
                 $"    Ramo cresciuto ma scartato perche' troppo corto (< MinBranchLength): {_rejectedByShortBranch}\n" +
-                $"    Ramo cresciuto abbastanza lungo ma scartato dopo la separazione (Strade rimaste < MinBranchLength): {_rejectedByPostSeparationTooShort}\n" +
+                $"    Cluster cresciuto abbastanza lungo ma scartato per intero dopo la separazione (nessun frammento >= MinBranchLength): {_rejectedByPostSeparationTooShort}\n" +
+                $"    Frammenti disconnessi troppo corti demotati a Stop dentro un cluster comunque committato: {_rejectedComponentsTooShort}\n" +
                 $"    Rammendo (PatchResidualGaps) demotato a Stop per confinare con un PathCluster diverso: {_patchDemotedByOtherCluster}\n" +
+                $"    Rammendo (PatchResidualGaps) demotato a Stop perche' il vicino agganciato non era Strada vera: {_patchDemotedNoRoadNeighbor}\n" +
                 $"  StradaNetwork: MinBranchLength={_strada.MinBranchLength} MaxBranchLength={_strada.MaxBranchLength} MaxBranches={_strada.MaxBranches} MaxTotalTiles={_strada.MaxTotalTiles}  Pesi Stop/Fork3/Fork5={_strada.StopWeight}/{_strada.Fork3Weight}/{_strada.Fork5Weight}\n" +
-                $"  EventClusters: MaxConsecutiveFailures={_eventClusters.MaxConsecutiveFailures} ClusterToSingleRatio={_eventClusters.ClusterToSingleRatioMin}-{_eventClusters.ClusterToSingleRatioMax}";
+                $"  EventClusters: MaxConsecutiveFailures={_eventClusters.MaxConsecutiveFailures}";
         }
 
         /// <summary>
         /// Numero di PathCluster distinti che hanno prodotto almeno una tessera Strada nel
         /// risultato finale. Un PathCluster puo' crescere (GrowOnePathCluster ritorna
         /// tessere) e finire comunque con zero Strada se ogni sua tessera viene demota a
-        /// ListType.StopSingle/Void per separazione da un cluster diverso (vedi
+        /// Stop/Void per separazione da un cluster diverso (vedi
         /// stopOverride in GeneratePathClusterMesh) — quel caso non conta come "percorso"
         /// per il vincolo MinPathClusters, da qui il filtro su Type invece che su un
         /// contatore grezzo di cluster avviati. Start (sempre Strada, PathClusterId = -1
@@ -332,34 +412,31 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Filtra source per listType (LevelConfig.Entries e' un'unica List — vedi
-        /// TileListType) in una List mescolata con Fisher-Yates usando lo stesso rng della
-        /// run (mai un rng separato: il seed resta
-        /// l'unica fonte di casualita', e la stessa sequenza di draw deve ripetersi
-        /// identica a parita' di seed). Lista vuota (mai null) se source e' null/vuoto o
-        /// non contiene entry di quel listType — TryDrawEntry gestisce il caso senza
-        /// bisogno di controlli aggiuntivi nei chiamanti.
+        /// Copia source (gia' la lista giusta — SingleTileEntries o StopTileEntries, nessun
+        /// filtro da applicare) in una List mescolata con Fisher-Yates usando lo stesso rng
+        /// della run (mai un rng separato: il seed resta l'unica fonte di casualita', e la
+        /// stessa sequenza di draw deve ripetersi identica a parita' di seed). Lista vuota
+        /// (mai null) se source e' null/vuoto — TryDrawEntry gestisce il caso senza bisogno
+        /// di controlli aggiuntivi nei chiamanti.
         ///
-        /// expandByAmount (vedi LevelTileEntry.Amount): se true, ogni entry (gia' filtrata
-        /// per listType) viene ripetuta Amount volte PRIMA dello shuffle — un'entry con
-        /// Amount=3 diventa 3 copie indipendenti nel manifest, ciascuna poi piazzata al
-        /// massimo una volta come le altre (TryDrawEntry non le distingue). L'espansione
-        /// avviene prima dello shuffle apposta: la sequenza di pesca resta comunque
-        /// interamente derivata dal seed, nessuna sorgente di casualita' aggiuntiva.
-        /// Amount <= 0 conta come 1 (mai zero copie: coerente con [Min(1)] sul campo, ma
-        /// qui per sicurezza anche se il valore serializzato fosse "sporco"). Passare
-        /// false (TileListType.StopSingle) ignora del tutto Amount, un'entry resta una
+        /// expandByAmount (vedi LevelTile.Amount): se true, ogni entry viene ripetuta
+        /// Amount volte PRIMA dello shuffle — un'entry con Amount=3 diventa 3 copie
+        /// indipendenti nel manifest, ciascuna poi piazzata al massimo una volta come le
+        /// altre (TryDrawEntry non le distingue). L'espansione avviene prima dello shuffle
+        /// apposta: la sequenza di pesca resta comunque interamente derivata dal seed,
+        /// nessuna sorgente di casualita' aggiuntiva. Amount <= 0 conta come 1 (mai zero
+        /// copie: coerente con [Min(1)] sul campo, ma qui per sicurezza anche se il valore
+        /// serializzato fosse "sporco"). Passare false (StopTileEntries, dove StopTyle forza
+        /// gia' Amount a 1 nel costruttore) ignora comunque Amount, un'entry resta una
         /// singola istanza — vedi Generate.
         /// </summary>
-        private List<LevelTileEntry> BuildManifest(List<LevelTileEntry> source, TileListType listType, Random rng, bool expandByAmount)
+        private List<T> BuildManifest<T>(List<T> source, Random rng, bool expandByAmount) where T : LevelTile
         {
-            var manifest = new List<LevelTileEntry>();
+            var manifest = new List<T>();
             if (source != null)
             {
                 foreach (var entry in source)
                 {
-                    if (entry.ListType != listType) continue;
-
                     int copies = expandByAmount ? Math.Max(1, entry.Amount) : 1;
                     for (int i = 0; i < copies; i++)
                         manifest.Add(entry);
@@ -382,7 +459,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// scelta di costo O(1); l'ordine e' gia' casuale per via dello shuffle in
         /// BuildManifest, quindi non ha alcun effetto sull'esito.
         /// </summary>
-        private bool TryDrawEntry(List<LevelTileEntry> manifest, out LevelTileEntry entry)
+        private bool TryDrawEntry<T>(List<T> manifest, out T entry) where T : LevelTile
         {
             if (manifest == null || manifest.Count == 0)
             {
@@ -397,52 +474,32 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// TileType strutturali/meccanici che non hanno mai avuto (ne' dovrebbero avere)
-        /// una specie in ElementCatalog: il loro effetto e' una formula diretta su
-        /// DifficultyLevel dentro HexGridController (Trap: HP -= DifficultyLevel via
-        /// ApplyImmediateElement; Fountain: HP al massimo, DifficultyLevel ignorato;
-        /// Key: attiva HasKeyDL4/5/6; Chest: inerte, RevealEffect Loot non costruito),
-        /// mai da FoodRestore/CoinReward di una specie. Senza questa esclusione
-        /// ApplyElementStats logga un warning per OGNI Trap/Fountain/Key/Chest piazzata,
-        /// sempre — rumore fuorviante, non un problema di configurazione da segnalare al
-        /// designer.
+        /// TileType che restituiscono Cibo al reveal. Valore fisso = DifficultyLevel (vedi
+        /// ApplyElementStats) — non piu' un numero autorato per specie, "calcoli fissi" al
+        /// posto del bilanciamento manuale.
         /// </summary>
-        private static readonly HashSet<TileType> TypesWithoutSpecies = new HashSet<TileType>
+        private static readonly HashSet<TileType> FoodGrantingTypes = new HashSet<TileType>
         {
-            TileType.Trap, TileType.Fountain, TileType.Key, TileType.Chest,
-            TileType.Void, // strutturale: nessuna specie attesa, nessun warning da loggare
+            TileType.Bush, TileType.BeeHive, TileType.TurnipSprout, TileType.Tree,
         };
 
         /// <summary>
-        /// Risolve una specie eleggibile da ElementCatalog per {type, difficultyLevel} e
-        /// ne copia FoodRestore/CoinReward sulla tile. HpRestore resta sempre 0: nessun
-        /// path del gioco applica oggi danno o cura tramite questo campo (Trap ed Enemy
-        /// agiscono direttamente su IGameContextService.Lives, non su HexTileData.HpRestore
-        /// — vedi HexGridController.ApplyImmediateElement/ApplyEnemyDamage). Se non esiste
-        /// nessuna specie eleggibile per la combinazione, la tile resta a valori neutri;
-        /// viene loggato un warning solo se il tipo e' de facto "una creatura/risorsa con
-        /// specie" (vedi TypesWithoutSpecies) — per Trap/Fountain/Key/Chest l'assenza di
-        /// specie e' normale, non un problema di autoria da segnalare. Degrado sempre
-        /// silenzioso lato gameplay, mai un crash.
+        /// Imposta Type e i valori derivati sulla tile con calcoli fissi basati su
+        /// DifficultyLevel — niente specie multiple da scegliere a runtime ne' numeri
+        /// autorati da copiare: la relazione TileType-comportamento e' 1:1 stabile (vedi
+        /// HexTileConfig.Reveal). HpRestore e MoneteGained restano sempre 0 qui: Trap/
+        /// Fountain/Key/MoneyBag/Enemy calcolano i propri effetti direttamente da
+        /// DifficultyLevel a runtime in HexGridController (ApplyImmediateElement/
+        /// ApplyEnemyDamage/ResolveEncounterFight), non da questi campi. FoodRestore e'
+        /// l'unico valore ancora calcolato qui, fisso = DifficultyLevel per i tipi che
+        /// concedono Cibo (vedi FoodGrantingTypes).
         /// </summary>
-        private void ApplyElementStats(HexTileData tile, TileType type, int difficultyLevel, Random rng)
+        private void ApplyElementStats(HexTileData tile, TileType type, int difficultyLevel)
         {
             tile.Type = type;
             tile.HpRestore = 0;
-
-            var species = _elementCatalog != null ? _elementCatalog.PickRandom(type, difficultyLevel, rng) : null;
-            if (species != null)
-            {
-                tile.FoodRestore = species.FoodRestore;
-                tile.MoneteGained = species.CoinReward;
-            }
-            else
-            {
-                tile.FoodRestore = 0;
-                tile.MoneteGained = 0;
-                if (!TypesWithoutSpecies.Contains(type))
-                    UnityEngine.Debug.LogWarning($"[AestheticClusterMapGenerator] Nessuna specie eleggibile in ElementCatalog per {type} DifficultyLevel {difficultyLevel}: tile lasciata a valori neutri (FoodRestore/CoinReward 0).");
-            }
+            tile.MoneteGained = 0;
+            tile.FoodRestore = FoodGrantingTypes.Contains(type) ? difficultyLevel : 0;
         }
 
         private void ResetTile(HexTileData tile, TileType type, int hpRestore, int moneteGained)
@@ -481,7 +538,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Assegna una tessera singola (EventCluster da 1 tessera, o rammendo senza
-        /// PathCluster adiacente) pescando dal manifest ListType.EventSingle. Se il
+        /// PathCluster adiacente) pescando dal manifest SingleTileEntries. Se il
         /// manifest e' esaurito (o il LevelConfig manca), ripiega su TileType.Void
         /// (DifficultyLevel 0) — stesso fallback di AssignStopTile, e stesso default del
         /// costruttore di HexTileData (vedi HexTileData.Type): senza questo ripiego
@@ -490,12 +547,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// silenzioso, coerente con "LevelConfig puo' restare parzialmente autorato"
         /// descritto sul LevelConfig stesso.
         /// </summary>
-        private void AssignSingleTile(HexTileData tile, HexCoord coord, Dictionary<HexCoord, HexTileData> tiles, Random rng)
+        private void AssignSingleTile(HexTileData tile, HexCoord coord, Dictionary<HexCoord, HexTileData> tiles)
         {
-            if (TryDrawEntry(_eventSingleManifest, out var entry))
+            if (TryDrawEntry(_singleManifest, out var entry))
             {
                 int level = ResolveDifficulty(entry.DifficultyLevel, coord, tiles);
-                ApplyElementStats(tile, entry.Type, level, rng);
+                ApplyElementStats(tile, entry.Type, level);
                 tile.DifficultyLevel = level;
             }
             else
@@ -507,18 +564,18 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Assegna una tessera di separazione PathCluster pescando dal manifest
-        /// ListType.StopSingle (contenuto reale riskinnato, es. separatore visivo tra due
+        /// StopTileEntries (contenuto reale riskinnato, es. separatore visivo tra due
         /// percorsi). Se il manifest e' esaurito o il LevelConfig manca, ripiega su
         /// TileType.Void (vero no-op, DifficultyLevel 0). In entrambi i casi la separazione
         /// funziona identicamente: CascadeStrada si ferma su qualunque tessera non-Road,
         /// a prescindere da cosa faccia quella tessera.
         /// </summary>
-        private void AssignStopTile(HexTileData tile, HexCoord coord, Dictionary<HexCoord, HexTileData> tiles, Random rng)
+        private void AssignStopTile(HexTileData tile, HexCoord coord, Dictionary<HexCoord, HexTileData> tiles)
         {
-            if (TryDrawEntry(_stopSingleManifest, out var entry))
+            if (TryDrawEntry(_stopManifest, out var entry))
             {
                 int level = ResolveDifficulty(entry.DifficultyLevel, coord, tiles);
-                ApplyElementStats(tile, entry.Type, level, rng);
+                ApplyElementStats(tile, entry.Type, level);
                 tile.DifficultyLevel = level;
             }
             else
@@ -576,37 +633,50 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         }
 
         /// <summary>
-        /// Piazza EventCluster e tessere singole via rejection sampling. Per ogni slot
-        /// cluster tenta la generazione procedurale (TryBuildProceduralCluster, unica
-        /// fonte di forme: i cluster sono generati interamente a runtime); se fallisce
-        /// (LevelConfig senza entry sufficienti) degrada a tessera singola. Ritorna
-        /// l'insieme di tutte le tessere occupate;
-        /// nextEventId è l'indice progressivo per i piazzamenti successivi (es.
-        /// PatchResidualGaps) per garantire ID unici.
+        /// Piazza EventCluster e tessere singole via rejection sampling, in due fasi
+        /// separate — non piu' un rapporto casuale che alterna l'uno e l'altro: ogni tipo
+        /// di cluster (coppia Type+DifficultyLevel del centro) compare al massimo una
+        /// volta per mappa (vedi _usedClusterCenterTypes), e ogni entry EventSingle ha gia'
+        /// il proprio Amount esplicito (espanso in copie da BuildManifest) — un rapporto
+        /// cluster:singola non ha piu' senso quando entrambi i lati sono gia' quantita'
+        /// fisse note in anticipo, non pool da bilanciare a runtime.
+        ///
+        /// Fase 1: un tentativo di piazzamento per ogni tipo di centro ancora disponibile
+        /// (TryBuildProceduralCluster ritorna null quando i tipi sono esauriti o non
+        /// costruibili, fermando la fase). Fase 2: un tentativo di piazzamento per ogni
+        /// entry rimasta nel manifest SingleTileEntries (si ferma da sola quando il
+        /// manifest si esaurisce). Entrambe le fasi condividono lo stesso rejection sampling
+        /// (IsValidEventClusterPlacement, MaxConsecutiveFailures) e lo stesso spazio
+        /// occupato, cosi' i cluster restano sempre "primi" nell'ordine di piazzamento
+        /// (nessun cambiamento di comportamento su quello) ma senza piu' l'alternanza
+        /// artificiale imposta dal rapporto. Ritorna l'insieme di tutte le tessere
+        /// occupate; nextEventId è l'indice progressivo per i piazzamenti successivi (es.
+        /// PatchResidualGaps) per garantire ID unici. clusterRoadSeeds raccoglie la
+        /// coordinata della spec Road di ogni cluster piazzato con successo (sempre
+        /// esattamente una, vedi TryBuildProceduralCluster) — GeneratePathClusterMesh la
+        /// usa per far nascere la mesh PathCluster con priorita' da li'.
         /// </summary>
         private HashSet<HexCoord> PlaceEventClusters(
             Dictionary<HexCoord, HexTileData> tiles, int width, int height,
-            HexCoord start, HexCoord end, Random rng, out int nextEventId)
+            HexCoord start, HexCoord end, Random rng, out int nextEventId, out HashSet<HexCoord> clusterRoadSeeds)
         {
             var occupied = new HashSet<HexCoord>();
-
-            int clustersUntilNextSingle = rng.Next(_eventClusters.ClusterToSingleRatioMin, _eventClusters.ClusterToSingleRatioMax + 1);
-            int consecutiveFailures = 0;
+            clusterRoadSeeds = new HashSet<HexCoord>();
             int eventPlacementIndex = 0;
 
+            // Fase 1: un piazzamento per ogni tipo di centro disponibile.
+            int consecutiveFailures = 0;
             while (consecutiveFailures < _eventClusters.MaxConsecutiveFailures)
             {
+                var clusterSpecs = TryBuildProceduralCluster(rng);
+                if (clusterSpecs == null)
+                {
+                    UnityEngine.Debug.Log($"[MapCluster] Fase 1 EventCluster conclusa: nessun tipo di centro ancora disponibile/costruibile ({_usedClusterCenterTypes.Count} cluster piazzati finora)");
+                    break; // nessun tipo di centro ancora disponibile/costruibile
+                }
+
                 var origin = HexCoord.FromOffsetOddQ(rng.Next(width), rng.Next(height));
-
-                // Tenta un cluster procedurale; se la generazione fallisce (entry
-                // insufficienti) resta null e piu' sotto degrada a tessera singola.
-                EventClusterTileSpec[] clusterSpecs = clustersUntilNextSingle > 0
-                    ? TryBuildProceduralCluster(rng)
-                    : null;
-
-                var footprint = clusterSpecs != null
-                    ? ComputeFootprint(origin, clusterSpecs)
-                    : new List<HexCoord> { origin };
+                var footprint = ComputeFootprint(origin, clusterSpecs);
 
                 if (!IsValidEventClusterPlacement(footprint, tiles, start, end, occupied))
                 {
@@ -614,22 +684,25 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     continue;
                 }
 
-                if (clusterSpecs != null)
-                {
-                    ApplyEventClusterShape(tiles, origin, clusterSpecs, rng);
-                    clustersUntilNextSingle--;
+                ApplyEventClusterShape(tiles, origin, clusterSpecs);
 
-                    // Marca il tipo di centro come usato SOLO ora che il piazzamento e'
-                    // confermato valido (vedi doc su _usedClusterCenterTypes):
-                    // clusterSpecs[0] e' sempre il centro (RelativeQ=0, RelativeR=0, vedi
-                    // TryBuildProceduralCluster).
-                    _usedClusterCenterTypes.Add((clusterSpecs[0].Type, clusterSpecs[0].DifficultyLevel));
-                }
-                else
+                // Marca il tipo di centro come usato SOLO ora che il piazzamento e'
+                // confermato valido (vedi doc su _usedClusterCenterTypes): clusterSpecs[0]
+                // e' sempre il centro (RelativeQ=0, RelativeR=0, vedi TryBuildProceduralCluster).
+                _usedClusterCenterTypes.Add((clusterSpecs[0].Type, clusterSpecs[0].DifficultyLevel));
+
+                // Seme Road del cluster (vedi TryBuildProceduralCluster): esattamente una
+                // spec del ring ha Type=Road, la sua coordinata assoluta diventa un'origine
+                // prioritaria per la mesh PathCluster (vedi GeneratePathClusterMesh/
+                // CollectClusterBorders).
+                for (int i = 1; i < clusterSpecs.Length; i++)
                 {
-                    AssignSingleTile(tiles[origin], origin, tiles, rng);
-                    clustersUntilNextSingle = rng.Next(_eventClusters.ClusterToSingleRatioMin, _eventClusters.ClusterToSingleRatioMax + 1);
+                    if (clusterSpecs[i].Type != TileType.Road) continue;
+                    clusterRoadSeeds.Add(origin + new HexCoord(clusterSpecs[i].RelativeQ, clusterSpecs[i].RelativeR));
+                    break;
                 }
+
+                UnityEngine.Debug.Log($"[MapCluster] EventCluster piazzato: centro={clusterSpecs[0].Type} DL={clusterSpecs[0].DifficultyLevel} origine={origin} (7 tessere, id={eventPlacementIndex})");
 
                 foreach (var coord in footprint)
                 {
@@ -639,6 +712,34 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 eventPlacementIndex++;
                 consecutiveFailures = 0;
             }
+
+            if (consecutiveFailures >= _eventClusters.MaxConsecutiveFailures)
+                UnityEngine.Debug.Log($"[MapCluster] Fase 1 EventCluster interrotta: MaxConsecutiveFailures ({_eventClusters.MaxConsecutiveFailures}) raggiunto con ancora tipi di centro disponibili — griglia troppo occupata per piazzarli");
+
+            // Fase 2: un piazzamento per ogni entry rimasta nel manifest SingleTileEntries.
+            int singlesPlaced = 0;
+            consecutiveFailures = 0;
+            while (consecutiveFailures < _eventClusters.MaxConsecutiveFailures && _singleManifest.Count > 0)
+            {
+                var origin = HexCoord.FromOffsetOddQ(rng.Next(width), rng.Next(height));
+                var footprint = new List<HexCoord> { origin };
+
+                if (!IsValidEventClusterPlacement(footprint, tiles, start, end, occupied))
+                {
+                    consecutiveFailures++;
+                    continue;
+                }
+
+                AssignSingleTile(tiles[origin], origin, tiles);
+                singlesPlaced++;
+
+                occupied.Add(origin);
+                tiles[origin].EventPlacementId = eventPlacementIndex;
+                eventPlacementIndex++;
+                consecutiveFailures = 0;
+            }
+
+            UnityEngine.Debug.Log($"[MapCluster] Fase 2 EventSingle conclusa: {singlesPlaced} tessere singole piazzate, {_singleManifest.Count} rimaste nel manifest (griglia piena o manifest esaurito)");
 
             nextEventId = eventPlacementIndex;
             return occupied;
@@ -679,87 +780,130 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// ogni spec porta Type e DifficultyLevel autorato/generato. Il DifficultyLevel
         /// passa per ResolveDifficulty perche' la posizione finale e' scelta a runtime
         /// (rejection sampling) e potrebbe non avere abbastanza vicini per il livello
-        /// richiesto. La specie viene risolta via ElementCatalog come per ogni altra tessera.
+        /// richiesto — TRANNE per la spec Road (sempre esattamente una, vedi
+        /// TryBuildProceduralCluster): ResolveDifficulty clampa un minimo di 1 per
+        /// qualunque content reale, sbagliato per una tile strutturale che non ne ha
+        /// bisogno (vedi HexTileData.DifficultyLevel — Road resta sempre 0).
         /// </summary>
-        private void ApplyEventClusterShape(Dictionary<HexCoord, HexTileData> tiles, HexCoord origin, EventClusterTileSpec[] specs, Random rng)
+        private void ApplyEventClusterShape(Dictionary<HexCoord, HexTileData> tiles, HexCoord origin, EventClusterTileSpec[] specs)
         {
             foreach (var tileSpec in specs)
             {
                 var coord = origin + new HexCoord(tileSpec.RelativeQ, tileSpec.RelativeR);
+
+                if (tileSpec.Type == TileType.Road)
+                {
+                    ApplyElementStats(tiles[coord], TileType.Road, 0);
+                    tiles[coord].DifficultyLevel = 0;
+                    continue;
+                }
+
                 int level = ResolveDifficulty(tileSpec.DifficultyLevel, coord, tiles);
-                ApplyElementStats(tiles[coord], tileSpec.Type, level, rng);
+                ApplyElementStats(tiles[coord], tileSpec.Type, level);
                 tiles[coord].DifficultyLevel = level;
             }
         }
 
         /// <summary>
         /// Genera proceduralmente le spec di un EventCluster da 7 tessere (centro + 6
-        /// adiacenti) usando le entry ListType.EventCluster di LevelConfig come palette.
+        /// adiacenti) usando LevelConfig.ClusterMainTileEntries come palette del centro e
+        /// LevelConfig.ClusterFillerTileEntries come palette del ring.
         ///
         /// Regole di composizione:
-        /// - Centro: entry EventCluster con DifficultyLevel 4/5/6, scelta casualmente TRA
-        ///   quelle il cui (Type, DifficultyLevel) non e' ancora in _usedClusterCenterTypes
-        ///   (un solo cluster per tipo di centro sull'intera mappa — Enemy DL4 ed Enemy DL5
-        ///   sono due tipi distinti). La combinazione scelta
-        ///   qui NON viene marcata come usata subito: lo fa PlaceEventClusters, e solo dopo
-        ///   che il piazzamento e' stato validato — vedi doc su _usedClusterCenterTypes sul
-        ///   perche' non si fa qui.
-        /// - Se il centro è Enemy: 2 Trap nel ring + 4 posizioni con tipi unici non-Trap.
-        /// - Altrimenti: 3 Trap nel ring + 3 posizioni con tipi unici non-Trap.
-        /// - Le Trap sono scelte casualmente tra le entry Trap DL 1/2.
-        /// - Le posizioni non-Trap hanno ognuna un tipo diverso; per ogni tipo viene scelta
-        ///   casualmente una entry tra quelle DL 1/2 disponibili.
+        /// - Centro: entry da ClusterMainTileEntries, scelta casualmente TRA quelle il cui
+        ///   (Type, DifficultyLevel) non e' ancora in _usedClusterCenterTypes (un solo
+        ///   cluster per tipo di centro sull'intera mappa — Enemy DL4 ed Enemy DL5 sono due
+        ///   tipi distinti). La combinazione scelta qui NON viene marcata come usata subito:
+        ///   lo fa PlaceEventClusters, e solo dopo che il piazzamento e' stato validato —
+        ///   vedi doc su _usedClusterCenterTypes sul perche' non si fa qui.
+        /// - Esattamente 1 posizione del ring e' sempre Road: seme obbligatorio da cui la
+        ///   mesh PathCluster fa nascere una strada vera, con priorita' su ogni altro
+        ///   bordo (vedi PlaceEventClusters/CollectClusterBorders/GeneratePathClusterMesh).
+        ///   DifficultyLevel forzato a 0 (Road e' strutturale, vedi ApplyEventClusterShape),
+        ///   l'entry autorata conta solo per la scelta del Type.
+        /// - Se il centro è Enemy: 2 Trap nel ring + 3 posizioni con tipi unici non-Trap/non-Road.
+        /// - Altrimenti: 3 Trap nel ring + 2 posizioni con tipi unici non-Trap/non-Road.
+        /// - Le Trap sono scelte casualmente tra le entry Trap DL 1/2 di ClusterFillerTileEntries.
+        /// - Le posizioni non-Trap/non-Road hanno ognuna un tipo diverso; per ogni tipo
+        ///   viene scelta casualmente una entry tra quelle DL 1/2 disponibili.
         /// - Le posizioni nel ring vengono mescolate (Fisher-Yates).
         ///
-        /// Ritorna null se LevelConfig manca, non ha entry sufficienti, o tutti i tipi di
-        /// centro disponibili sono gia' stati usati — il chiamante (PlaceEventClusters)
-        /// degrada a tessera singola.
+        /// Ritorna null se LevelConfig manca, ClusterMainTileEntries/ClusterFillerTileEntries
+        /// non hanno entry sufficienti (Road inclusa), o tutti i tipi di centro disponibili
+        /// sono gia' stati usati — il chiamante (PlaceEventClusters) degrada a tessera singola.
         /// </summary>
         private EventClusterTileSpec[] TryBuildProceduralCluster(Random rng)
         {
-            if (_levelConfig?.Entries == null || _levelConfig.Entries.Count == 0) return null;
+            if (_levelConfig.ClusterMainTileEntries == null || _levelConfig.ClusterMainTileEntries.Count == 0)
+            {
+                UnityEngine.Debug.Log("[MapCluster] TryBuildProceduralCluster: ClusterMainTileEntries vuoto/assente, nessun cluster costruibile");
+                return null;
+            }
+            if (_levelConfig.ClusterFillerTileEntries == null || _levelConfig.ClusterFillerTileEntries.Count < 4)
+            {
+                UnityEngine.Debug.Log($"[MapCluster] TryBuildProceduralCluster: ClusterFillerTileEntries insufficiente ({_levelConfig.ClusterFillerTileEntries?.Count ?? 0} entry, minimo 4), nessun cluster costruibile");
+                return null;
+            }
 
-            // Centro: entry EventCluster a DL 4/5/6, escluse le combinazioni (Type, DL) gia' usate.
-            var centerCandidates = new List<LevelTileEntry>();
-            foreach (var e in _levelConfig.Entries)
-                if (e.ListType == TileListType.EventCluster && e.DifficultyLevel >= 4 && e.DifficultyLevel <= 6
-                    && !_usedClusterCenterTypes.Contains((e.Type, e.DifficultyLevel)))
+            // Centro: escluse le combinazioni (Type, DL) gia' usate.
+            var centerCandidates = new List<ClusterTile>();
+            foreach (var e in _levelConfig.ClusterMainTileEntries)
+                if (!_usedClusterCenterTypes.Contains((e.Type, e.DifficultyLevel)))
                     centerCandidates.Add(e);
-            if (centerCandidates.Count == 0) return null;
+            if (centerCandidates.Count == 0)
+            {
+                UnityEngine.Debug.Log("[MapCluster] TryBuildProceduralCluster: tutti i tipi di centro ClusterMainTileEntries gia' usati in questa run");
+                return null;
+            }
 
             var center = centerCandidates[rng.Next(centerCandidates.Count)];
             int trapCount  = center.Type == TileType.Enemy ? 2 : 3;
             int otherCount = 6 - trapCount;
+            int nonRoadOtherCount = otherCount - 1; // una posizione e' sempre riservata a Road
 
-            // Trap circostanti: entry EventCluster Trap a DL 1/2
-            var trapCandidates = new List<LevelTileEntry>();
-            foreach (var e in _levelConfig.Entries)
-                if (e.ListType == TileListType.EventCluster && e.Type == TileType.Trap
-                    && e.DifficultyLevel >= 1 && e.DifficultyLevel <= 2)
-                    trapCandidates.Add(e);
-            if (trapCandidates.Count == 0)
+            UnityEngine.Debug.Log($"[MapCluster] Centro candidato: {center.Type} DL{center.DifficultyLevel} (trapCount={trapCount}, otherCount={otherCount} inclusa 1 Road, {centerCandidates.Count} candidati disponibili)");
+
+            // Road: esattamente una posizione del ring, seme obbligatorio per un
+            // PathCluster (vedi doc sopra). Nessun filtro su DifficultyLevel: forzato a 0
+            // nell'assemblaggio del ring, l'entry autorata serve solo a validare che il
+            // Type Road sia presente in palette.
+            var roadCandidates = new List<ClusterTile>();
+            foreach (var e in _levelConfig.ClusterFillerTileEntries)
+                if (e.Type == TileType.Road)
+                    roadCandidates.Add(e);
+            if (roadCandidates.Count == 0)
             {
-                WarnInsufficientComposition(center, "nessuna entry ListType.EventCluster Trap a DL1/2 in LevelConfig.Entries");
+                WarnInsufficientComposition(center, "nessuna entry Road in LevelConfig.ClusterFillerTileEntries — richiesta come seme PathCluster del cluster");
                 return null;
             }
 
-            // Non-Trap circostanti: tipi unici, EventCluster a DL 1/2
-            var nonTrapByType = new Dictionary<TileType, List<LevelTileEntry>>();
-            foreach (var e in _levelConfig.Entries)
+            // Trap circostanti: entry Trap a DL 1/2
+            var trapCandidates = new List<ClusterTile>();
+            foreach (var e in _levelConfig.ClusterFillerTileEntries)
+                if (e.Type == TileType.Trap && e.DifficultyLevel >= 1 && e.DifficultyLevel <= 2)
+                    trapCandidates.Add(e);
+            if (trapCandidates.Count == 0)
             {
-                if (e.ListType != TileListType.EventCluster) continue;
-                if (e.Type == TileType.Trap) continue;
+                WarnInsufficientComposition(center, "nessuna entry Trap a DL1/2 in LevelConfig.ClusterFillerTileEntries");
+                return null;
+            }
+
+            // Non-Trap/non-Road circostanti: tipi unici a DL 1/2
+            var nonTrapByType = new Dictionary<TileType, List<ClusterTile>>();
+            foreach (var e in _levelConfig.ClusterFillerTileEntries)
+            {
+                if (e.Type == TileType.Trap || e.Type == TileType.Road) continue;
                 if (e.DifficultyLevel < 1 || e.DifficultyLevel > 2) continue;
                 if (!nonTrapByType.ContainsKey(e.Type))
-                    nonTrapByType[e.Type] = new List<LevelTileEntry>();
+                    nonTrapByType[e.Type] = new List<ClusterTile>();
                 nonTrapByType[e.Type].Add(e);
             }
 
             var availableTypes = new List<TileType>(nonTrapByType.Keys);
-            if (availableTypes.Count < otherCount)
+            if (availableTypes.Count < nonRoadOtherCount)
             {
                 WarnInsufficientComposition(center,
-                    $"servono {otherCount} tipi non-Trap distinti a DL1/2 (ListType.EventCluster), disponibili solo {availableTypes.Count}");
+                    $"servono {nonRoadOtherCount} tipi non-Trap/non-Road distinti a DL1/2 (ClusterFillerTileEntries), disponibili solo {availableTypes.Count}");
                 return null;
             }
 
@@ -770,7 +914,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 (availableTypes[i], availableTypes[j]) = (availableTypes[j], availableTypes[i]);
             }
 
-            // Assembla il ring: Trap + non-Trap
+            // Assembla il ring: Trap + 1 Road + non-Trap/non-Road
             var ring = new List<EventClusterTileSpec>(6);
 
             for (int i = 0; i < trapCount; i++)
@@ -779,7 +923,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 ring.Add(new EventClusterTileSpec { Type = e.Type, DifficultyLevel = e.DifficultyLevel });
             }
 
-            for (int i = 0; i < otherCount; i++)
+            ring.Add(new EventClusterTileSpec { Type = TileType.Road, DifficultyLevel = 0 });
+
+            for (int i = 0; i < nonRoadOtherCount; i++)
             {
                 var candidates = nonTrapByType[availableTypes[i]];
                 var e = candidates[rng.Next(candidates.Count)];
@@ -810,23 +956,25 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 };
             }
 
+            UnityEngine.Debug.Log($"[MapCluster] Ring assemblato per centro {center.Type} DL{center.DifficultyLevel}: {trapCount}x Trap + 1x Road + {string.Join(",", availableTypes.GetRange(0, nonRoadOtherCount))}");
+
             return specs;
         }
 
         /// <summary>
         /// Warning deduplicato per un centro la cui composizione ring non e'
-        /// realizzabile con le entry ListType.EventCluster disponibili — vedi doc su
+        /// realizzabile con le entry ClusterFillerTileEntries disponibili — vedi doc su
         /// _warnedInsufficientClusterComposition sul perche' della dedup. Un solo log per
         /// combinazione (Type, DifficultyLevel) per Generate, anche se TryBuildProceduralCluster
         /// la ripesca decine di volte prima di esaurire il pool o abbandonare il tentativo.
         /// </summary>
-        private void WarnInsufficientComposition(LevelTileEntry center, string reason)
+        private void WarnInsufficientComposition(ClusterTile center, string reason)
         {
             if (!_warnedInsufficientClusterComposition.Add((center.Type, center.DifficultyLevel))) return;
 
             UnityEngine.Debug.LogWarning(
-                $"[AestheticClusterMapGenerator] Cluster con centro {center.Type} DL{center.DifficultyLevel} mai generabile in questa run: {reason}. " +
-                "Aggiungi le entry mancanti a LevelConfig.Entries (ListType.EventCluster) o questo tipo di cluster degradera' sempre a tessera singola.");
+                $"[MapCluster] Cluster con centro {center.Type} DL{center.DifficultyLevel} mai generabile in questa run: {reason}. " +
+                "Aggiungi le entry mancanti a LevelConfig.ClusterFillerTileEntries o questo tipo di cluster degradera' sempre a tessera singola.");
         }
 
         // ===== Mesh PathCluster =====
@@ -834,9 +982,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// <summary>
         /// Punto di partenza: ogni tessera di bordo di ogni EventCluster/singola piazzata
         /// (adiacente a una tessera occupata, non occupata essa stessa, non Start/End),
-        /// mescolate in ordine casuale. Da ognuna, se ancora libera al suo turno, cresce
-        /// un intero PathCluster a budget. Nessuna soglia di tentativi da tarare: la lista
-        /// di partenza è finita per costruzione, quindi il processo termina da sé.
+        /// piu' i vicini dei semi Road di ogni cluster (clusterRoadSeeds — vedi
+        /// TryBuildProceduralCluster/PlaceEventClusters), mescolati in ordine casuale
+        /// DENTRO ciascun gruppo ma con i semi Road sempre elaborati per primi (vedi
+        /// CollectClusterBorders). Da ognuno, se ancora libero al suo turno, cresce un
+        /// intero PathCluster a budget — stesse identiche regole (MinBranchLength,
+        /// vincolo lati non consecutivi, ecc.) per qualunque origine, semi Road inclusi.
+        /// Nessuna soglia di tentativi da tarare: la lista di partenza è finita per
+        /// costruzione, quindi il processo termina da sé.
         ///
         /// originsCount/attemptedClusters esistono solo per il messaggio diagnostico di
         /// Generate quando il vincolo MinPathClusters non e' soddisfatto: originsCount =
@@ -854,12 +1007,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// </summary>
         private void GeneratePathClusterMesh(
             Dictionary<HexCoord, HexTileData> tiles, HexCoord start, HexCoord end,
-            HashSet<HexCoord> eventOccupied, Random rng,
+            HashSet<HexCoord> eventOccupied, HashSet<HexCoord> clusterRoadSeeds, Random rng,
             out HashSet<HexCoord> globalClaimed, out Dictionary<HexCoord, int> tileOwner,
             out int originsCount, out int attemptedClusters)
         {
-            var origins = CollectClusterBorders(tiles, eventOccupied, start, end, rng);
+            var origins = CollectClusterBorders(tiles, eventOccupied, clusterRoadSeeds, start, end, rng);
             originsCount = origins.Count;
+
+            UnityEngine.Debug.Log($"[MapCluster] PathCluster: {originsCount} bordi di partenza raccolti ({clusterRoadSeeds.Count} semi Road prioritari + EventCluster + vicini di Start)");
 
             globalClaimed = new HashSet<HexCoord>();
             tileOwner = new Dictionary<HexCoord, int>();
@@ -874,7 +1029,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
                 // Separazione da un PathCluster diverso già piazzato: se una tessera di
                 // questo PathCluster confina con una tessera di un altro, pesca da una
-                // entry ListType.StopSingle (o Void) invece di restare Strada, così
+                // entry StopTileEntries (o Void) invece di restare Strada, così
                 // CascadeStrada non li fonde in un'unica cascata.
                 var stopOverride = new HashSet<HexCoord>();
                 foreach (var coord in pathTiles)
@@ -892,14 +1047,58 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
                 // MinBranchLength vale sul risultato FINALE, non solo sulla crescita
                 // grezza — un ramo nato lungo abbastanza ma ridotto sotto soglia dalla
-                // separazione qui sopra non deve sopravvivere come
-                // frammento isolato da 1-2 Strade. Scarta l'intero ramo senza commit: le tile
-                // restano libere per un altro origine o per il rammendo (PatchResidualGaps),
-                // stesso trattamento di un ramo troppo corto in GrowBranch.
-                int survivingRoadCount = pathTiles.Count - stopOverride.Count;
-                if (survivingRoadCount < _strada.MinBranchLength)
+                // separazione qui sopra non deve sopravvivere come frammento isolato da
+                // 1-2 Strade. Non basta pero' sommare le tessere sopravvissute: stopOverride
+                // puo' colpire una tessera IN MEZZO a una catena (o in un nodo di fork), non
+                // solo alle estremita', spezzando il cluster in piu' isole disconnesse la
+                // cui SOMMA supera MinBranchLength pur essendo, singolarmente, troppo corte
+                // — da qui la decomposizione in componenti connesse: solo le componenti che
+                // raggiungono MinBranchLength restano Strada, le altre vengono aggiunte a
+                // stopOverride (demotate a Stop insieme al resto). Se nessuna componente
+                // qualifica, l'intero cluster viene scartato senza commit: le tile restano
+                // libere per un altro origine o per il rammendo (PatchResidualGaps), stesso
+                // trattamento di un ramo troppo corto in GrowBranch.
+                var survivingSet = new HashSet<HexCoord>();
+                foreach (var coord in pathTiles)
+                    if (!stopOverride.Contains(coord)) survivingSet.Add(coord);
+
+                var visited = new HashSet<HexCoord>();
+                bool anyComponentQualifies = false;
+                foreach (var coord in survivingSet)
+                {
+                    if (visited.Contains(coord)) continue;
+
+                    var component = new List<HexCoord>();
+                    var componentQueue = new Queue<HexCoord>();
+                    componentQueue.Enqueue(coord);
+                    visited.Add(coord);
+                    while (componentQueue.Count > 0)
+                    {
+                        var cur = componentQueue.Dequeue();
+                        component.Add(cur);
+                        for (int dir = 0; dir < 6; dir++)
+                        {
+                            var nb = cur.GetNeighbor(dir);
+                            if (survivingSet.Contains(nb) && visited.Add(nb))
+                                componentQueue.Enqueue(nb);
+                        }
+                    }
+
+                    if (component.Count < _strada.MinBranchLength)
+                    {
+                        _rejectedComponentsTooShort++;
+                        foreach (var c in component) stopOverride.Add(c);
+                    }
+                    else
+                    {
+                        anyComponentQualifies = true;
+                    }
+                }
+
+                if (!anyComponentQualifies)
                 {
                     _rejectedByPostSeparationTooShort++;
+                    UnityEngine.Debug.Log($"[MapCluster] PathCluster scartato: {pathTiles.Count} tessere cresciute da {originTile} ma nessun frammento connesso raggiunge MinBranchLength ({_strada.MinBranchLength}) dopo la separazione");
                     continue;
                 }
 
@@ -908,7 +1107,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     var tileData = tiles[coord];
                     if (stopOverride.Contains(coord))
                     {
-                        AssignStopTile(tileData, coord, tiles, rng);
+                        AssignStopTile(tileData, coord, tiles);
                     }
                     else
                     {
@@ -921,20 +1120,24 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     tileData.PathClusterId = pathClusterIndex;
                 }
 
+                UnityEngine.Debug.Log($"[MapCluster] PathCluster #{pathClusterIndex} committato: origine={originTile}, {pathTiles.Count - stopOverride.Count} Strada, {stopOverride.Count} Stop (demote per separazione)");
+
                 pathClusterIndex++;
             }
 
             attemptedClusters = pathClusterIndex;
+
+            UnityEngine.Debug.Log($"[MapCluster] Mesh PathCluster: {attemptedClusters} cluster committati su {originsCount} origini tentate");
         }
 
         /// <summary>
         /// Ogni tessera ancora priva di contenuto dopo EventCluster e mesh PathCluster
-        /// (né Start, né End, né occupata, né già Strada/ListType.StopSingle) viene
-        /// risolta qui: se confina con un PathCluster che non ha ancora esaurito la sua
-        /// quota di 2 tessere extra, diventa Strada (o una entry ListType.StopSingle
-        /// se confina anche con un PathCluster diverso) e si aggiunge a quel PathCluster;
-        /// altrimenti diventa una tessera singola dal manifest ListType.EventSingle. Con
-        /// questa passata nessuna tessera della griglia resta senza contenuto esplicito.
+        /// (né Start, né End, né occupata, né già Strada/Stop) viene risolta qui: se
+        /// confina con un PathCluster che non ha ancora esaurito la sua quota di 2 tessere
+        /// extra, diventa Strada (o una entry StopTileEntries se confina anche con un
+        /// PathCluster diverso) e si aggiunge a quel PathCluster; altrimenti diventa una
+        /// tessera singola dal manifest SingleTileEntries. Con questa passata nessuna
+        /// tessera della griglia resta senza contenuto esplicito.
         /// </summary>
         private void PatchResidualGaps(
             Dictionary<HexCoord, HexTileData> tiles, HexCoord start, HexCoord end,
@@ -943,6 +1146,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         {
             const int maxPatchPerPathCluster = 2;
             var patchCountPerPathCluster = new Dictionary<int, int>();
+
+            int roadExtended = 0, stopDemoted = 0, singleFallback = 0;
 
             foreach (var coord in tiles.Keys)
             {
@@ -967,7 +1172,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 {
                     // Stessa logica di separazione di GeneratePathClusterMesh: se questa
                     // tessera confina su qualsiasi lato con un PathCluster diverso
-                    // dall'extendOwner, pesca da una entry ListType.StopSingle per non fare
+                    // dall'extendOwner, pesca da una entry StopTileEntries per non fare
                     // da ponte tra i due cluster (CascadeStrada li fonderebbe in un'unica cascata).
                     bool touchesOtherCluster = false;
                     for (int dir = 0; dir < 6; dir++)
@@ -985,17 +1190,30 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     // scritti su tiles, quindi alsoRoad=null basta.
                     bool wouldViolateSides = WouldViolateConsecutiveSides(coord, tiles, alsoRoad: null);
 
+                    // extendOwner e' scelto per PROPRIETA' (tileOwner), non per tipo: il
+                    // vicino che ha giustificato l'estensione potrebbe essere una tessera
+                    // dello stesso cluster gia' demotata a Stop (da stopOverride in
+                    // GeneratePathClusterMesh, o da un patch precedente in questo stesso
+                    // ciclo). Senza questo controllo la tessera diventerebbe Strada isolata
+                    // (zero vicini Strada reali), violando la regola "ogni Strada confina
+                    // con almeno un'altra Strada" (punto 9 della doc di classe).
+                    bool hasRoadNeighbor = false;
+                    foreach (var _ in RoadNeighborDirections(coord, tiles, alsoRoad: null)) { hasRoadNeighbor = true; break; }
+
                     var tileData = tiles[coord];
-                    if (touchesOtherCluster || wouldViolateSides)
+                    if (touchesOtherCluster || wouldViolateSides || !hasRoadNeighbor)
                     {
                         if (touchesOtherCluster) _patchDemotedByOtherCluster++;
                         if (wouldViolateSides) _rejectedByConsecutiveSides++;
-                        AssignStopTile(tileData, coord, tiles, rng);
+                        if (!hasRoadNeighbor) _patchDemotedNoRoadNeighbor++;
+                        AssignStopTile(tileData, coord, tiles);
+                        stopDemoted++;
                     }
                     else
                     {
                         ResetTile(tileData, TileType.Road, hpRestore: 0, moneteGained: 0);
                         tileData.DifficultyLevel = 0;
+                        roadExtended++;
                     }
 
                     globalClaimed.Add(coord);
@@ -1006,19 +1224,52 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 }
                 else
                 {
-                    AssignSingleTile(tiles[coord], coord, tiles, rng);
+                    AssignSingleTile(tiles[coord], coord, tiles);
                     tiles[coord].EventPlacementId = nextEventId++;
                     eventOccupied.Add(coord);
+                    singleFallback++;
                 }
             }
+
+            UnityEngine.Debug.Log($"[MapCluster] Rammendo (PatchResidualGaps): {roadExtended} tessere estese a Strada, {stopDemoted} demote a Stop, {singleFallback} tessere singole di ripiego (nessun PathCluster adiacente)");
         }
 
+        /// <summary>
+        /// Raccoglie i bordi da cui la mesh PathCluster puo' partire, in due gruppi
+        /// ordinati per priorita': prima i vicini dei semi Road di ogni cluster
+        /// (clusterRoadSeeds — un seme garantito per cluster, vedi
+        /// TryBuildProceduralCluster/PlaceEventClusters), poi tutti gli altri bordi
+        /// (EventCluster generico + vicini di Start). Un HashSet "seen" condiviso tra i
+        /// due gruppi garantisce che ogni coordinata compaia una volta sola nel risultato
+        /// finale, senza bisogno di deduplicare a valle: se un vicino di un seme Road
+        /// coincide con un bordo generico, resta nel gruppo prioritario e il gruppo
+        /// generico lo salta. Ciascun gruppo e' mescolato (Fisher-Yates) SEPARATAMENTE e
+        /// solo dopo concatenato — mescolare tutto insieme in un solo passaggio
+        /// vanificherebbe la precedenza dei semi Road sul resto.
+        /// </summary>
         private List<(HexCoord tile, int direction)> CollectClusterBorders(
             Dictionary<HexCoord, HexTileData> tiles, HashSet<HexCoord> eventOccupied,
-            HexCoord start, HexCoord end, Random rng)
+            HashSet<HexCoord> clusterRoadSeeds, HexCoord start, HexCoord end, Random rng)
         {
             var seen = new HashSet<HexCoord>();
+            var priorityBorders = new List<(HexCoord, int)>();
             var borders = new List<(HexCoord, int)>();
+
+            // Priorita': vicini del seme Road di ogni cluster. Un cluster deve sempre
+            // produrre un tentativo di strada propria, prima di ogni altro bordo — vedi
+            // doc di classe punto 12.
+            foreach (var roadCoord in clusterRoadSeeds)
+            {
+                for (int dir = 0; dir < 6; dir++)
+                {
+                    var neighbor = roadCoord.GetNeighbor(dir);
+                    if (!tiles.ContainsKey(neighbor)) continue;
+                    if (eventOccupied.Contains(neighbor)) continue;
+                    if (neighbor.Equals(start) || neighbor.Equals(end)) continue;
+                    if (!seen.Add(neighbor)) continue;
+                    priorityBorders.Add((neighbor, dir));
+                }
+            }
 
             foreach (var occupiedCoord in eventOccupied)
             {
@@ -1051,14 +1302,21 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 borders.Add((neighbor, dir));
             }
 
-            // Fisher-Yates: ordine di elaborazione casuale, non l'ordine di scoperta.
+            // Fisher-Yates separatamente per ciascun gruppo: mescolare tutto insieme in un
+            // solo passaggio vanificherebbe la precedenza dei semi Road sul resto.
+            for (int i = priorityBorders.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (priorityBorders[i], priorityBorders[j]) = (priorityBorders[j], priorityBorders[i]);
+            }
             for (int i = borders.Count - 1; i > 0; i--)
             {
                 int j = rng.Next(i + 1);
                 (borders[i], borders[j]) = (borders[j], borders[i]);
             }
 
-            return borders;
+            priorityBorders.AddRange(borders);
+            return priorityBorders;
         }
 
         /// <summary>
@@ -1233,14 +1491,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
                 if (roadDirs.Count == 0)
                 {
-                    UnityEngine.Debug.LogWarning($"[AestheticClusterMapGenerator] Regola adiacenza Strada violata: {kvp.Key} e' Strada isolata (zero vicini Strada).");
+                    UnityEngine.Debug.LogWarning($"[MapCluster] Regola adiacenza Strada violata: {kvp.Key} e' Strada isolata (zero vicini Strada).");
                     continue;
                 }
 
                 for (int i = 0; i < roadDirs.Count; i++)
                 for (int j = i + 1; j < roadDirs.Count; j++)
                     if (AreConsecutiveSides(roadDirs[i], roadDirs[j]))
-                        UnityEngine.Debug.LogWarning($"[AestheticClusterMapGenerator] Regola adiacenza Strada violata: {kvp.Key} ha due vicini Strada su lati consecutivi ({roadDirs[i]}/{roadDirs[j]}).");
+                        UnityEngine.Debug.LogWarning($"[MapCluster] Regola adiacenza Strada violata: {kvp.Key} ha due vicini Strada su lati consecutivi ({roadDirs[i]}/{roadDirs[j]}).");
             }
         }
 

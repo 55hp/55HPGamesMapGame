@@ -12,9 +12,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         /// <summary>
         /// Livello di difficolta' 1-6 autorato per questa cella nello Shape Editor, scelto
-        /// tra le entry eleggibili di LevelConfig.Entries con ListType.EventCluster per
-        /// quel Type. Vedi AestheticClusterMapGenerator.ApplyEventClusterShape per come
-        /// viene poi adattato alla posizione finale in griglia (ResolveDifficulty).
+        /// tra le entry eleggibili di LevelConfig.ClusterTileEntries per quel Type. Vedi
+        /// AestheticClusterMapGenerator.ApplyEventClusterShape per come viene poi adattato
+        /// alla posizione finale in griglia (ResolveDifficulty).
         /// </summary>
         [Range(1, 6)] public int DifficultyLevel;
     }

@@ -31,10 +31,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public int HpRestore;
 
         /// <summary>
-        /// Cibo guadagnato al reveal, aggiunto alla scorta (clamp 0..MaxFood). Assegnato
-        /// ai tile di raccolta cibo (Bush/BeeHive/TurnipSprout/Tree), valore per specie da
-        /// ElementConfig.FoodRestore (Bush=1, BeeHive=2, TurnipSprout=2, Tree=3). Zero per
-        /// tutti gli altri tipi.
+        /// Cibo guadagnato al reveal, aggiunto alla scorta (clamp 0..MaxFood). Calcolo
+        /// fisso = DifficultyLevel per i tile di raccolta cibo (Bush/BeeHive/TurnipSprout/
+        /// Tree — vedi MapClusterGenerator.ApplyElementStats). Zero per tutti gli altri tipi.
         /// </summary>
         public int FoodRestore;
 

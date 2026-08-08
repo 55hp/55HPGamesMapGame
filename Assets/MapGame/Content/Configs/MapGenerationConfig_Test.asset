@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 754489f70e6de0549847c62937bfff86, type: 3}
   m_Name: MapGenerationConfig_Test
   m_EditorClassIdentifier: 
-  Width: 16
-  Height: 10
+  Width: 18
+  Height: 12
   Seed: 12345
   EndDistanceWeights:
   - Distance: 8
@@ -36,14 +36,8 @@ MonoBehaviour:
     Weight: 40
   StartMinBorderDistance: 3
   ClusterMinDistanceFromStartEnd: 1
-  PlaceholderBalance:
-    GoodsFoodRestoreMin: 1
-    GoodsFoodRestoreMax: 3
   EventClusters:
-    Catalog: {fileID: 11400000, guid: 789979cd866a8e0419cc4e0affd6482b, type: 2}
     MaxConsecutiveFailures: 200
-    ClusterToSingleRatioMin: 2
-    ClusterToSingleRatioMax: 4
   StradaNetwork:
     MinBranchLength: 3
     MaxBranchLength: 7
