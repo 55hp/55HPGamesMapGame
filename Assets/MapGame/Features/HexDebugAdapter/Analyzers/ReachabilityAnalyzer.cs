@@ -10,17 +10,16 @@ namespace hp55games.MapGame.Features.HexDebugAdapter
     /// Esegue una BFS a movimento libero adiacente dalla tile Start verso ogni tile
     /// marcata da KeyTileFlags, per confermare che tutta la mappa generata sia
     /// effettivamente raggiungibile. Requisito diretto dei pillar P2 e P3.
-    /// KeyTileFlags copre solo i TileType legacy (Boss/Goods/Npc) e PointOfInterest
-    /// (IsObjective) — stesso gap di copertura documentato su MapGameDebugFlags: i
-    /// TileType post-split non hanno un flag proprio e non vengono controllati qui.
+    /// KeyTileFlags copre Resource/NpcService/Key (i TileType content raggruppati da
+    /// MapGameDebugFlags) e PointOfInterest (IsObjective, il rimpiazzo di Boss).
     /// Accede a HexGridController dalla scena per recuperare le coordinate di Start.
     /// </summary>
     public sealed class ReachabilityAnalyzer : IHexAnalyzer
     {
         private static readonly HexDebugFlags KeyTileFlags =
-            MapGameDebugFlags.Boss          |
-            MapGameDebugFlags.Goods       |
-            MapGameDebugFlags.Npc           |
+            MapGameDebugFlags.Resource      |
+            MapGameDebugFlags.NpcService    |
+            MapGameDebugFlags.Key           |
             HexDebugFlags.PointOfInterest;  // IsObjective
 
         public string Name => "Reachability";

@@ -17,11 +17,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// [Obsolete] solo per compatibilita' editor/debug esistenti, non usarlo in codice
     /// nuovo.
     ///
-    /// Path e' l'alias [Obsolete] di Road (stesso int), mantenuto perche' altri file —
-    /// MapClusterGenerator, MapGenerationConfigEditor, HP55_EventClusterShapeEditor,
-    /// MapGameDebugFlags — referenziano ancora TileType.Path come simbolo C#: rimuoverlo
-    /// del tutto romperebbe la compilazione di quei file. Stesso trattamento per
-    /// Shop→Trader. Miniboss/Boss/Npc/Goods non sono piu' TileType a se stanti
+    /// Path e' l'alias [Obsolete] di Road (stesso int), mantenuto solo per compatibilita'
+    /// con .asset serializzati esistenti e codice non ancora aggiornato — nessun file del
+    /// progetto referenzia piu' TileType.Path come simbolo C# (MapGameDebugFlags e' stato
+    /// allineato a TileType.Road). Stesso trattamento per Shop→Trader.
+    /// Miniboss/Boss/Npc/Goods non sono piu' TileType a se stanti
     /// (Miniboss/Boss diventano varianti di Enemy con DifficultyLevel piu' alto; Npc si
     /// divide in Inn/Trader/Witch/Farmer/Hunter; Goods si divide in Bush/BeeHive/
     /// TurnipSprout, Tree resta) — marcati [Obsolete] con int originali preservati, mai
