@@ -54,11 +54,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// Key (attiva HasKeyDL4/5/6 sul contesto + KeysChangedEvent). Chest e' inerte al
     /// reveal finche' il popup Loot non esiste.
     ///
-    /// Effetto Enemy al combattimento: HP -= DifficultyLevel (nessuna ricompensa: XP
-    /// rimosso 2026-07-20, ricompensa in Monete da definire — vedi Franci Tasks). No-op per
-    /// Miniboss finche' il suo bilanciamento non e' definito. Applicato in
-    /// ResolveEncounterFight, non in generazione, perche' il DifficultyLevel finale e'
-    /// noto solo dopo ResolveDifficulty.
+    /// Effetto Enemy al combattimento: HP -= DifficultyLevel, ricompensa in Monete =
+    /// DifficultyLevel * EconomyConfig.EnemyKillCoinMultiplier (arrotondato, XP rimosso
+    /// 2026-07-20). No-op per Miniboss finche' il suo bilanciamento non e' definito.
+    /// Applicato in ResolveEncounterFight, non in generazione, perche' il DifficultyLevel
+    /// finale e' noto solo dopo ResolveDifficulty.
     ///
     /// Economia (2026-07-20): la progressione passa da Monete (_context.Score) e dallo shop
     /// — vedi la sezione Shop in fondo (TryBuyMaxHpUpgrade/FoodSlotUpgrade/Heal/FoodRefill,
@@ -442,6 +442,16 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             AccumulateHp(tile);
             AccumulateFood(tile);
             bool moneteEarned = AccumulateMonete(tile);
+
+            // Ricompensa combattimento (Franci Tasks, 2026-08-09): Monete = DifficultyLevel
+            // dell'Enemy * EconomyConfig.EnemyKillCoinMultiplier, arrotondato all'intero
+            // piu' vicino. Moltiplicatore 1 se EconomyConfig non e' risolto dal catalogo.
+            int combatReward = Mathf.Max(0, Mathf.RoundToInt(tile.DifficultyLevel * (_economy?.EnemyKillCoinMultiplier ?? 1f)));
+            if (combatReward > 0)
+            {
+                _context.Score += combatReward;
+                moneteEarned = true;
+            }
 
             RecomputeReachability();
 

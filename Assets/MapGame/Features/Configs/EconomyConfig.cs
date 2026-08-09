@@ -9,6 +9,9 @@ namespace hp55games.MapGame.Features.Configs
     /// Stesso pattern di SurvivalConfig: risolto a runtime via IConfigCatalogService, il
     /// bilanciamento si fa sull'asset in editor, mai nel codice.
     ///
+    /// Include anche EnemyKillCoinMultiplier, che scala la ricompensa in Monete del
+    /// combattimento (DifficultyLevel * multiplier, vedi ResolveEncounterFight).
+    ///
     /// I valori di default sono segnaposto NON bilanciati (vedi Franci Tasks). ATK/DEF,
     /// chiavi e vision boost arriveranno quando esisteranno i sistemi che li consumano
     /// (Combattimento / Knowledge).
@@ -31,5 +34,9 @@ namespace hp55games.MapGame.Features.Configs
         [Header("Rifornimento Cibo")]
         [Min(1)] public int FoodRefillCost = 5;
         [Min(1)] public int FoodRefillAmount = 2;
+
+        [Header("Ricompensa Combattimento")]
+        [Tooltip("Moltiplicatore applicato al DifficultyLevel dell'Enemy per calcolare le Monete guadagnate in ResolveEncounterFight (arrotondato all'intero piu' vicino).")]
+        [Min(0f)] public float EnemyKillCoinMultiplier = 1f;
     }
 }
