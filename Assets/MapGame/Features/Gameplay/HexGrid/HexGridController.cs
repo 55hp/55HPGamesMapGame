@@ -52,13 +52,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// contesto + KeysChangedEvent). Chest e' inerte al reveal finche' il popup Loot non
     /// esiste.
     ///
-    /// Effetto Enemy al combattimento: HP -= DifficultyLevel, ricompensa in Monete pari al
-    /// DifficultyLevel. Applicato in ResolveEncounterFight, non in generazione, perche' il
-    /// DifficultyLevel finale e' noto solo dopo ResolveDifficulty.
+    /// Effetto Enemy al combattimento: HP -= DifficultyLevel, ricompensa in Monete =
+    /// DifficultyLevel * EnemyConfig.EnemyKillCoinMultiplier (arrotondato). Applicato in
+    /// ResolveEncounterFight, non in generazione, perche' il DifficultyLevel finale e' noto
+    /// solo dopo ResolveDifficulty.
     ///
     /// Economia: la progressione passa da Monete (_context.Score) e dallo shop — vedi la
     /// sezione Shop in fondo (TryBuyMaxHpUpgrade/FoodSlotUpgrade/Heal/FoodRefill, prezzi in
-    /// EconomyConfig).
+    /// TraderConfig). La ricompensa combattimento vive invece in EnemyConfig (separato dal
+    /// Trader, riguarda il nemico non lo shop).
     ///
     /// Win Condition: rivelare la tile IsObjective da vivi pubblica PlayerVictoryEvent; la
     /// morte nello stesso click prevale.
@@ -112,7 +114,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private MapGenerationConfig _mapConfig;
         private SurvivalConfig      _survival;
         private LevelConfig         _level;
-        private EconomyConfig       _economy;
+        private TraderConfig        _trader;
+        private EnemyConfig         _enemy;
 
         // Cap runtime della run, inizializzati dalla baseline SurvivalConfig e alzati dai
         // potenziamenti dello shop. Non modificano mai l'asset SurvivalConfig.
@@ -194,7 +197,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _mapConfig = _configs.Get<MapGenerationConfig>();
             _survival  = _configs.Get<SurvivalConfig>();
             _level     = _configs.Get<LevelConfig>();
-            _economy   = _configs.Get<EconomyConfig>();
+            _trader    = _configs.Get<TraderConfig>();
+            _enemy     = _configs.Get<EnemyConfig>();
 
             // BuildGrid() NON viene chiamato qui (vedi InitializeSession): farlo in Awake
             // pubblica GridInitialized troppo presto — Unity non garantisce che l'Awake/
@@ -562,10 +566,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             bool moneteEarned = AccumulateMonete(tile);
 
             // Ricompensa combattimento (GDD, Resources — Coins): DifficultyLevel
-            // dell'Enemy * EconomyConfig.EnemyKillCoinMultiplier, arrotondato all'intero
-            // piu' vicino. Moltiplicatore 1 se EconomyConfig non e' risolto dal catalogo.
+            // dell'Enemy * EnemyConfig.EnemyKillCoinMultiplier, arrotondato all'intero
+            // piu' vicino. Moltiplicatore 1 se EnemyConfig non e' risolto dal catalogo.
             // Modificatori da Item posseduti deferiti.
-            int combatReward = Mathf.Max(0, Mathf.RoundToInt(tile.DifficultyLevel * (_economy?.EnemyKillCoinMultiplier ?? 1f)));
+            int combatReward = Mathf.Max(0, Mathf.RoundToInt(tile.DifficultyLevel * (_enemy?.EnemyKillCoinMultiplier ?? 1f)));
             if (combatReward > 0)
             {
                 _context.Score += combatReward;
@@ -756,72 +760,72 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         // ------------------------------------ Shop ---------------------------------------
         // Potenziamenti diretti acquistabili in Monete (_context.Score), ricomprabili nella
-        // stessa run. Prezzi ed entita' degli effetti in EconomyConfig (bilanciamento in
+        // stessa run. Prezzi ed entita' degli effetti in TraderConfig (bilanciamento in
         // editor, mai hardcoded qui). ATK/DEF/chiavi/vision boost: deferiti, i sistemi che
         // li consumano non esistono ancora (Combattimento / Knowledge). Ogni TryBuy ritorna
         // false senza effetti se le Monete non bastano o l'acquisto sarebbe inutile (es.
         // cura a HP pieni).
 
-        /// <summary>Alza il cap HP della run di EconomyConfig.MaxHpUpgradeAmount (le Monete lo consentono sempre: mai "inutile").</summary>
+        /// <summary>Alza il cap HP della run di TraderConfig.MaxHpUpgradeAmount (le Monete lo consentono sempre: mai "inutile").</summary>
         public bool TryBuyMaxHpUpgrade()
         {
-            if (!CanSpend(_economy?.MaxHpUpgradeCost)) return false;
+            if (!CanSpend(_trader?.MaxHpUpgradeCost)) return false;
 
-            Spend(_economy.MaxHpUpgradeCost);
-            _currentMaxHp += Mathf.Max(0, _economy.MaxHpUpgradeAmount);
+            Spend(_trader.MaxHpUpgradeCost);
+            _currentMaxHp += Mathf.Max(0, _trader.MaxHpUpgradeAmount);
 
             _bus?.Publish(new ScoreChangedEvent());
             _bus?.Publish(new HpChangedEvent()); // il cap e' cambiato, la UI degli stack deve saperlo
             return true;
         }
 
-        /// <summary>Alza il cap Cibo della run di EconomyConfig.FoodSlotUpgradeAmount.</summary>
+        /// <summary>Alza il cap Cibo della run di TraderConfig.FoodSlotUpgradeAmount.</summary>
         public bool TryBuyFoodSlotUpgrade()
         {
-            if (!CanSpend(_economy?.FoodSlotUpgradeCost)) return false;
+            if (!CanSpend(_trader?.FoodSlotUpgradeCost)) return false;
 
-            Spend(_economy.FoodSlotUpgradeCost);
-            _currentMaxFood += Mathf.Max(0, _economy.FoodSlotUpgradeAmount);
+            Spend(_trader.FoodSlotUpgradeCost);
+            _currentMaxFood += Mathf.Max(0, _trader.FoodSlotUpgradeAmount);
 
             _bus?.Publish(new ScoreChangedEvent());
             _bus?.Publish(new FoodChangedEvent());
             return true;
         }
 
-        /// <summary>Cura EconomyConfig.HealAmount HP (clamp al cap). Rifiutato a HP gia' pieni.</summary>
+        /// <summary>Cura TraderConfig.HealAmount HP (clamp al cap). Rifiutato a HP gia' pieni.</summary>
         public bool TryBuyHeal()
         {
             if (_context.Lives >= _currentMaxHp) return false;
-            if (!CanSpend(_economy?.HealCost)) return false;
+            if (!CanSpend(_trader?.HealCost)) return false;
 
-            Spend(_economy.HealCost);
-            _context.Lives = Mathf.Clamp(_context.Lives + Mathf.Max(0, _economy.HealAmount), 0, _currentMaxHp);
+            Spend(_trader.HealCost);
+            _context.Lives = Mathf.Clamp(_context.Lives + Mathf.Max(0, _trader.HealAmount), 0, _currentMaxHp);
 
             _bus?.Publish(new ScoreChangedEvent());
             _bus?.Publish(new HpChangedEvent());
             return true;
         }
 
-        /// <summary>Aggiunge EconomyConfig.FoodRefillAmount Cibo (clamp al cap). Rifiutato a Cibo gia' pieno.</summary>
+        /// <summary>Aggiunge TraderConfig.FoodRefillAmount Cibo (clamp al cap). Rifiutato a Cibo gia' pieno.</summary>
         public bool TryBuyFoodRefill()
         {
             if (_context.Food >= _currentMaxFood) return false;
-            if (!CanSpend(_economy?.FoodRefillCost)) return false;
+            if (!CanSpend(_trader?.FoodRefillCost)) return false;
 
-            Spend(_economy.FoodRefillCost);
-            _context.Food = Mathf.Clamp(_context.Food + Mathf.Max(0, _economy.FoodRefillAmount), 0, _currentMaxFood);
+            Spend(_trader.FoodRefillCost);
+            _context.Food = Mathf.Clamp(_context.Food + Mathf.Max(0, _trader.FoodRefillAmount), 0, _currentMaxFood);
 
             _bus?.Publish(new ScoreChangedEvent());
             _bus?.Publish(new FoodChangedEvent());
             return true;
         }
 
-        /// <summary>null-safe: false se EconomyConfig manca dal catalogo o le Monete non bastano.</summary>
+        /// <summary>null-safe: false se TraderConfig manca dal catalogo o le Monete non bastano.</summary>
         private bool CanSpend(int? cost)
         {
             if (!cost.HasValue || cost.Value < 1)
             {
-                Debug.LogError("[HexGridController] EconomyConfig contiene un costo non valido: acquisto rifiutato.", this);
+                Debug.LogError("[HexGridController] TraderConfig contiene un costo non valido: acquisto rifiutato.", this);
                 return false;
             }
             return _context.Score >= cost.Value;

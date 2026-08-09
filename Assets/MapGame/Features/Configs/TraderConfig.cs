@@ -12,11 +12,11 @@ namespace hp55games.MapGame.Features.Configs
     /// I valori di default sono segnaposto NON bilanciati. ATK/DEF, chiavi e vision boost
     /// arriveranno quando esisteranno i sistemi che li consumano (Combattimento / Knowledge).
     ///
-    /// Include anche EnemyKillCoinMultiplier, che scala la ricompensa in Monete del
-    /// combattimento (DifficultyLevel * multiplier, vedi ResolveEncounterFight).
+    /// Ricompensa combattimento (EnemyKillCoinMultiplier) NON e' qui: vive in EnemyConfig,
+    /// separato perche' riguarda il nemico/combattimento, non lo shop del Trader.
     /// </summary>
-    [CreateAssetMenu(menuName = "MapGame/Economy Config", fileName = "EconomyConfig")]
-    public sealed class EconomyConfig : ScriptableObject, IConfigAsset
+    [CreateAssetMenu(menuName = "MapGame/Trader Config", fileName = "TraderConfig")]
+    public sealed class TraderConfig : ScriptableObject, IConfigAsset
     {
         [Header("Potenziamento cap HP")]
         [Min(1)] public int MaxHpUpgradeCost = 10;
@@ -34,10 +34,6 @@ namespace hp55games.MapGame.Features.Configs
         [Min(1)] public int FoodRefillCost = 5;
         [Min(1)] public int FoodRefillAmount = 2;
 
-        [Header("Ricompensa Combattimento")]
-        [Tooltip("Moltiplicatore applicato al DifficultyLevel dell'Enemy per calcolare le Monete guadagnate in ResolveEncounterFight (arrotondato all'intero piu' vicino).")]
-        [Min(0f)] public float EnemyKillCoinMultiplier = 1f;
-
         private void OnValidate()
         {
             MaxHpUpgradeCost = Mathf.Max(1, MaxHpUpgradeCost);
@@ -48,8 +44,6 @@ namespace hp55games.MapGame.Features.Configs
             HealAmount = Mathf.Max(0, HealAmount);
             FoodRefillCost = Mathf.Max(1, FoodRefillCost);
             FoodRefillAmount = Mathf.Max(0, FoodRefillAmount);
-            EnemyKillCoinMultiplier = Mathf.Max(0f, EnemyKillCoinMultiplier);
         }
     }
 }
-

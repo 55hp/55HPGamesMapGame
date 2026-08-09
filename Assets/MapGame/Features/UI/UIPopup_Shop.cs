@@ -9,13 +9,13 @@ namespace hp55games.MapGame.Features.UI
     /// <summary>
     /// Popup dello shop: potenziamenti diretti in Monete, ricomprabili nella stessa run.
     /// Chiama le TryBuy* di HexGridController — prezzi e
-    /// logica vivono la' (config EconomyConfig), qui solo la presentazione. I bottoni
+    /// logica vivono la' (config TraderConfig), qui solo la presentazione. I bottoni
     /// restano sempre attivi: un acquisto impossibile (Monete insufficienti, cura a HP
     /// pieni) e' un TryBuy che ritorna false, mostrato nel label esito. Resta aperto dopo
     /// ogni acquisto (ricomprabile), si chiude col bottone dedicato.
     ///
     /// I testi dei prezzi vanno impostati sul prefab a mano (placeholder): leggere i
-    /// valori da EconomyConfig a runtime richiederebbe di esporre il config fuori da
+    /// valori da TraderConfig a runtime richiederebbe di esporre il config fuori da
     /// HexGridController — da valutare quando lo shop diventera' UI definitiva.
     /// </summary>
     public sealed class UIPopup_Shop : UIPopupBase
