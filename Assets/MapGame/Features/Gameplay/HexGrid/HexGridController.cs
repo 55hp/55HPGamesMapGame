@@ -561,9 +561,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             AccumulateFood(tile);
             bool moneteEarned = AccumulateMonete(tile);
 
-            // Ricompensa combattimento (GDD, Resources — Coins): sempre = DifficultyLevel
-            // dell'Enemy. Modificatori da Item posseduti deferiti.
-            int combatReward = Mathf.Max(0, tile.DifficultyLevel);
+            // Ricompensa combattimento (GDD, Resources — Coins): DifficultyLevel
+            // dell'Enemy * EconomyConfig.EnemyKillCoinMultiplier, arrotondato all'intero
+            // piu' vicino. Moltiplicatore 1 se EconomyConfig non e' risolto dal catalogo.
+            // Modificatori da Item posseduti deferiti.
+            int combatReward = Mathf.Max(0, Mathf.RoundToInt(tile.DifficultyLevel * (_economy?.EnemyKillCoinMultiplier ?? 1f)));
             if (combatReward > 0)
             {
                 _context.Score += combatReward;
