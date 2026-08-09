@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -22,7 +23,7 @@ namespace hp55games.Mobile.UI
             _ui = UIRoot.FindOrCache();
         }
 
-        public async Task<GameObject> OpenAsync(string address)
+        public async Task<GameObject> OpenAsync(string address, Action<GameObject> configure = null)
         {
             await EnsureUIRootAsync();
             if (_ui == null) return null;
@@ -30,6 +31,12 @@ namespace hp55games.Mobile.UI
             // istanzia sotto Modals
             var popup = await _loader.InstantiateAsync(address, _ui.modals);
             if (popup == null) return null;
+
+            // Disattivato durante configure: niente frame con i placeholder di Inspector
+            // prima che il chiamante applichi i valori reali — vedi doc su OpenAsync.
+            popup.SetActive(false);
+            configure?.Invoke(popup);
+            popup.SetActive(true);
 
             _opened.Add(popup);
 
@@ -40,9 +47,11 @@ namespace hp55games.Mobile.UI
             return popup;
         }
 
-        public async Task<T> OpenAsync<T>(string address) where T : Component
+        public async Task<T> OpenAsync<T>(string address, Action<T> configure = null) where T : Component
         {
-            var go = await OpenAsync(address);
+            var go = await OpenAsync(address, configure != null
+                ? go => configure(go.GetComponent<T>())
+                : (Action<GameObject>)null);
             return go ? go.GetComponent<T>() : null;
         }
 

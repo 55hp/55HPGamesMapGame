@@ -248,7 +248,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &875456546646350629
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1209,10 +1209,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 4614188629015549485}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: -1800, y: -100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7870259278286319050
 CanvasRenderer:
@@ -2245,6 +2245,8 @@ MonoBehaviour:
   _tileTypeLabel: {fileID: 4514906068010290690}
   _difficultyLabel: {fileID: 7029793463827704564}
   _monsterIcon: {fileID: 1673479095990531574}
+  _background: {fileID: 5426675006900070575}
+  _visualConfig: {fileID: 11400000, guid: b285dd8d1fe33df4ebdc0f7bb1759208, type: 2}
   _fightButton: {fileID: 248398940070282835}
   _fleeButton: {fileID: 9049862163349647437}
 --- !u!1 &6600752599349355355
@@ -2473,7 +2475,6 @@ GameObject:
   - component: {fileID: 8179629549412584388}
   - component: {fileID: 7380458747411946775}
   - component: {fileID: 7029793463827704564}
-  - component: {fileID: 2536728379545494881}
   - component: {fileID: 5042333579975063579}
   m_Layer: 5
   m_Name: Title
@@ -2598,19 +2599,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &2536728379545494881
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8474273638294765110}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8622cc37909ec304bbcfa5020d5d81a3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  localizationKey: ui.opt.title
 --- !u!114 &5042333579975063579
 MonoBehaviour:
   m_ObjectHideFlags: 0

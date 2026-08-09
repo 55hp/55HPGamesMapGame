@@ -32,6 +32,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             return transform.TransformPoint(localPos);
         }
 
+        /// <summary>
+        /// Dimensione (world unit) di una cella secondo il Grid nativo di Unity
+        /// sottostante (Cell Layout: Hexagon, Flat). Per un layout flat-top x e' la
+        /// larghezza orizzontale massima di una tile (i due lati piatti), y
+        /// l'incremento verticale tra righe. Usato da MapCameraController per
+        /// calcolare l'offset di inquadratura.
+        /// </summary>
+        public Vector2 CellSize => _unityGrid != null ? (Vector2)_unityGrid.cellSize : Vector2.zero;
+
         private void Awake()
         {
             if (_grid == null || _tileViewPrefab == null || _unityGrid == null)
@@ -68,9 +77,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 coord.ToOffsetOddQ(out int col, out int row);
                 view.transform.localPosition = _unityGrid.GetCellCenterLocal(new Vector3Int(row, col, 0));                view.Setup(coord);
                 view.ApplyState(tile.Spotting);
-                view.SetClickable(_grid.IsClickable(coord));
+                bool tileExplored = tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted;
+                view.SetClickable(_grid.IsClickable(coord) || tileExplored);
+                view.SetDifficultyLevel(tile.DifficultyLevel);
                 if (tile.Spotting == SpottingState.Spotted)
-                    view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: (tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted));
+                    view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: tileExplored);
 
                 _views[coord] = view;
             }
@@ -82,25 +93,24 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             {
                 if (_views.TryGetValue(kvp.Key, out var view))
                 {
-                    view.ApplyState(kvp.Value.Spotting);
-                    view.SetClickable(_grid.IsClickable(kvp.Key));
-                    if (kvp.Value.Spotting == SpottingState.Spotted)
-                        view.Reveal(kvp.Value.Type, showIcon: ShouldShowIcon(kvp.Value), showAlpha: kvp.Value.Exploration == ExplorationState.Explored && kvp.Value.Spotting == SpottingState.Spotted);
+                    var tile = kvp.Value;
+                    bool tileExplored = tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted;
+                    view.ApplyState(tile.Spotting);
+                    view.SetClickable(_grid.IsClickable(kvp.Key) || tileExplored);
+                    if (tile.Spotting == SpottingState.Spotted)
+                        view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: tileExplored);
                 }
             }
         }
 
         /// <summary>
-        /// Scoperta: icona sempre visibile (contenuto gia' risolto).
-        /// Conosciuta: icona visibile solo quando il numero di vicini Scoperta raggiunge
-        /// il DifficultyLevel della tile — vedi HexGridController.CountScopertaNeighbors.
-        /// Strada e Void hanno DifficultyLevel 0, quindi la soglia e' sempre soddisfatta
-        /// (0 vicini Scoperta >= 0), coerente con l'assenza di gating per i tipi strutturali.
+        /// Icona visibile solo per le tile Scoperta (Explored + Spotted): il contenuto è
+        /// già risolto. Tessere Conosciuta (Unexplored + Spotted / cliccabili) non mostrano
+        /// l'icona — il bordo DifficultyLevel è l'unico hint visivo prima del reveal.
         /// </summary>
         private bool ShouldShowIcon(HexTileData tile)
         {
-            if ((tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted)) return true;
-            return _grid.CountScopertaNeighbors(tile.Coord) >= tile.DifficultyLevel;
+            return tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted;
         }
     }
 }

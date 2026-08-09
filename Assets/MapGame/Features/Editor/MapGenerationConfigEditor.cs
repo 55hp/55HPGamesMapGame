@@ -15,25 +15,12 @@ namespace hp55games.MapGame.Editor
         private const int CellGap =  1;
 
         // ── Color palette: one distinct color per TileType ───────────────────
-        // Revisione 2026-07-10 per il TileType refactor. Colori esistenti riusati dove il
-        // tipo e' equivalente al precedente (Enemy = ex Battaglia); Void, Shop, Miniboss
-        // sono nuovi, colori placeholder scelti per restare leggibili accanto agli altri,
-        // non presi dalla palette ufficiale Isle of Lore 2 come i precedenti — -- Franci
-        // TASK -- se vuoi allinearli alla palette asset pack, non l'ho fatto qui.
+        // Estratta in TileTypePalette (Game.Features, runtime) perche' anche codice
+        // runtime (UIPopup_Encounter._background) ne ha bisogno — vedi doc di classe li'
+        // per il dettaglio di cosa contiene la tavolozza e perche'.
         //   Start marker: white inner square. End marker: black inner square.
 
-        private static readonly Dictionary<TileType, Color> TileColors = new()
-        {
-            { TileType.Void,     new Color(0.500f, 0.500f, 0.500f) },  // #808080 — placeholder, vero no-op
-            { TileType.Path,   new Color(0.863f, 0.725f, 0.373f) },  // #dcb95f
-            { TileType.Enemy,    new Color(0.612f, 0.278f, 0.255f) },  // #9c4741 — ex Battaglia
-            { TileType.Goods,  new Color(0.537f, 0.600f, 0.329f) },  // #889954
-            { TileType.Npc,      new Color(0.314f, 0.694f, 0.847f) },  // #50b1d8
-            { TileType.Shop,     new Color(0.847f, 0.694f, 0.314f) },  // #d8b150 — placeholder, ex sottotipo Mercante di NPC
-            { TileType.Chance,  new Color(0.369f, 0.251f, 0.639f) },  // #5e40a3
-            { TileType.Miniboss, new Color(0.400f, 0.176f, 0.153f) },  // #662d27 — placeholder, piu' scuro di Enemy
-            { TileType.Boss,     new Color(0.086f, 0.086f, 0.086f) },  // #161616
-        };
+        private static readonly IReadOnlyDictionary<TileType, Color> TileColors = TileTypePalette.Colors;
 
         // Alpha multiplier per TileState (flagged as design decision):
         //   Scoperta = full (content resolved), Conosciuta = dimmed (position known, content pending),
@@ -72,7 +59,7 @@ namespace hp55games.MapGame.Editor
 
             if (_previewLevel == null)
                 EditorGUILayout.HelpBox(
-                    "Nessun LevelConfig assegnato: la preview genera con contenuto di default (nessuna lista eleggibile). Assegnane uno per una preview realistica.",
+                    "Nessun LevelConfig assegnato: la preview genera con contenuto di default (nessuna istanza da piazzare). Assegnane uno per una preview realistica.",
                     MessageType.Warning);
 
             if (GUILayout.Button("Genera Preview"))
@@ -125,7 +112,7 @@ namespace hp55games.MapGame.Editor
                 float alpha     = StateAlpha(tile.Exploration,tile.Spotting);
                 EditorGUI.DrawRect(new Rect(x, y, CellPx, CellPx), baseColor * alpha);
 
-                // Start tile: white inner dot. End/Boss tile: black inner dot.
+                // Start tile: white inner dot. End/Enemy obiettivo: black inner dot.
                 bool isStart = coord.Equals(_preview.StartCoord);
                 bool isEnd   = coord.Equals(_preview.ObjectiveCoord);
                 if (isStart || isEnd)
@@ -141,6 +128,12 @@ namespace hp55games.MapGame.Editor
 
         private void DrawLegend()
         {
+            // La tavolozza include sia i TileType correnti sia quelli legacy mantenuti per
+            // sicurezza (vedi commento sopra TileColors), quindi la riga e' lunga.
+            // Volutamente nessun wrapping su piu' righe qui: codice Editor IMGUI non
+            // testabile in questo ambiente, e una singola riga e' piu' sicura di un
+            // wrapping scritto alla cieca. Se in Unity risulta troppo larga, e' un
+            // cambiamento cosmetico facile da fare li'.
             EditorGUILayout.LabelField("Tipi", EditorStyles.miniLabel);
             EditorGUILayout.BeginHorizontal();
             foreach (var kvp in TileColors)
@@ -189,7 +182,7 @@ namespace hp55games.MapGame.Editor
             GUILayout.Label(label, EditorStyles.miniLabel);
             GUILayout.Space(12f);
         }
-    
+
         private static LevelConfig FindFirstLevelConfig()
         {
             string[] guids = AssetDatabase.FindAssets("t:LevelConfig");

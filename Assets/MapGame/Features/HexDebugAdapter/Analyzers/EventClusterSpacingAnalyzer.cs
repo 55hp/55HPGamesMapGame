@@ -9,18 +9,18 @@ namespace hp55games.MapGame.Features.HexDebugAdapter
     /// nessun rischio di fondere placement prima del controllo.
     /// Segnala come Error ogni tile evento il cui vicino evento appartiene a un placement diverso.
     /// EventFlags copre tutti i TileType che contano come "evento" ai fini della
-    /// spaziatura: ogni content tile, escluse Void e Path che sono strutturali.
+    /// spaziatura (ogni content tile, escluse Void e Road che sono strutturali) tramite
+    /// le categorie raggruppate di MapGameDebugFlags (Resource/NpcService/Chance/Key).
     /// </summary>
     public sealed class EventClusterSpacingAnalyzer : IHexAnalyzer
     {
         private static readonly HexDebugFlags EventFlags =
-            MapGameDebugFlags.Enemy    |
-            MapGameDebugFlags.Shop     |
-            MapGameDebugFlags.Goods  |
-            MapGameDebugFlags.Npc      |
-            MapGameDebugFlags.Chance  |
-            MapGameDebugFlags.Miniboss |
-            MapGameDebugFlags.Boss;
+            MapGameDebugFlags.Enemy      |
+            MapGameDebugFlags.Trader     |
+            MapGameDebugFlags.Resource   |
+            MapGameDebugFlags.NpcService |
+            MapGameDebugFlags.Chance     |
+            MapGameDebugFlags.Key;
 
         public string Name => "Event Cluster Spacing";
 

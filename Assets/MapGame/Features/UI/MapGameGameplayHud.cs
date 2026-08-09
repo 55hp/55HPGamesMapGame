@@ -1,99 +1,115 @@
 using System;
-using System.Collections.Generic;
 using hp55games.Mobile.Core.Architecture;
 using hp55games.Mobile.Core.Context;
 using hp55games.Mobile.Core.Gameplay.Events;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace hp55games.MapGame.Features.UI
 {
     /// <summary>
-    /// HUD specifico di MapGame per HP e Cibo, in stile "stack di icone" (cuori/mele).
-    /// Riscritto 2026-07-17: non usa più liste di GameObject pre-piazzati. Istanzia i
-    /// prefab a runtime dentro i container e mantiene visibile esattamente un numero di
-    /// icone pari al valore corrente (_context.Lives / _context.Food). L'ordine delle
-    /// icone non è significativo: i prefab sono identici, si accendono/spengono le prime
-    /// N del pool interno.
+    /// HUD specifico di MapGame. Mostra tre coppie (icona, contatore) per HP, Cibo e Monete,
+    /// più N icone on/off per i collezionabili unici (Chiavi DL4/5/6).
     ///
-    /// Il massimo mostrabile non è più cablato qui: il pool cresce da solo quando il
-    /// valore corrente supera il numero di icone già istanziate (es. cura oltre lo start,
-    /// o futuro aumento di MaxHp da leveling). Nessun sync manuale con SurvivalConfig.
-    ///
-    /// UIGameplayHUD (Core, generico) resta responsabile di Monete/Score, non toccato qui.
+    /// Ogni coppia ha un campo Image per l'icona (sprite assegnato in Inspector, invariato a
+    /// runtime) e un TextMeshProUGUI per il valore numerico aggiornato via evento bus.
+    /// Le icone chiave vengono mostrate/nascoste (SetActive) alla ricezione di KeysChangedEvent.
     /// </summary>
     public sealed class MapGameGameplayHud : MonoBehaviour
     {
-        [Header("Cuori (HP)")]
-        [Tooltip("Contenitore (es. un Horizontal Layout Group) dentro cui istanziare i cuori. Deve partire vuoto.")]
-        [SerializeField] private Transform _heartsContainer;
-        [Tooltip("Prefab di un singolo cuore.")]
-        [SerializeField] private GameObject _heartPrefab;
+        [Header("HP")]
+        [SerializeField] private Image           _hpIcon;
+        [SerializeField] private TextMeshProUGUI _hpLabel;
 
-        [Header("Mele (Cibo)")]
-        [Tooltip("Contenitore dentro cui istanziare le mele. Deve partire vuoto.")]
-        [SerializeField] private Transform _foodContainer;
-        [Tooltip("Prefab di una singola mela.")]
-        [SerializeField] private GameObject _foodPrefab;
+        [Header("Food")]
+        [SerializeField] private Image           _foodIcon;
+        [SerializeField] private TextMeshProUGUI _foodLabel;
 
-        private readonly List<GameObject> _heartPool = new();
-        private readonly List<GameObject> _foodPool = new();
+        [Header("Coins")]
+        [SerializeField] private Image           _coinsIcon;
+        [SerializeField] private TextMeshProUGUI _coinsLabel;
+
+        [Header("Chiavi (collezionabili unici)")]
+        [Tooltip("Icona visibile solo quando HasKeyDL4 = true.")]
+        [SerializeField] private GameObject _keyDL4Icon;
+        [Tooltip("Icona visibile solo quando HasKeyDL5 = true.")]
+        [SerializeField] private GameObject _keyDL5Icon;
+        [Tooltip("Icona visibile solo quando HasKeyDL6 = true.")]
+        [SerializeField] private GameObject _keyDL6Icon;
 
         private IGameContextService _context;
-        private IEventBus _bus;
+        private IEventBus           _bus;
 
         private IDisposable _hpSub;
         private IDisposable _foodSub;
+        private IDisposable _coinsSub;
+        private IDisposable _keysSub;
 
         private void Awake()
         {
-            _context = ServiceRegistry.Resolve<IGameContextService>();
-            _bus     = ServiceRegistry.Resolve<IEventBus>();
+            ServiceRegistry.TryResolve(out _context);
+            ServiceRegistry.TryResolve(out _bus);
 
             if (_bus != null)
             {
-                _hpSub   = _bus.Subscribe<HpChangedEvent>(OnHpChanged);
-                _foodSub = _bus.Subscribe<FoodChangedEvent>(OnFoodChanged);
+                _hpSub    = _bus.Subscribe<HpChangedEvent>(OnHpChanged);
+                _foodSub  = _bus.Subscribe<FoodChangedEvent>(OnFoodChanged);
+                _coinsSub = _bus.Subscribe<ScoreChangedEvent>(OnCoinsChanged);
+                _keysSub  = _bus.Subscribe<KeysChangedEvent>(OnKeysChanged);
             }
         }
 
-        private void Start()
-        {
-            // Stato iniziale: nel caso l'evento di init sia già stato pubblicato prima che
-            // questo componente si iscrivesse.
-            Refresh();
-        }
+        private void Start() => Refresh();
 
         private void OnDestroy()
         {
             _hpSub?.Dispose();
             _foodSub?.Dispose();
+            _coinsSub?.Dispose();
+            _keysSub?.Dispose();
         }
+
+        // ── Handlers ──────────────────────────────────────────────────────────────
+
+        private void OnHpChanged(HpChangedEvent _)       => RefreshHp();
+        private void OnFoodChanged(FoodChangedEvent _)   => RefreshFood();
+        private void OnCoinsChanged(ScoreChangedEvent _) => RefreshCoins();
+        private void OnKeysChanged(KeysChangedEvent _)   => RefreshKeys();
+
+        // ── Refresh ───────────────────────────────────────────────────────────────
 
         private void Refresh()
         {
-            SyncPool(_heartPool, _heartsContainer, _heartPrefab, _context?.Lives ?? 0);
-            SyncPool(_foodPool,  _foodContainer,   _foodPrefab,   _context?.Food  ?? 0);
+            RefreshHp();
+            RefreshFood();
+            RefreshCoins();
+            RefreshKeys();
         }
 
-        private void OnHpChanged(HpChangedEvent _)     => SyncPool(_heartPool, _heartsContainer, _heartPrefab, _context.Lives);
-        private void OnFoodChanged(FoodChangedEvent _) => SyncPool(_foodPool,  _foodContainer,   _foodPrefab,   _context.Food);
-
-        /// <summary>
-        /// Fa in modo che nel container siano visibili esattamente `count` icone. Il pool
-        /// cresce istanziando nuovi prefab quando servono, altrimenti riusa quelli già
-        /// creati accendendo/spegnendo (nessuna Destroy, nessun GC dopo il warmup).
-        /// count negativo (sentinel di pre-init) viene clampato a 0: tutto spento.
-        /// </summary>
-        private static void SyncPool(List<GameObject> pool, Transform container, GameObject prefab, int count)
+        private void RefreshHp()
         {
-            if (container == null || prefab == null) return;
-            count = Mathf.Max(0, count);
+            if (_hpLabel != null)
+                _hpLabel.text = Mathf.Max(0, _context?.Lives ?? 0).ToString();
+        }
 
-            while (pool.Count < count)
-                pool.Add(Instantiate(prefab, container));
+        private void RefreshFood()
+        {
+            if (_foodLabel != null)
+                _foodLabel.text = Mathf.Max(0, _context?.Food ?? 0).ToString();
+        }
 
-            for (int i = 0; i < pool.Count; i++)
-                pool[i].SetActive(i < count);
+        private void RefreshCoins()
+        {
+            if (_coinsLabel != null)
+                _coinsLabel.text = Mathf.Max(0, _context?.Score ?? 0).ToString();
+        }
+
+        private void RefreshKeys()
+        {
+            if (_keyDL4Icon != null) _keyDL4Icon.SetActive(_context?.HasKeyDL4 ?? false);
+            if (_keyDL5Icon != null) _keyDL5Icon.SetActive(_context?.HasKeyDL5 ?? false);
+            if (_keyDL6Icon != null) _keyDL6Icon.SetActive(_context?.HasKeyDL6 ?? false);
         }
     }
 }

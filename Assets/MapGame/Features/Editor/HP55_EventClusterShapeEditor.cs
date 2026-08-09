@@ -4,10 +4,11 @@
 // a cell, matching the flat-top odd-q layout used by the game's hex map. Square
 // buttons are used; the visual offset ensures painted clusters are spatially correct.
 //
-// Revised 2026-07-10: painting now requires a LevelConfig reference. Paintable options
-// come from LevelConfig.EventClusterTilesList (TileType + DifficultyLevel pairs) instead
-// of the full TileType enum — each click cycles through eligible entries for that level,
-// authoring stays per-cell manual, the LevelConfig only filters what's available.
+// Painting requires a LevelConfig reference. Paintable options come from
+// LevelConfig.ClusterTileEntries (TileType + DifficultyLevel pairs) instead of the full
+// TileType enum — each click cycles through eligible entries for that level, authoring
+// stays per-cell manual, the LevelConfig only filters what's available. Road (structural,
+// no DifficultyLevel) is excluded from paintable entries — see LevelConfig.cs.
 using UnityEngine;
 using UnityEditor;
 using System;
@@ -29,14 +30,15 @@ namespace hp55games.MapGame.Features.Editor
         private static readonly Color OffColor = Color.gray;
         private static readonly Color OriginTint = new Color(1f, 1f, 0.55f, 1f); // yellow tint for origin
 
-        // Tipi esclusi anche se comparissero per errore in EventClusterTilesList: Strada e
-        // Void sono strutturali (nessun DifficultyLevel), Boss e' piazzato deterministicamente
-        // su End, mai autorato qui.
-        private static readonly TileType[] ExcludedTypes = { TileType.Path, TileType.Void, TileType.Boss };
+        // Road e' esclusa perche' strutturale (non content autorabile nei cluster).
+        // Void NON e' piu' esclusa: puo' essere usata come casella intenzionalmente
+        // vuota/decorativa in un cluster — riceve DifficultyLevel 1 (minimo) da
+        // ResolveDifficulty, nessuna specie, nessun warning.
+        private static readonly TileType[] ExcludedTypes = { TileType.Road };
 
         [SerializeField] private LevelConfig _levelConfig;
 
-        private LevelTileEntry[] _paintableEntries;
+        private ClusterTile[] _paintableEntries;
         private Color[] _entryColors;
 
         private int[,] _cellState; // [row, col], -1 = empty, altrimenti indice in _paintableEntries
@@ -57,12 +59,15 @@ namespace hp55games.MapGame.Features.Editor
                 ResetGrid();
         }
 
+        /// <summary>
+        /// Rebuilds the list of paintable entries from the current LevelConfig, filtering out excluded types.
+        /// </summary>
         private void RebuildPaintableEntries()
         {
-            var source = _levelConfig != null ? _levelConfig.EventClusterTilesList : null;
+            var source = _levelConfig != null ? _levelConfig.ClusterMainTileEntries.Concat(_levelConfig.ClusterFillerTileEntries) : null;
 
             _paintableEntries = source == null
-                ? Array.Empty<LevelTileEntry>()
+                ? Array.Empty<ClusterTile>()
                 : source.Where(e => !ExcludedTypes.Contains(e.Type)).ToArray();
 
             _entryColors = new Color[_paintableEntries.Length];
@@ -97,14 +102,14 @@ namespace hp55games.MapGame.Features.Editor
 
             if (_levelConfig == null)
             {
-                EditorGUILayout.HelpBox("Assegna un LevelConfig per popolare le tipologie disponibili (EventClusterTilesList).", MessageType.Warning);
+                EditorGUILayout.HelpBox("Assegna un LevelConfig per popolare le tipologie disponibili (ClusterTileEntries).", MessageType.Warning);
                 EditorGUILayout.EndScrollView();
                 return;
             }
 
             if (_paintableEntries.Length == 0)
             {
-                EditorGUILayout.HelpBox("EventClusterTilesList e' vuota su questo LevelConfig. Aggiungi almeno una entry Type/DifficultyLevel per poter dipingere.", MessageType.Warning);
+                EditorGUILayout.HelpBox("Nessuna entry in ClusterTileEntries su questo LevelConfig. Aggiungi almeno una entry Type/DifficultyLevel per poter dipingere.", MessageType.Warning);
                 EditorGUILayout.EndScrollView();
                 return;
             }

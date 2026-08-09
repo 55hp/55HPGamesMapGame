@@ -32,8 +32,12 @@ namespace hp55games.MapGame.Features.Configs
 
         private void OnValidate()
         {
-            if (StartHp > MaxHp) StartHp = MaxHp;
-            if (StartFood > MaxFood) StartFood = MaxFood;
+            MaxHp = Mathf.Max(1, MaxHp);
+            StartHp = Mathf.Clamp(StartHp, 1, MaxHp);
+            MaxFood = Mathf.Max(0, MaxFood);
+            StartFood = Mathf.Clamp(StartFood, 0, MaxFood);
+            FoodCostPerClick = Mathf.Max(0, FoodCostPerClick);
+            NoFoodHpPenalty = Mathf.Max(0, NoFoodHpPenalty);
         }
     }
 }

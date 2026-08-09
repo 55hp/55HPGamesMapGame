@@ -49,6 +49,22 @@ namespace hp55games.Mobile.Core.Architecture.States
 
             if (!_isResuming)
             {
+                // Chiude qualunque pagina fosse in cima allo stack (Results dopo un
+                // retry, Menu dopo un "Gioca") — FIX 2026-08-06: GameplayState non
+                // toccava mai IUINavigationService, a differenza di ResultState e
+                // MainMenuState che chiamano correttamente ReplaceAsync al proprio
+                // Enter. Le pagine vivono in 91_UI_Root/Pages, non nella scena: la
+                // vecchia pagina restava quindi visibile sopra la gameplay rigenerata,
+                // ancora capace di intercettare i click (blocksRaycasts resta true
+                // dopo il fade-in) — la scena e il gioco sotto si rigeneravano
+                // correttamente, semplicemente non si vedevano ne' erano cliccabili.
+                // No-op sicuro se lo stack e' gia' vuoto (PopAsync controlla
+                // _stack.Count prima di fare qualunque cosa).
+                if (ServiceRegistry.TryResolve<IUINavigationService>(out var nav))
+                {
+                    await nav.PopAsync();
+                }
+
                 // Prima volta: setup completo
                 if (ServiceRegistry.TryResolve<IMusicService>(out _music))
                 {
@@ -64,8 +80,9 @@ namespace hp55games.Mobile.Core.Architecture.States
                 // has cleared them, avoiding the Awake/ResetRun ordering race.
                 _bus.Publish(new GameStartedEvent());
 
-                var navigation = ServiceRegistry.Resolve<IUINavigationService>();
-                await navigation.ReplaceAsync(hp55games.Addr.Content.UI.Screens.GameplayHUD);
+                // MapGameGameplayHudService owns the MapGame HUD instance under UIRoot.hud.
+                // The old Addressables gameplay_hud page no longer exists.
+
             }
 
             await Task.Yield();

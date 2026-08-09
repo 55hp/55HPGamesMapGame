@@ -21,11 +21,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     {
         public MapGenerationResult GenerateMap(MapGenerationConfig config, LevelConfig level, int seed)
         {
-            IMapGenerator generator = new AestheticClusterMapGenerator(
+            IMapGenerator generator = new MapClusterGenerator(
                 config.EndDistanceWeights,
                 config.StartMinBorderDistance,
                 config.ClusterMinDistanceFromStartEnd,
-                config.PlaceholderBalance,
                 config.StradaNetwork,
                 config.EventClusters,
                 level);

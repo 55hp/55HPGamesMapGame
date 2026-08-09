@@ -11,36 +11,50 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public HexCoord Coord;
         public ExplorationState Exploration;
         public SpottingState Spotting;
+
+        /// <summary>
+        /// Default Void, non Road: una tile appena costruita non ha ancora contenuto
+        /// esplicito (assegnato entro la fine di Generate). Se il default fosse Road,
+        /// le tile ancora intoccate durante PlaceEventClusters/GeneratePathClusterMesh
+        /// sembrerebbero gia' Strada a WouldViolateConsecutiveSides, bloccando quasi ogni
+        /// crescita di PathCluster con un "blob" fantasma di Road. Void e' anche gia' il
+        /// fallback esplicito di AssignSingleTile/AssignStopTile quando i manifest sono
+        /// esauriti.
+        /// </summary>
         public TileType Type;
 
         /// <summary>
-        /// Delta HP applicato al reveal: negativo danneggia (Enemy), zero per gli altri
-        /// tipi. Goods non restituisce più HP direttamente dal 2026-07-10, vedi
-        /// FoodRestore. La tabella esiti di Chance (che assorbe il vecchio Trappola come
-        /// uno dei possibili risultati) non e' ancora implementata: Chance resta a
-        /// impatto zero finche' non viene definita — vedi nota in
-        /// AestheticClusterMapGenerator.ApplyPlaceholderBalance.
+        /// Delta HP applicato al reveal: negativo danneggia (Trap, Enemy via
+        /// ApplyEnemyDamage). Fountain non usa questo campo: ripristina tutti gli HP via
+        /// logica dedicata in HexGridController. Zero per gli altri tipi.
         /// </summary>
         public int HpRestore;
 
         /// <summary>
-        /// Cibo guadagnato al reveal, aggiunto alla scorta (clamp 0..MaxFood). Assegnato
-        /// solo a Goods, sostituisce la cura HP diretta che Goods dava prima del
-        /// 2026-07-10 — ora Goods rifornisce la scorta di cibo che il costo movimento
-        /// consuma, invece di curare sul colpo. Zero per tutti gli altri tipi.
+        /// Cibo guadagnato al reveal, aggiunto alla scorta (clamp 0..MaxFood). Calcolo
+        /// fisso = DifficultyLevel per i tile di raccolta cibo (Bush/BeeHive/TurnipSprout/
+        /// Tree — vedi MapClusterGenerator.ApplyElementStats). Zero per tutti gli altri tipi.
         /// </summary>
         public int FoodRestore;
 
         /// <summary>
-        /// Monete guadagnate al reveal. Assegnate solo a Enemy (combattimento vinto).
-        /// Zero per tutti gli altri tipi. Il valore balance è responsabilità del designer.
+        /// Monete guadagnate al reveal. Il combattimento (Enemy) calcola la sua ricompensa
+        /// a parte in ResolveEncounterFight (Coins += DifficultyLevel), non da questo
+        /// campo. Zero per tutti gli altri tipi salvo casi futuri.
         /// </summary>
         public int MoneteGained;
 
         /// <summary>
-        /// True sulla tile Boss, l'obiettivo di missione generato da PlaceEnd.
+        /// True sulla tile obiettivo di missione (Enemy generato da PlaceEnd).
         /// </summary>
         public bool IsObjective;
+
+        /// <summary>
+        /// True se la tile Void ospita un ambiente Lake/Sea/Pond — richiesto dall'item
+        /// Fishing Rod per determinare se puo' essere usato qui. Non ancora popolato da
+        /// nessun generatore (env oggi e' solo estetico/SpriteRenderer); default false.
+        /// </summary>
+        public bool IsFishable;
 
         /// <summary>
         /// Indice del PathCluster a cui appartiene questa tile (assegnato da AestheticClusterMapGenerator).
@@ -60,7 +74,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// DifficultyLevel D richiede almeno D vicini validi in griglia, vedi
         /// AestheticClusterMapGenerator.NeighborCount) e soglia di rivelazione icona (vedi
         /// HexGridController.CountScopertaNeighbors / HexGridViewSpawner).
-        /// 0 per Path e Void, che non hanno DifficultyLevel (strutturali, non content).
+        /// 0 per Road e Void, che non hanno DifficultyLevel (strutturali, non content).
         /// </summary>
         public int DifficultyLevel;
 
@@ -69,10 +83,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             Coord = coord;
             Exploration = ExplorationState.Unexplored;
             Spotting = SpottingState.Unspotted;
-            Type = TileType.Path;
+            Type = TileType.Void;
             HpRestore = 0;
             FoodRestore = 0;
             IsObjective = false;
+            IsFishable = false;
             PathClusterId = -1;
             EventPlacementId = -1;
             DifficultyLevel = 0;

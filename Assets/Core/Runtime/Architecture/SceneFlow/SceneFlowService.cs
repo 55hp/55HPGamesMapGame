@@ -11,7 +11,11 @@ namespace hp55games.Mobile.Game.SceneFlow
 {
     public sealed class SceneFlowService : ISceneFlowService
     {
-        private const float FadeDuration    = 0.25f;
+        // 2026-08-06: era 0.25f, il playtest lo ha segnalato troppo veloce per essere letto
+        // (schermo nero che sparisce quasi subito). Raddoppiato — resta ben sotto
+        // OverlayTimeoutMs per ogni singolo fade (in o out), quindi nessun rischio di
+        // scattare il warning di timeout.
+        private const float FadeDuration    = 0.5f;
         private const int OverlayTimeoutMs  = 1000;
 
         private readonly IGameStateMachine  _fsm;
@@ -289,6 +293,18 @@ namespace hp55games.Mobile.Game.SceneFlow
             }
 
             _isTransitioning = true;
+
+            // 2026-08-06: IUIOverlayService.BlockInput esisteva gia' (Blocker invisibile,
+            // raycastTarget) ma RunWithOverlay non lo chiamava mai — il fade nero, per
+            // design (vedi UIOverlayService.FadeInAsync: "_fadeCg.blocksRaycasts = false"),
+            // NON blocca input da solo, delega al Blocker. Risultato: durante fade-in →
+            // switch scena → fade-out era possibile continuare a interagire con la scena
+            // che sta per sparire (incluso HexTileTapController, che legge input grezzo —
+            // vedi InputService — ma ora rispetta EventSystem.IsPointerOverGameObject, che
+            // il Blocker soddisfa). Copre l'intera transizione, non solo action(): un tap
+            // durante il fade stesso (schermo ancora parzialmente visibile) non deve
+            // raggiungere ne' la vecchia ne' la nuova scena.
+            _overlay?.BlockInput(true);
             try
             {
                 if (_overlay != null) await SafeFadeInAsync();
@@ -307,6 +323,7 @@ namespace hp55games.Mobile.Game.SceneFlow
             }
             finally
             {
+                _overlay?.BlockInput(false);
                 _isTransitioning = false;
             }
         }

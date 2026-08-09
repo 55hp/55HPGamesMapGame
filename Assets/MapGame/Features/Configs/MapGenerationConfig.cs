@@ -1,7 +1,6 @@
 using System;
 using hp55games.Mobile.Core.Config;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace hp55games.MapGame.Features.Configs
 {
@@ -10,21 +9,6 @@ namespace hp55games.MapGame.Features.Configs
     {
         public int Distance;
         public int Weight;
-    }
-
-    /// <summary>
-    /// Valori placeholder di bilanciamento, non definitivi.
-    /// Oggi copre solo Goods (rifornimento Cibo, clampato a MaxFood a runtime).
-    /// </summary>
-    [Serializable]
-    public struct PlaceholderBalanceSettings
-    {
-        [Header("Goods — rifornimento Cibo")]
-        [FormerlySerializedAs("RisorsaHpRestoreMin")] public int GoodsFoodRestoreMin;
-        [FormerlySerializedAs("RisorsaHpRestoreMax")] public int GoodsFoodRestoreMax;
-
-        // Enemy non ha campi qui: danno e XP derivano dal DifficultyLevel della tile e
-        // sono applicati al reveal in HexGridController.
     }
 
     /// <summary>
@@ -52,21 +36,22 @@ namespace hp55games.MapGame.Features.Configs
     }
 
     /// <summary>
-    /// Parametri per il piazzamento degli EventCluster (forme dal catalogo) e delle
-    /// tessere singole via rejection sampling.
+    /// Parametri per il piazzamento degli EventCluster (generati proceduralmente a runtime
+    /// da LevelConfig.ClusterTileEntries, vedi AestheticClusterMapGenerator.TryBuildProceduralCluster)
+    /// e delle tessere singole via rejection sampling. I tipi EventClusterCatalog/
+    /// EventClusterShape restano nel progetto per lo Shape Editor ma non sono referenziati
+    /// dal generatore, che costruisce i cluster interamente a runtime. Nessun rapporto
+    /// cluster:singola qui: ogni tipo di cluster (Type+DifficultyLevel del centro) compare
+    /// al massimo una volta per mappa, e ogni tessera singola ha gia' il proprio Amount
+    /// esplicito su LevelConfig.SingleTileEntries — PlaceEventClusters piazza tutti i
+    /// cluster disponibili, poi tutte le singole del manifest, in due fasi separate
+    /// anziche' alternate.
     /// </summary>
     [Serializable]
     public struct EventClusterPlacementSettings
     {
-        [Tooltip("Trascina qui l'asset EventClusterCatalog con le forme disponibili.")]
-        public hp55games.MapGame.Features.Gameplay.HexGrid.EventClusterCatalog Catalog;
-
         [Tooltip("Tentativi consecutivi falliti prima di considerare la griglia piena e fermarsi.")]
         public int MaxConsecutiveFailures;
-
-        [Header("Rapporto cluster : singola (es. 2-3 cluster per ogni singola)")]
-        public int ClusterToSingleRatioMin;
-        public int ClusterToSingleRatioMax;
     }
 
     [CreateAssetMenu(menuName = "MapGame/Map Generation Config", fileName = "MapGenerationConfig")]
@@ -94,19 +79,10 @@ namespace hp55games.MapGame.Features.Configs
         [Min(0)] public int StartMinBorderDistance = 3;
         [Min(0)] public int ClusterMinDistanceFromStartEnd = 2;
 
-        [Header("Bilanciamento placeholder (NON valori finali)")]
-        public PlaceholderBalanceSettings PlaceholderBalance = new PlaceholderBalanceSettings
-        {
-            GoodsFoodRestoreMin  = 1, GoodsFoodRestoreMax  = 6,
-        };
-
         [Header("Piazzamento EventCluster e singole")]
         public EventClusterPlacementSettings EventClusters = new EventClusterPlacementSettings
         {
-            Catalog = null,
             MaxConsecutiveFailures = 200,
-            ClusterToSingleRatioMin = 2,
-            ClusterToSingleRatioMax = 3,
         };
 
         [Header("Rete Strada (PathCluster)")]
