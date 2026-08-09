@@ -93,9 +93,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// Colore del bordo (componente 1) da DifficultyLevel. Chiamabile per ogni tile
         /// indipendentemente da Exploration/Spotting: il DifficultyLevel è noto dalla
         /// generazione (vedi HexTileData.DifficultyLevel), non solo dopo il reveal — se il
-        /// bordo debba restare nascosto finche' la tile non e' Conosciuta/Scoperta e' una
-        /// decisione di visibilita' Editor (attiva/disattiva _border sul prefab), non di
-        /// questo metodo: qui si aggiorna solo il colore.
+        /// bordo debba restare nascosto finche' la tile non e' Conosciuta e' una decisione
+        /// di visibilita' Editor (attiva/disattiva _border sul prefab), non di questo
+        /// metodo: qui si aggiorna solo il colore. Una volta Scoperta, il bordo si
+        /// disattiva invece via Reveal (showAlpha) — vedi li'.
         /// </summary>
         public void SetDifficultyLevel(int difficultyLevel)
         {
@@ -118,12 +119,16 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// valutata dal chiamante (vero sempre per Scoperta, per Conosciuta solo quando il
         /// numero di vicini Scoperta raggiunge il DifficultyLevel della tile — vedi
         /// HexGridController.CountScopertaNeighbors e HexGridViewSpawner). showAlpha attiva
-        /// l'overlay "già giocata" (componente 3) — true solo per le tile Scoperta. Icona ed
+        /// l'overlay "già giocata" (componente 3) — true solo per le tile Scoperta — e per
+        /// lo stesso motivo disattiva il bordo (componente 1): una tile Scoperta ha gia'
+        /// mostrato il proprio DifficultyLevel, il bordo non serve piu' come hint. Icona ed
         /// etichetta restano nascoste singolarmente se GetIcon/GetLabel non hanno ancora
         /// un valore per quel tipo (nessuna HexTileConfig assegnata, o Label vuota).
         /// </summary>
         public void Reveal(TileType type, bool showIcon, bool showAlpha = false)
         {
+            _border?.gameObject.SetActive(!showAlpha);
+
             if (_visualConfig != null)
             {
                 bool show = showIcon;
@@ -133,6 +138,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     var icon = _visualConfig.GetIcon(type);
                     _icon.sprite = icon;
                     _icon.gameObject.SetActive(show && icon != null);
+
+                    bool isUndersizedTexture = icon != null && icon.texture != null
+                        && (icon.texture.name.Contains("rpg_") || icon.texture.name.Contains("void"));
+                    _icon.transform.localScale = isUndersizedTexture ? new Vector3(0.4f, 0.4f, 0.4f) : Vector3.one;
                 }
 
                 if (_iconLabel != null)

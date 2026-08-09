@@ -70,17 +70,16 @@ namespace hp55games.MapGame.Features.UI
         /// <summary>
         /// Apre un popup Addressable via IUIPopupService e lo configura. Comune a tutti gli
         /// handler sopra: solo l'address e il configure cambiano da un RevealEffect all'altro.
+        /// configure passa dentro OpenAsync stesso (non dopo) cosi' IUIPopupService lo
+        /// invoca mentre il popup e' ancora disattivato — vedi doc su
+        /// IUIPopupService.OpenAsync: nessun frame mostrato con i placeholder di Inspector
+        /// prima che i dati reali (es. UIPopup_Encounter._background) siano applicati.
         /// </summary>
         private async Task OpenPopupAsync<TPopup>(string address, Action<TPopup> configure) where TPopup : Component
         {
-            var popup = await _popupService.OpenAsync<TPopup>(address);
+            var popup = await _popupService.OpenAsync<TPopup>(address, configure);
             if (popup == null)
-            {
                 Debug.LogError($"[RevealEffectPopupDispatcher] Impossibile aprire {typeof(TPopup).Name} (address '{address}' non registrato o Addressables non buildate).");
-                return;
-            }
-
-            configure(popup);
         }
     }
 }
