@@ -1,0 +1,25 @@
+npc,offer,price,effect,once
+Hunter,Cacciagione,3,+3 HP,no
+Hunter,Attrezzi del Cacciatore,10,Trinket: traps do not trigger,no
+Hunter,Clue MiniBoss (1),5,clue,no
+Hunter,Clue MiniBoss (2),9,2 clues,no
+Smith,Potenziamento,5,+1 Attack permanent,yes
+Smith,Clue Inn (1),5,clue,no
+Smith,Clue Inn (2),9,2 clues,no
+Witch,Anello,8,Ring +2 Attack,no
+Witch,Lanterna,10,Trinket: shows type of one random adjacent never-shown tile,no
+Witch,Clue Hunter (1),5,clue,no
+Witch,Clue Hunter (2),9,2 clues,no
+Inn,Cura completa,5,full heal,no
+Inn,Clue Trader (1),5,clue,no
+Inn,Clue Trader (2),9,2 clues,no
+Inn,Clue MonstersNormal (1),5,clue,no
+Inn,Clue MonstersNormal (2),9,2 clues,no
+Trader,Arma L3,10,weapon L3,no
+Trader,Clues (TBD),?,target and prices OPEN (R-066),no
+Farmer,Cibo,3,+1 HP,no
+Farmer,Clue Bush (1),5,clue,no
+Farmer,Clue Bush (2),9,2 clues,no
+Villagers,Clue Fountain,5,clue,no
+Villagers,Clue Smith,5,clue,no
+Villagers,Clue Bush,5,clue,no

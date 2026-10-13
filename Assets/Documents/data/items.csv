@@ -1,0 +1,13 @@
+item,slot,attack_bonus,source
+Coltello,Weapon,1,start
+Arma L2,Weapon,2,ChestSimpleWeapon
+Arma L3,Weapon,3,Trader 10 coins
+Arma L4,Weapon,4,ChestSilver
+Arco del Cacciatore,Weapon,5,Hunter killed
+Martello del Fabbro,Weapon,5,Smith killed
+Bastone della Strega,Weapon,5,Witch killed
+Arma del mini-boss,Weapon,5,MiniBossWeapon
+Ammazzadraghi,Weapon,6,ChestGold
+Anello +2,Ring,2,Witch 8 coins
+Attrezzi del Cacciatore,Trinket,0,Hunter 10 coins
+Lanterna,Trinket,0,Witch 10 coins (shows type only)

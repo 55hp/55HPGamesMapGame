@@ -1,0 +1,7 @@
+mission_id,objective,target,start_clues
+hunt_witch,KillBoss,Witch,2
+hunt_hunter,KillBoss,Hunter,2
+hunt_smith,KillBoss,Smith,2
+hunt_inn,KillBoss,Inn,2
+hunt_trader,KillBoss,Trader,2
+hunt_miniboss,KillBoss,MiniBoss,2
