@@ -1,7 +1,5 @@
 using hp55games.Tools.HexDebugFramework.Editor;
-using hp55games.MapGame.Features.Configs;
 using UnityEditor;
-using UnityEngine;
 
 namespace hp55games.MapGame.Features.HexDebugAdapter.Editor
 {
@@ -22,39 +20,12 @@ namespace hp55games.MapGame.Features.HexDebugAdapter.Editor
             HexDebugSession.RegisterTopology(new MapGameHexTopology());
             HexDebugSession.PopulateStrategy = MapGameRegistryPopulator.Populate;
 
-            var config = LoadMapGenerationConfig();
-            var settings = config != null ? config.StradaNetwork : DefaultSettings();
-
-            HexDebugSession.RegisterAnalyzer(new PathClusterBudgetAnalyzer(settings));
-            HexDebugSession.RegisterAnalyzer(new NeutraSeparationAnalyzer());
-            HexDebugSession.RegisterAnalyzer(new EventClusterSpacingAnalyzer());
-            HexDebugSession.RegisterAnalyzer(new ReachabilityAnalyzer());
-            HexDebugSession.RegisterAnalyzer(new ClusterBudgetHeatmap(settings.MaxTotalTiles));
+            // v2 (spec 0012): gli analyzer basati su cluster/strade/reachability sono stati rimossi
+            // insieme a MapClusterGenerator: con il generatore a censimento e il click libero non hanno più senso.
 
             // BiomaConsistencyAnalyzer: non implementato.
             // HexTileData non ha proprietà Bioma: il Three-Axis Visual Model
             // (Bioma/Ambiente/Variante) è design-only in questa versione del progetto.
         }
-
-        private static MapGenerationConfig LoadMapGenerationConfig()
-        {
-            var guids = AssetDatabase.FindAssets("t:MapGenerationConfig");
-            if (guids.Length > 0)
-            {
-                var path = AssetDatabase.GUIDToAssetPath(guids[0]);
-                return AssetDatabase.LoadAssetAtPath<MapGenerationConfig>(path);
-            }
-
-            Debug.LogWarning("[HexDebug] MapGenerationConfig non trovata. Usando valori di default per i budget.");
-            return null;
-        }
-
-        private static StradaNetworkSettings DefaultSettings() => new StradaNetworkSettings
-        {
-            MinBranchLength = 3,
-            MaxBranchLength = 7,
-            MaxBranches     = 5,
-            MaxTotalTiles   = 15,
-        };
     }
 }
