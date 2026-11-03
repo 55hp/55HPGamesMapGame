@@ -12,7 +12,7 @@ namespace hp55games.MapGame.Features.Gameplay.Run
             {
                 case ContentKind.Start: return TileType.Start;
                 case ContentKind.Empty: return TileType.Empty;
-                case ContentKind.Boss:
+                case ContentKind.Boss: return TileType.Objective;
                 case ContentKind.Monster1:
                 case ContentKind.Monster2: return TileType.Enemy;
                 case ContentKind.MiniBossWeapon:

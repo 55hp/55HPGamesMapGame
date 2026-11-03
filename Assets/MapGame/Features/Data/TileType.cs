@@ -85,5 +85,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         Empty = 27,
         /// <summary>Tile di partenza v2.</summary>
         Start = 28,
+        /// <summary>Boss v2 (R-073): tile obiettivo, icona distinta dai mostri normali.</summary>
+        Objective = 29,
     }
 }

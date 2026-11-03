@@ -18,12 +18,20 @@ namespace hp55games.MapGame.Features.UI
         [Tooltip("Altezza di riferimento: l'interfaccia scala con lo schermo.")]
         [SerializeField] private float _referenceHeight = 1080f;
         [SerializeField] private int _logLines = 5;
+        [Tooltip("Camera che inquadra la griglia: serve per disegnare le etichette di righe e colonne.")]
+        [SerializeField] private Camera _camera;
 
         private HexGridController _grid;
+        private HexGridViewSpawner _spawner;
         private readonly List<string> _log = new List<string>();
-        private GUIStyle _box, _label, _button, _title, _small;
+        private GUIStyle _box, _label, _button, _title, _small, _lineLabel, _lineLabelUsed;
 
-        private void Awake() => _grid = GetComponent<HexGridController>();
+        private void Awake()
+        {
+            _grid = GetComponent<HexGridController>();
+            _spawner = GetComponent<HexGridViewSpawner>();
+            if (_camera == null) Debug.LogError("[RunPrototypeUI] _camera non assegnata: niente etichette di righe e colonne.", this);
+        }
         private void OnEnable()
         {
             _grid.RuleEventsRaised += OnEvents;
@@ -107,11 +115,50 @@ namespace hp55games.MapGame.Features.UI
             float w = Screen.width / scale, h = _referenceHeight;
             EnsureStyles();
 
+            DrawLineLabels(engine, scale);
             DrawHud(engine, w);
             var d = engine.CurrentDecision;
             if (d != null) DrawDecision(engine, d, w, h);
             else DrawLog(w, h);
             if (d == null && engine.State.Status != RunStatus.Playing) DrawEnd(engine, w, h);
+        }
+
+        /// <summary>Etichette 1–10 / A–J ai bordi della griglia, con il risultato dell'indizio se la linea è usata (05 §5).</summary>
+        private void DrawLineLabels(RulesEngine e, float scale)
+        {
+            if (_camera == null || _spawner == null) return;
+            int w = e.Config.Width, h = e.Config.Height;
+            Vector2 P(int col, int row)
+            {
+                var sp = _camera.WorldToScreenPoint(_spawner.GetWorldPosition(HexCoord.FromOffsetOddQ(col, row)));
+                return new Vector2(sp.x / scale, (Screen.height - sp.y) / scale);
+            }
+
+            Vector2 c00 = P(0, 0), c10 = P(1, 0), c01 = P(0, 1);
+            Vector2 colStep = c10 - c00, rowStep = c01 - c00;
+            for (int r = 0; r < h; r++)
+            {
+                var line = LineRef.Row(r);
+                Vector2 pos = P(0, r) - colStep * 1.1f;
+                DrawLabel(e, line, pos);
+            }
+            Vector2 colBase = c00 - rowStep * 1.0f;
+            for (int c = 0; c < w; c++)
+            {
+                var line = LineRef.Col(c);
+                Vector2 pos = new Vector2(P(c, 0).x, colBase.y);
+                DrawLabel(e, line, pos);
+            }
+        }
+
+        private void DrawLabel(RulesEngine e, LineRef line, Vector2 center)
+        {
+            string text = line.Label;
+            bool used = e.ClueResults.TryGetValue(line, out var res);
+            if (used) text += "\n" + Txt.ClueShort(res.target) + res.count;
+            var style = used ? _lineLabelUsed : _lineLabel;
+            var size = style.CalcSize(new GUIContent(text));
+            GUI.Label(new Rect(center.x - size.x / 2, center.y - size.y / 2, size.x, size.y), text, style);
         }
 
         private void DrawHud(RulesEngine e, float w)
@@ -230,6 +277,10 @@ namespace hp55games.MapGame.Features.UI
             _label = new GUIStyle(GUI.skin.label) { fontSize = 24, wordWrap = true };
             _small = new GUIStyle(GUI.skin.label) { fontSize = 20 };
             _button = new GUIStyle(GUI.skin.button) { fontSize = 24 };
+            _lineLabel = new GUIStyle(GUI.skin.label) { fontSize = 22, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
+            _lineLabel.normal.textColor = new Color(1f, 1f, 1f, 0.75f);
+            _lineLabelUsed = new GUIStyle(_lineLabel) { fontSize = 20 };
+            _lineLabelUsed.normal.textColor = new Color(1f, 0.85f, 0.3f, 1f);
         }
 
         // ---------------------------------------------------------------- testi provvisori
@@ -282,6 +333,25 @@ namespace hp55games.MapGame.Features.UI
                     case ClueTarget.Fountain: return "Fontana";
                     default: return t.ToString();
                 }
+            }
+
+            /// <summary>Sigla breve per le etichette di bordo.</summary>
+            public static string ClueShort(ClueTarget t)
+            {
+                switch (t)
+                {
+                    case ClueTarget.Boss: return "Bo";
+                    case ClueTarget.MiniBoss: return "MB";
+                    case ClueTarget.MonstersNormal: return "Mo";
+                    case ClueTarget.Witch: return "St";
+                    case ClueTarget.Hunter: return "Ca";
+                    case ClueTarget.Smith: return "Fa";
+                    case ClueTarget.Inn: return "Lo";
+                    case ClueTarget.Trader: return "Me";
+                    case ClueTarget.Bush: return "Ar";
+                    case ClueTarget.Fountain: return "Fo";
+                }
+                return "?";
             }
 
             public static string Item(string id)
