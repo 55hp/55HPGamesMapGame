@@ -39,3 +39,7 @@ Thumbs.db
 
 # Bezi AI plugin
 /Packages/com.bezi.sidekick/
+# RulesHarness (test regole fuori da Unity)
+Tools/RulesHarness/bin/
+Tools/RulesHarness/obj/
+Tools/RulesHarness/out/

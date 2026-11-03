@@ -1,0 +1,24 @@
+{
+    "name": "hp55games.MapGame.Rules.Tests",
+    "rootNamespace": "hp55games.MapGame.Rules.Tests",
+    "references": [
+        "hp55games.MapGame.Rules",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

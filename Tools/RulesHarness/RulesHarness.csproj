@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Test delle regole fuori da Unity: dotnet run, progetto Tools/RulesHarness
+    Usa la copia di NUnit inclusa da Unity (Library/PackageCache, si crea aprendo il progetto in Unity)
+    e un runner minimale (Runner.cs): nessun pacchetto NuGet.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <FrameworkPathOverride Condition="'$(OS)' != 'Windows_NT'">/usr/lib/mono/4.7.2-api</FrameworkPathOverride>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RestoreSources>$(MSBuildThisFileDirectory)</RestoreSources>
+    <NoWarn>$(NoWarn);MSB3270</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Runner.cs" />
+    <Compile Include="../../Assets/MapGame/Rules/**/*.cs" />
+    <Compile Include="../../Assets/Tests/EditMode/Rules/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="nunit.framework">
+      <HintPath>../../Library/PackageCache/com.unity.ext.nunit@1.0.6/net35/unity-custom/nunit.framework.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+</Project>
