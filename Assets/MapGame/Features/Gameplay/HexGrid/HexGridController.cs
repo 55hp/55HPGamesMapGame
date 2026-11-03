@@ -281,20 +281,5 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _context.HasKeyDL5 = s.HasGoldKey;
             _context.HasKeyDL6 = false;
         }
-
-        // ---------------------------------------------------------------- legacy (rimozione: spec 0012)
-
-        [Obsolete("v1: la fuga non esiste più (R-035).")] public bool CanFlee => false;
-        [Obsolete("v1: lo scambio si risolve al click (R-031).")] public bool ResolveEncounterFight() => false;
-        [Obsolete("v1: la fuga non esiste più (R-035).")] public bool ResolveEncounterFlee() => false;
-        [Obsolete("v1: lo shop è sostituito dagli NPC.")] public void ResolveTrade() { }
-        [Obsolete("v1: lo shop è sostituito dagli NPC.")] public bool TryBuyMaxHpUpgrade() => false;
-        [Obsolete("v1: lo shop è sostituito dagli NPC.")] public bool TryBuyFoodSlotUpgrade() => false;
-        [Obsolete("v1: lo shop è sostituito dagli NPC.")] public bool TryBuyHeal() => false;
-        [Obsolete("v1: lo shop è sostituito dagli NPC.")] public bool TryBuyFoodRefill() => false;
-        [Obsolete("v1")] public int CurrentMonete => _engine?.State.Coins ?? 0;
-        [Obsolete("v1")] public int CurrentMaxHp => _engine?.State.MaxHp ?? 0;
-        [Obsolete("v1")] public bool HasPendingEncounter => false;
-        [Obsolete("v1")] public HexTileData PendingEncounterTile => null;
     }
 }
