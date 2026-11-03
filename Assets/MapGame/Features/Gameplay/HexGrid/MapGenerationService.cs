@@ -21,14 +21,13 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     {
         public MapGenerationResult GenerateMap(MapGenerationConfig config, LevelConfig level, int seed)
         {
-            IMapGenerator generator = new MapClusterGenerator(
-                config.EndDistanceWeights,
-                config.StartMinBorderDistance,
-                config.ClusterMinDistanceFromStartEnd,
-                config.StradaNetwork,
-                config.EventClusters,
-                level);
-
+            // v2 (04 §4): generatore a censimento. MapClusterGenerator non è più istanziato (rimozione: spec 0012).
+            var rules = hp55games.MapGame.Rules.RulesConfigDefaults.Level1();
+            rules.StartMinBorderDistance = config.StartMinBorderDistance;
+            rules.EndDistanceWeights.Clear();
+            foreach (var w in config.EndDistanceWeights)
+                rules.EndDistanceWeights.Add(new hp55games.MapGame.Rules.DistanceWeight(w.Distance, w.Weight));
+            IMapGenerator generator = new hp55games.MapGame.Features.Gameplay.Run.CensusMapAdapter(rules);
             return generator.Generate(config.Width, config.Height, seed);
         }
     }

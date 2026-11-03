@@ -80,7 +80,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 bool tileExplored = tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted;
                 view.SetClickable(_grid.IsClickable(coord) || tileExplored);
                 view.SetDifficultyLevel(tile.DifficultyLevel);
-                if (tile.Spotting == SpottingState.Spotted)
+                if (tile.Spotting == SpottingState.Spotted || tile.TypeShown)
                     view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: tileExplored);
 
                 _views[coord] = view;
@@ -97,7 +97,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     bool tileExplored = tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted;
                     view.ApplyState(tile.Spotting);
                     view.SetClickable(_grid.IsClickable(kvp.Key) || tileExplored);
-                    if (tile.Spotting == SpottingState.Spotted)
+                    if (tile.Spotting == SpottingState.Spotted || tile.TypeShown)
                         view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: tileExplored);
                 }
             }
@@ -110,7 +110,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// </summary>
         private bool ShouldShowIcon(HexTileData tile)
         {
-            return tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted;
+            // v2: icona sulle tile scoperte e su quelle il cui tipo è stato svelato dalla Lanterna.
+            return (tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted) || tile.TypeShown;
         }
     }
 }

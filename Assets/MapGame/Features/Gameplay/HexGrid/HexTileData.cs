@@ -78,6 +78,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         /// </summary>
         public int DifficultyLevel;
 
+        /// <summary>v2: contenuto di regola della tile (Rules.ContentKind). Type ne è la traduzione per la vista.</summary>
+        public hp55games.MapGame.Rules.ContentKind Content;
+
+        /// <summary>v2: indice della tile nel motore di regole (row * width + col).</summary>
+        public int RulesIndex = -1;
+
+        /// <summary>v2: tipo svelato dalla Lanterna senza scoprire la tile (03 §6).</summary>
+        public bool TypeShown;
+
         public HexTileData(HexCoord coord)
         {
             Coord = coord;

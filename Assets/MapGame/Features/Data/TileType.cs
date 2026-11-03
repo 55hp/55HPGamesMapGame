@@ -73,6 +73,17 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         Inn = 18,
         Witch = 19,
         Farmer = 20,
-        Hunter = 21
+        Hunter = 21,
+
+        // v2 (D-022): valori aggiunti in coda, mai rinumerare. Varianti fini in Rules.ContentKind.
+        MiniBoss = 22,
+        Smith = 23,
+        Villagers = 24,
+        ChestSilver = 25,
+        ChestGold = 26,
+        /// <summary>Vuota v2 (R-005): scoperta dall'inizio, nessun effetto. Distinta da Void legacy.</summary>
+        Empty = 27,
+        /// <summary>Tile di partenza v2.</summary>
+        Start = 28,
     }
 }
