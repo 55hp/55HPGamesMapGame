@@ -139,7 +139,8 @@ namespace hp55games.MapGame.Features.UI
             for (int r = 0; r < h; r++)
             {
                 var line = LineRef.Row(r);
-                Vector2 pos = P(0, r) - colStep * 1.1f;
+                // Solo lo spostamento orizzontale: le colonne dispari sono sfalsate di mezza cella in verticale.
+                Vector2 pos = P(0, r) - new Vector2(colStep.x * 1.1f, 0f);
                 DrawLabel(e, line, pos);
             }
             Vector2 colBase = c00 - rowStep * 1.0f;
