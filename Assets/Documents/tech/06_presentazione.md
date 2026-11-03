@@ -28,7 +28,7 @@ Barra superiore: HP (attuali/max), Attacco, monete, XP con barra verso il prossi
 | Indizio | quando si ottiene un indizio | testo narrativo + invito a toccare l'intestazione di una riga/colonna libera; in catena se sono due. Il pulsante HUD "Indizi" apre l'elenco di quelli già usati. |
 | Fine partita | vittoria / sconfitta / Boss fuggito | titolo, motivo, riepilogo (XP, livello, monete), "Nuova partita". |
 
-Gli esiti passano da `IUIPopupService` e chiavi Addressables esistenti (`hp55games.Addr`): riusare `Popup_Encounter` per l'esito incontro e `Popup_Shop` come base del pop-up NPC; le chiavi nuove le aggiunge Bezi.
+**[D-034]** La UI della partita v2 sta tutta nel prefab `UIRunHUD` (sotto `UIRoot.hud`): HUD, pannello delle scelte (NPC, level up, oggetto, indizio), etichette di bordo 1–10 / A–J cliccabili per posare gli indizi, registro eventi, esito. Codice in `Features/UI/Run/` (`RunUiRoot` e viste); la partita è esposta da `RunSession` (`IRunSession`, ServiceRegistry). Testi con chiavi `run.*` in `Resources/Localization/localization_master.txt`. `Popup_Encounter` e `Popup_Shop` non si usano più (rimozione: spec 0012). Righe numerate 1–10 dall'alto.
 
 ## 5. Feedback
 

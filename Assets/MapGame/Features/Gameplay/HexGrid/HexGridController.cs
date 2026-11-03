@@ -132,6 +132,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             _seed = _context != null && _context.CurrentRunSeed != 0 ? _context.CurrentRunSeed : fallbackSeed;
 
             _engine = new RulesEngine(_rules, unchecked((ulong)_seed));
+            IsAwaitingEndConfirm = false;
             if (!_engine.Layout.Success)
             {
                 Debug.LogError("[HexGridController] Generazione mappa fallita: " + _engine.Layout.FailureReason, this);
@@ -249,12 +250,22 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (hp) _bus?.Publish(new HpChangedEvent());
             if (coins) _bus?.Publish(new ScoreChangedEvent());
             if (keys) _bus?.Publish(new KeysChangedEvent());
-            if (won)
-            {
-                _feedbackService?.Play("victory");
-                _bus?.Publish(new PlayerVictoryEvent());
-            }
-            if (lost) _bus?.Publish(new PlayerDeathEvent());
+            if (won) _feedbackService?.Play("victory");
+            // L'esito resta a schermo finché la UI non chiama ConfirmEnd: GameplayState passa subito ai risultati
+            // appena riceve questi eventi.
+            if (won || lost) IsAwaitingEndConfirm = true;
+        }
+
+        /// <summary>Partita finita, esito mostrato, in attesa di ConfirmEnd.</summary>
+        public bool IsAwaitingEndConfirm { get; private set; }
+
+        /// <summary>Pubblica vittoria o sconfitta: GameplayState passa alla schermata dei risultati.</summary>
+        public void ConfirmEnd()
+        {
+            if (!IsAwaitingEndConfirm || _engine == null) return;
+            IsAwaitingEndConfirm = false;
+            if (_engine.State.Status == RunStatus.Won) _bus?.Publish(new PlayerVictoryEvent());
+            else _bus?.Publish(new PlayerDeathEvent());
         }
 
         /// <summary>Specchia RunState nei campi legacy letti da HUD e pagina risultati.</summary>

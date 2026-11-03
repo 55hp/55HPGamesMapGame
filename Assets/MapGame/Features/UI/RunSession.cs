@@ -1,24 +1,26 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using hp55games.MapGame.Features.Gameplay.HexGrid;
+using hp55games.MapGame.Features.Gameplay.Run;
 using hp55games.MapGame.Rules;
+using hp55games.Mobile.Core.Architecture;
 using UnityEngine;
 
 namespace hp55games.MapGame.Features.UI
 {
     /// <summary>
-    /// UI di PROTOTIPO v2 (IMGUI): HUD, decisioni (NPC, level up, indizi, oggetti), indizi usati e
-    /// registro degli eventi. Serve a giocare e bilanciare prima che esistano i prefab della spec 0006.
-    /// Eccezione consapevole alle regole 10 (testi hardcoded, niente TMP): va rimossa quando
-    /// HUD e pop-up v2 sono su prefab. Si aggiunge allo stesso GameObject di HexGridController.
+    /// Servizio della partita per la UI (IRunSession), sullo stesso GameObject di HexGridController.
+    /// Se nessuna UI definitiva (IRunHud, prefab UIRunHUD) è attiva, disegna la UI di prototipo IMGUI:
+    /// eccezione consapevole alla regola 10, resta solo come ripiego.
     /// </summary>
     [RequireComponent(typeof(HexGridController))]
-    public sealed class RunPrototypeUI : MonoBehaviour
+    public sealed class RunSession : MonoBehaviour, IRunSession
     {
-        [Tooltip("Altezza di riferimento: l'interfaccia scala con lo schermo.")]
+        [Tooltip("Altezza di riferimento: l'interfaccia di prototipo scala con lo schermo.")]
         [SerializeField] private float _referenceHeight = 1080f;
         [SerializeField] private int _logLines = 5;
-        [Tooltip("Camera che inquadra la griglia: serve per disegnare le etichette di righe e colonne.")]
+        [Tooltip("Camera che inquadra la griglia: serve per le etichette di righe e colonne.")]
         [SerializeField] private Camera _camera;
 
         private HexGridController _grid;
@@ -30,8 +32,31 @@ namespace hp55games.MapGame.Features.UI
         {
             _grid = GetComponent<HexGridController>();
             _spawner = GetComponent<HexGridViewSpawner>();
-            if (_camera == null) Debug.LogError("[RunPrototypeUI] _camera non assegnata: niente etichette di righe e colonne.", this);
+            if (_camera == null) Debug.LogError("[RunSession] _camera non assegnata: niente etichette di righe e colonne.", this);
+            ServiceRegistry.Register<IRunSession>(this);
         }
+
+        // ---------------------------------------------------------------- IRunSession
+
+        public RulesEngine Engine => _grid != null ? _grid.Engine : null;
+        public event Action<IReadOnlyList<RuleEvent>> RuleEventsRaised;
+        public event Action SessionStarted;
+        public bool Submit(string optionId) => _grid.Submit(optionId);
+        public bool IsAwaitingEndConfirm => _grid.IsAwaitingEndConfirm;
+        public void ConfirmEnd() => _grid.ConfirmEnd();
+        public void BlockBoardInput() => _grid.InputBlockedUntilFrame = Time.frameCount + 3;
+
+        public bool TryGetScreenPoint(int col, int row, out Vector2 screenPoint)
+        {
+            screenPoint = default;
+            if (_camera == null || _spawner == null) return false;
+            var p = _camera.WorldToScreenPoint(_spawner.GetWorldPosition(HexCoord.FromOffsetOddQ(col, row)));
+            screenPoint = new Vector2(p.x, p.y);
+            return true;
+        }
+
+        private bool HasFinalHud =>
+            ServiceRegistry.TryResolve(out IRunHud hud) && hud is MonoBehaviour mb && mb != null && mb.isActiveAndEnabled;
         private void OnEnable()
         {
             _grid.RuleEventsRaised += OnEvents;
@@ -44,13 +69,17 @@ namespace hp55games.MapGame.Features.UI
             _grid.GridInitialized -= OnGridInitialized;
         }
 
-        private void OnGridInitialized() => _log.Clear();
+        private void OnGridInitialized()
+        {
+            _log.Clear();
+            SessionStarted?.Invoke();
+        }
 
         private void Update()
         {
             // Mentre c'è una scelta i tocchi servono ai pulsanti, non alla griglia; dopo un clic su un pulsante
             // si lascia un margine di qualche frame perché il rilascio non scopra la tile sotto.
-            if (_grid.CurrentDecision != null) _grid.InputBlockedUntilFrame = Time.frameCount + 3;
+            if (_grid.CurrentDecision != null && !HasFinalHud) _grid.InputBlockedUntilFrame = Time.frameCount + 3;
         }
 
         private bool LayoutButton(string text, params GUILayoutOption[] opts)
@@ -64,6 +93,7 @@ namespace hp55games.MapGame.Features.UI
 
         private void OnEvents(IReadOnlyList<RuleEvent> events)
         {
+            RuleEventsRaised?.Invoke(events);
             foreach (var e in events)
             {
                 string line = Describe(e);
@@ -85,7 +115,7 @@ namespace hp55games.MapGame.Features.UI
                 case RuleEventType.Healed: return $"+{e.Amount} HP.";
                 case RuleEventType.CoinsGained: return $"+{e.Amount} monete.";
                 case RuleEventType.XpGained: return $"+{e.Amount} XP.";
-                case RuleEventType.LineCompleted: return $"Linea {e.Line.Label} completata.";
+                case RuleEventType.LineCompleted: return $"Linea {e.Line.Label(_grid.Engine.Config.Height)} completata.";
                 case RuleEventType.LevelUp: return $"Livello {e.Amount}!";
                 case RuleEventType.ItemEquipped: return $"Equipaggiato: {Txt.Item(e.ItemId)}.";
                 case RuleEventType.ItemDiscarded: return $"Perso: {Txt.Item(e.ItemId)}.";
@@ -95,7 +125,7 @@ namespace hp55games.MapGame.Features.UI
                 case RuleEventType.NpcKilled: return $"{Txt.Kind(e.Kind)} ucciso.";
                 case RuleEventType.NpcFled: return $"{Txt.Kind(e.Kind)} fugge: -{e.Amount} HP.";
                 case RuleEventType.OfferBought: return $"Acquistato: {Txt.Offer(e.OfferId)} (-{e.Amount} monete).";
-                case RuleEventType.ClueUsed: return $"Indizio {Txt.Clue(e.ClueTarget)} su {e.Line.Label}: {e.Amount}.";
+                case RuleEventType.ClueUsed: return $"Indizio {Txt.Clue(e.ClueTarget)} su {e.Line.Label(_grid.Engine.Config.Height)}: {e.Amount}.";
                 case RuleEventType.ClueLost: return "Indizio perso: nessuna linea libera.";
                 case RuleEventType.TileTypeShown: return $"La Lanterna rivela: {Txt.Kind(e.Kind)}.";
                 case RuleEventType.GameWon: return "VITTORIA! Il Boss è sconfitto.";
@@ -109,7 +139,7 @@ namespace hp55games.MapGame.Features.UI
         private void OnGUI()
         {
             var engine = _grid.Engine;
-            if (engine == null || !engine.Layout.Success) return;
+            if (engine == null || !engine.Layout.Success || HasFinalHud) return;
             float scale = Screen.height / _referenceHeight;
             GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
             float w = Screen.width / scale, h = _referenceHeight;
@@ -154,7 +184,7 @@ namespace hp55games.MapGame.Features.UI
 
         private void DrawLabel(RulesEngine e, LineRef line, Vector2 center)
         {
-            string text = line.Label;
+            string text = line.Label(e.Config.Height);
             bool used = e.ClueResults.TryGetValue(line, out var res);
             if (used) text += "\n" + Txt.ClueShort(res.target) + res.count;
             var style = used ? _lineLabelUsed : _lineLabel;
@@ -178,7 +208,7 @@ namespace hp55games.MapGame.Features.UI
                 foreach (var kv in e.ClueResults)
                 {
                     if (!first) sb.Append(" · ");
-                    sb.Append($"{kv.Key.Label} {Txt.Clue(kv.Value.target)} {kv.Value.count}");
+                    sb.Append($"{kv.Key.Label(e.Config.Height)} {Txt.Clue(kv.Value.target)} {kv.Value.count}");
                     first = false;
                 }
             }
@@ -228,7 +258,7 @@ namespace hp55games.MapGame.Features.UI
                 var line = rows ? LineRef.Row(i) : LineRef.Col(i);
                 var opt = d.Find(OptionIds.Line(line));
                 GUI.enabled = opt != null;
-                if (LayoutButton(line.Label, GUILayout.Width(58), GUILayout.Height(58)) && opt != null) _grid.Submit(opt.Id);
+                if (LayoutButton(line.Label(_grid.Engine.Config.Height), GUILayout.Width(58), GUILayout.Height(58)) && opt != null) _grid.Submit(opt.Id);
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
@@ -267,7 +297,12 @@ namespace hp55games.MapGame.Features.UI
         {
             var s = e.State;
             string t = s.Status == RunStatus.Won ? "VITTORIA" : s.LossReason == LossReason.BossFled ? "SCONFITTA — il Boss è fuggito" : "SCONFITTA";
-            GUI.Box(new Rect((w - 620) / 2, h - 380, 620, 150), $"{t}\nLivello {s.Level} · Monete {s.Coins} · Attacco {s.Attack}", _title);
+            GUI.Box(new Rect((w - 620) / 2, h - 380, 620, 220), $"{t}\nLivello {s.Level} · Monete {s.Coins} · Attacco {s.Attack}", _title);
+            if (_grid.IsAwaitingEndConfirm && GUI.Button(new Rect((w - 300) / 2, h - 240, 300, 64), "Continua", _button))
+            {
+                _grid.InputBlockedUntilFrame = Time.frameCount + 3;
+                _grid.ConfirmEnd();
+            }
         }
 
         private void EnsureStyles()

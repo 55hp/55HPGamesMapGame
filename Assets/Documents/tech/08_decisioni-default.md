@@ -35,6 +35,9 @@ Ultima revisione di Franci: 13/10/2026.
 | D-026 | Scelta della missione | a caso dal seed a ogni nuova partita | confermata |
 | D-027 | Prezzi NPC e bonus monete | prezzi come da pagina NPC; **due indizi insieme = 9 per tutti**; bonus monete per evento di guadagno | confermata |
 
+| D-033 | Boss e mascheramento | Boss al **livello 5**, non più unico al 6 | Franci 03/11/2026; bot Greedy 48% → 38,5% (il bot non usa gli indizi) |
+| D-034 | Orientamento e UI definitiva | **portrait**; HUD, scelte, etichette di bordo ed esito nel prefab `UIRunHUD` istanziato da `MapGameGameplayHudService` sotto `UIRoot.hud`; niente pop-up Addressables per la partita v2 | Franci 03/11/2026 (portrait); struttura scelta da Athena |
+
 ## Aperte (Athena, sessione delegata 03/11/2026: implementate, da rivedere da Franci)
 
 | ID | Tema | Decisione | Motivo |

@@ -133,3 +133,149 @@ tutorial.swipe_to_move	Swipe to move	Scorri per muoverti	Desliza para moverte	Gl
 tutorial.hold_to_attack	Hold to attack	Tieni premuto per attaccare	Mantén para atacar	Maintenez pour attaquer	Halten zum Angreifen	ホールドで攻撃	길게 눌러 공격	长按攻击	Mantenha para atacar
 tutorial.collect_coins	Collect coins	Raccogli le monete	Recoge monedas	Ramasse les pièces	Münzen sammeln	コインを集めよう	코인을 모으세요	收集金币	Colete moedas
 tutorial.avoid_enemies	Avoid enemies	Evita i nemici	Evita a los enemigos	Évite les ennemis	Gegner vermeiden	敵を避けよう	적을 피하세요	躲避敌人	Evite inimigos
+
+run.content.start	Start	Partenza	Start	Start	Start	Start	Start	Start	Start
+run.content.empty	Empty	Vuota	Empty	Empty	Empty	Empty	Empty	Empty	Empty
+run.content.boss	Boss	Boss	Boss	Boss	Boss	Boss	Boss	Boss	Boss
+run.content.mini_boss_weapon	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss
+run.content.mini_boss_silver_key	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss
+run.content.mini_boss_gold_key	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss
+run.content.mini_boss_coins	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss
+run.content.monster1	Small monster	Piccolo mostro	Small monster	Small monster	Small monster	Small monster	Small monster	Small monster	Small monster
+run.content.monster2	Monster	Mostro	Monster	Monster	Monster	Monster	Monster	Monster	Monster
+run.content.trap1	Trap	Trappola	Trap	Trap	Trap	Trap	Trap	Trap	Trap
+run.content.trap2	Trap	Trappola	Trap	Trap	Trap	Trap	Trap	Trap	Trap
+run.content.bush	Bush	Arbusto	Bush	Bush	Bush	Bush	Bush	Bush	Bush
+run.content.chest_simple_berries	Chest	Forziere	Chest	Chest	Chest	Chest	Chest	Chest	Chest
+run.content.chest_simple_weapon	Chest	Forziere	Chest	Chest	Chest	Chest	Chest	Chest	Chest
+run.content.chest_simple_coins	Chest	Forziere	Chest	Chest	Chest	Chest	Chest	Chest	Chest
+run.content.chest_silver	Silver chest	Forziere d'argento	Silver chest	Silver chest	Silver chest	Silver chest	Silver chest	Silver chest	Silver chest
+run.content.chest_gold	Gold chest	Forziere d'oro	Gold chest	Gold chest	Gold chest	Gold chest	Gold chest	Gold chest	Gold chest
+run.content.fountain	Fountain	Fontana	Fountain	Fountain	Fountain	Fountain	Fountain	Fountain	Fountain
+run.content.witch	Witch	Strega	Witch	Witch	Witch	Witch	Witch	Witch	Witch
+run.content.hunter	Hunter	Cacciatore	Hunter	Hunter	Hunter	Hunter	Hunter	Hunter	Hunter
+run.content.smith	Blacksmith	Fabbro	Blacksmith	Blacksmith	Blacksmith	Blacksmith	Blacksmith	Blacksmith	Blacksmith
+run.content.inn	Inn	Locanda	Inn	Inn	Inn	Inn	Inn	Inn	Inn
+run.content.trader	Merchant	Mercante	Merchant	Merchant	Merchant	Merchant	Merchant	Merchant	Merchant
+run.content.farmer	Farmer	Contadino	Farmer	Farmer	Farmer	Farmer	Farmer	Farmer	Farmer
+run.content.villagers	Villagers	Paesani	Villagers	Villagers	Villagers	Villagers	Villagers	Villagers	Villagers
+run.item.none	—	—	—	—	—	—	—	—	—
+run.item.knife	Knife (+1)	Coltello (+1)	Knife (+1)	Knife (+1)	Knife (+1)	Knife (+1)	Knife (+1)	Knife (+1)	Knife (+1)
+run.item.weapon_l2	Short sword (+2)	Spada corta (+2)	Short sword (+2)	Short sword (+2)	Short sword (+2)	Short sword (+2)	Short sword (+2)	Short sword (+2)	Short sword (+2)
+run.item.weapon_l3	Sword (+3)	Spada (+3)	Sword (+3)	Sword (+3)	Sword (+3)	Sword (+3)	Sword (+3)	Sword (+3)	Sword (+3)
+run.item.weapon_l4	Silver sword (+4)	Spada d'argento (+4)	Silver sword (+4)	Silver sword (+4)	Silver sword (+4)	Silver sword (+4)	Silver sword (+4)	Silver sword (+4)	Silver sword (+4)
+run.item.hunter_bow	Hunter's bow (+5)	Arco del Cacciatore (+5)	Hunter's bow (+5)	Hunter's bow (+5)	Hunter's bow (+5)	Hunter's bow (+5)	Hunter's bow (+5)	Hunter's bow (+5)	Hunter's bow (+5)
+run.item.smith_hammer	Smith's hammer (+5)	Martello del Fabbro (+5)	Smith's hammer (+5)	Smith's hammer (+5)	Smith's hammer (+5)	Smith's hammer (+5)	Smith's hammer (+5)	Smith's hammer (+5)	Smith's hammer (+5)
+run.item.witch_staff	Witch's staff (+5)	Bastone della Strega (+5)	Witch's staff (+5)	Witch's staff (+5)	Witch's staff (+5)	Witch's staff (+5)	Witch's staff (+5)	Witch's staff (+5)	Witch's staff (+5)
+run.item.miniboss_weapon	Champion's axe (+5)	Ascia del Campione (+5)	Champion's axe (+5)	Champion's axe (+5)	Champion's axe (+5)	Champion's axe (+5)	Champion's axe (+5)	Champion's axe (+5)	Champion's axe (+5)
+run.item.dragonslayer	Dragonslayer (+6)	Ammazzadraghi (+6)	Dragonslayer (+6)	Dragonslayer (+6)	Dragonslayer (+6)	Dragonslayer (+6)	Dragonslayer (+6)	Dragonslayer (+6)	Dragonslayer (+6)
+run.item.ring_2	Ring (+2)	Anello (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)
+run.item.hunter_tools	Hunter's tools	Attrezzi del Cacciatore	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools
+run.item.lantern	Lantern	Lanterna	Lantern	Lantern	Lantern	Lantern	Lantern	Lantern	Lantern
+run.offer.hunter_game	Game meat (+3 HP)	Cacciagione (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)
+run.offer.hunter_tools	Hunter's tools (traps don't trigger)	Attrezzi del Cacciatore (le trappole non scattano)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)
+run.offer.hunter_clue_1	1 clue: Mini-boss	1 indizio: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss
+run.offer.hunter_clue_2	2 clues: Mini-boss	2 indizi: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss
+run.offer.smith_upgrade	Upgrade (+1 Attack, once)	Potenziamento (+1 Attacco, una volta)	Upgrade (+1 Attack, once)	Upgrade (+1 Attack, once)	Upgrade (+1 Attack, once)	Upgrade (+1 Attack, once)	Upgrade (+1 Attack, once)	Upgrade (+1 Attack, once)	Upgrade (+1 Attack, once)
+run.offer.smith_clue_1	1 clue: Inn	1 indizio: Locanda	1 clue: Inn	1 clue: Inn	1 clue: Inn	1 clue: Inn	1 clue: Inn	1 clue: Inn	1 clue: Inn
+run.offer.smith_clue_2	2 clues: Inn	2 indizi: Locanda	2 clues: Inn	2 clues: Inn	2 clues: Inn	2 clues: Inn	2 clues: Inn	2 clues: Inn	2 clues: Inn
+run.offer.witch_ring	Ring (+2 Attack)	Anello (+2 Attacco)	Ring (+2 Attack)	Ring (+2 Attack)	Ring (+2 Attack)	Ring (+2 Attack)	Ring (+2 Attack)	Ring (+2 Attack)	Ring (+2 Attack)
+run.offer.witch_lantern	Lantern (reveals nearby tiles)	Lanterna (svela le tile vicine)	Lantern (reveals nearby tiles)	Lantern (reveals nearby tiles)	Lantern (reveals nearby tiles)	Lantern (reveals nearby tiles)	Lantern (reveals nearby tiles)	Lantern (reveals nearby tiles)	Lantern (reveals nearby tiles)
+run.offer.witch_clue_1	1 clue: Hunter	1 indizio: Cacciatore	1 clue: Hunter	1 clue: Hunter	1 clue: Hunter	1 clue: Hunter	1 clue: Hunter	1 clue: Hunter	1 clue: Hunter
+run.offer.witch_clue_2	2 clues: Hunter	2 indizi: Cacciatore	2 clues: Hunter	2 clues: Hunter	2 clues: Hunter	2 clues: Hunter	2 clues: Hunter	2 clues: Hunter	2 clues: Hunter
+run.offer.inn_rest	Rest (full heal)	Riposo (cura completa)	Rest (full heal)	Rest (full heal)	Rest (full heal)	Rest (full heal)	Rest (full heal)	Rest (full heal)	Rest (full heal)
+run.offer.inn_clue_trader_1	1 clue: Merchant	1 indizio: Mercante	1 clue: Merchant	1 clue: Merchant	1 clue: Merchant	1 clue: Merchant	1 clue: Merchant	1 clue: Merchant	1 clue: Merchant
+run.offer.inn_clue_trader_2	2 clues: Merchant	2 indizi: Mercante	2 clues: Merchant	2 clues: Merchant	2 clues: Merchant	2 clues: Merchant	2 clues: Merchant	2 clues: Merchant	2 clues: Merchant
+run.offer.inn_clue_monsters_1	1 clue: Monsters	1 indizio: Mostri	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters
+run.offer.inn_clue_monsters_2	2 clues: Monsters	2 indizi: Mostri	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters
+run.offer.trader_weapon	Sword (+3 Attack)	Spada (+3 Attacco)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)
+run.offer.trader_clue_boss_1	1 clue: Boss	1 indizio: Boss	1 clue: Boss	1 clue: Boss	1 clue: Boss	1 clue: Boss	1 clue: Boss	1 clue: Boss	1 clue: Boss
+run.offer.trader_clue_boss_2	2 clues: Boss	2 indizi: Boss	2 clues: Boss	2 clues: Boss	2 clues: Boss	2 clues: Boss	2 clues: Boss	2 clues: Boss	2 clues: Boss
+run.offer.farmer_food	Food (+1 HP)	Cibo (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)
+run.offer.farmer_clue_1	1 clue: Bushes	1 indizio: Arbusti	1 clue: Bushes	1 clue: Bushes	1 clue: Bushes	1 clue: Bushes	1 clue: Bushes	1 clue: Bushes	1 clue: Bushes
+run.offer.farmer_clue_2	2 clues: Bushes	2 indizi: Arbusti	2 clues: Bushes	2 clues: Bushes	2 clues: Bushes	2 clues: Bushes	2 clues: Bushes	2 clues: Bushes	2 clues: Bushes
+run.offer.villagers_clue_fountain	Clue: Fountain	Indizio: Fontana	Clue: Fountain	Clue: Fountain	Clue: Fountain	Clue: Fountain	Clue: Fountain	Clue: Fountain	Clue: Fountain
+run.offer.villagers_clue_smith	Clue: Blacksmith	Indizio: Fabbro	Clue: Blacksmith	Clue: Blacksmith	Clue: Blacksmith	Clue: Blacksmith	Clue: Blacksmith	Clue: Blacksmith	Clue: Blacksmith
+run.offer.villagers_clue_bush	Clue: Bushes	Indizio: Arbusti	Clue: Bushes	Clue: Bushes	Clue: Bushes	Clue: Bushes	Clue: Bushes	Clue: Bushes	Clue: Bushes
+run.clue.boss	Boss	Boss	Boss	Boss	Boss	Boss	Boss	Boss	Boss
+run.clue.mini_boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss	Mini-boss
+run.clue.monsters_normal	Monsters	Mostri	Monsters	Monsters	Monsters	Monsters	Monsters	Monsters	Monsters
+run.clue.witch	Witch	Strega	Witch	Witch	Witch	Witch	Witch	Witch	Witch
+run.clue.hunter	Hunter	Cacciatore	Hunter	Hunter	Hunter	Hunter	Hunter	Hunter	Hunter
+run.clue.smith	Blacksmith	Fabbro	Blacksmith	Blacksmith	Blacksmith	Blacksmith	Blacksmith	Blacksmith	Blacksmith
+run.clue.inn	Inn	Locanda	Inn	Inn	Inn	Inn	Inn	Inn	Inn
+run.clue.trader	Merchant	Mercante	Merchant	Merchant	Merchant	Merchant	Merchant	Merchant	Merchant
+run.clue.bush	Bushes	Arbusti	Bushes	Bushes	Bushes	Bushes	Bushes	Bushes	Bushes
+run.clue.fountain	Fountain	Fontana	Fountain	Fountain	Fountain	Fountain	Fountain	Fountain	Fountain
+run.clue_short.boss	Bo	Bo	Bo	Bo	Bo	Bo	Bo	Bo	Bo
+run.clue_short.mini_boss	MB	MB	MB	MB	MB	MB	MB	MB	MB
+run.clue_short.monsters_normal	Mo	Mo	Mo	Mo	Mo	Mo	Mo	Mo	Mo
+run.clue_short.witch	Wi	St	Wi	Wi	Wi	Wi	Wi	Wi	Wi
+run.clue_short.hunter	Hu	Ca	Hu	Hu	Hu	Hu	Hu	Hu	Hu
+run.clue_short.smith	Bs	Fa	Bs	Bs	Bs	Bs	Bs	Bs	Bs
+run.clue_short.inn	In	Lo	In	In	In	In	In	In	In
+run.clue_short.trader	Me	Me	Me	Me	Me	Me	Me	Me	Me
+run.clue_short.bush	Bu	Ar	Bu	Bu	Bu	Bu	Bu	Bu	Bu
+run.clue_short.fountain	Fo	Fo	Fo	Fo	Fo	Fo	Fo	Fo	Fo
+run.mission.hunt_witch	Hunt: the Witch knows the way	Caccia: la Strega conosce la strada	Hunt: the Witch knows the way	Hunt: the Witch knows the way	Hunt: the Witch knows the way	Hunt: the Witch knows the way	Hunt: the Witch knows the way	Hunt: the Witch knows the way	Hunt: the Witch knows the way
+run.mission.hunt_hunter	Hunt: follow the Hunter	Caccia: segui il Cacciatore	Hunt: follow the Hunter	Hunt: follow the Hunter	Hunt: follow the Hunter	Hunt: follow the Hunter	Hunt: follow the Hunter	Hunt: follow the Hunter	Hunt: follow the Hunter
+run.mission.hunt_smith	Hunt: arm yourself at the Blacksmith	Caccia: armati dal Fabbro	Hunt: arm yourself at the Blacksmith	Hunt: arm yourself at the Blacksmith	Hunt: arm yourself at the Blacksmith	Hunt: arm yourself at the Blacksmith	Hunt: arm yourself at the Blacksmith	Hunt: arm yourself at the Blacksmith	Hunt: arm yourself at the Blacksmith
+run.mission.hunt_inn	Hunt: rumours from the Inn	Caccia: voci dalla Locanda	Hunt: rumours from the Inn	Hunt: rumours from the Inn	Hunt: rumours from the Inn	Hunt: rumours from the Inn	Hunt: rumours from the Inn	Hunt: rumours from the Inn	Hunt: rumours from the Inn
+run.mission.hunt_trader	Hunt: the Merchant's map	Caccia: la mappa del Mercante	Hunt: the Merchant's map	Hunt: the Merchant's map	Hunt: the Merchant's map	Hunt: the Merchant's map	Hunt: the Merchant's map	Hunt: the Merchant's map	Hunt: the Merchant's map
+run.mission.hunt_miniboss	Hunt: the Boss's lieutenants	Caccia: i luogotenenti del Boss	Hunt: the Boss's lieutenants	Hunt: the Boss's lieutenants	Hunt: the Boss's lieutenants	Hunt: the Boss's lieutenants	Hunt: the Boss's lieutenants	Hunt: the Boss's lieutenants	Hunt: the Boss's lieutenants
+run.hud.hp	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}
+run.hud.attack	ATK {0}	ATT {0}	ATK {0}	ATK {0}	ATK {0}	ATK {0}	ATK {0}	ATK {0}	ATK {0}
+run.hud.coins	{0}	{0}	{0}	{0}	{0}	{0}	{0}	{0}	{0}
+run.hud.level	Lv {0}	Liv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}
+run.hud.xp	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}
+run.hud.coin_bonus	+{0} coins per gain	+{0} monete per guadagno	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain
+run.hud.goal	Goal: defeat the Boss (Defense {0})	Obiettivo: sconfiggi il Boss (Difesa {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})
+run.hud.weapon	Weapon	Arma	Weapon	Weapon	Weapon	Weapon	Weapon	Weapon	Weapon
+run.hud.ring	Ring	Anello	Ring	Ring	Ring	Ring	Ring	Ring	Ring
+run.hud.trinket	Trinket	Trinket	Trinket	Trinket	Trinket	Trinket	Trinket	Trinket	Trinket
+run.npc.body	One choice only, then they leave.	Una sola scelta, poi se ne va.	One choice only, then they leave.	One choice only, then they leave.	One choice only, then they leave.	One choice only, then they leave.	One choice only, then they leave.	One choice only, then they leave.	One choice only, then they leave.
+run.npc.attack	Attack	Attacca	Attack	Attack	Attack	Attack	Attack	Attack	Attack
+run.npc.attack_detail	Defense {0} · your Attack {1}	Difesa {0} · il tuo Attacco {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}
+run.npc.close	Leave	Vai via	Leave	Leave	Leave	Leave	Leave	Leave	Leave
+run.npc.price	{0} coins	{0} monete	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins
+run.npc.reason_coins	not enough coins	monete insufficienti	not enough coins	not enough coins	not enough coins	not enough coins	not enough coins	not enough coins	not enough coins
+run.npc.reason_bought	already bought	già comprato	already bought	already bought	already bought	already bought	already bought	already bought	already bought
+run.levelup.title	Level {0}!	Livello {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!
+run.levelup.body	Choose one upgrade.	Scegli un potenziamento.	Choose one upgrade.	Choose one upgrade.	Choose one upgrade.	Choose one upgrade.	Choose one upgrade.	Choose one upgrade.	Choose one upgrade.
+run.levelup.attack	+{0} Attack	+{0} Attacco	+{0} Attack	+{0} Attack	+{0} Attack	+{0} Attack	+{0} Attack	+{0} Attack	+{0} Attack
+run.levelup.coins	+{0} coin on every gain	+{0} moneta a ogni guadagno	+{0} coin on every gain	+{0} coin on every gain	+{0} coin on every gain	+{0} coin on every gain	+{0} coin on every gain	+{0} coin on every gain	+{0} coin on every gain
+run.levelup.maxhp	+{0} max HP	+{0} HP massimi	+{0} max HP	+{0} max HP	+{0} max HP	+{0} max HP	+{0} max HP	+{0} max HP	+{0} max HP
+run.clue.title	Clue: {0}	Indizio: {0}	Clue: {0}	Clue: {0}	Clue: {0}	Clue: {0}	Clue: {0}	Clue: {0}	Clue: {0}
+run.clue.body	Tap a free row (1–10) or column (A–J) on the board edge: you'll see how many there are.	Tocca una riga (1–10) o una colonna (A–J) libera sul bordo: vedrai quanti ce ne sono.	Tap a free row (1–10) or column (A–J) on the board edge: you'll see how many there are.	Tap a free row (1–10) or column (A–J) on the board edge: you'll see how many there are.	Tap a free row (1–10) or column (A–J) on the board edge: you'll see how many there are.	Tap a free row (1–10) or column (A–J) on the board edge: you'll see how many there are.	Tap a free row (1–10) or column (A–J) on the board edge: you'll see how many there are.	Tap a free row (1–10) or column (A–J) on the board edge: you'll see how many there are.	Tap a free row (1–10) or column (A–J) on the board edge: you'll see how many there are.
+run.item.found	Found: {0}	Trovato: {0}	Found: {0}	Found: {0}	Found: {0}	Found: {0}	Found: {0}	Found: {0}	Found: {0}
+run.item.body	Equipped now: {0}	Equipaggiato ora: {0}	Equipped now: {0}	Equipped now: {0}	Equipped now: {0}	Equipped now: {0}	Equipped now: {0}	Equipped now: {0}	Equipped now: {0}
+run.item.equip	Equip	Equipaggia	Equip	Equip	Equip	Equip	Equip	Equip	Equip
+run.item.equip_detail	you lose {0}	perdi {0}	you lose {0}	you lose {0}	you lose {0}	you lose {0}	you lose {0}	you lose {0}	you lose {0}
+run.item.discard	Leave it	Lascialo	Leave it	Leave it	Leave it	Leave it	Leave it	Leave it	Leave it
+run.log.mission	Hunt the Boss. Starting clues on: {0}.	Caccia al Boss. Indizi di partenza su: {0}.	Hunt the Boss. Starting clues on: {0}.	Hunt the Boss. Starting clues on: {0}.	Hunt the Boss. Starting clues on: {0}.	Hunt the Boss. Starting clues on: {0}.	Hunt the Boss. Starting clues on: {0}.	Hunt the Boss. Starting clues on: {0}.	Hunt the Boss. Starting clues on: {0}.
+run.log.encounter_won	{0} defeated (Attack {1} ≥ Defense {2}).	{0} sconfitto (Attacco {1} ≥ Difesa {2}).	{0} defeated (Attack {1} ≥ Defense {2}).	{0} defeated (Attack {1} ≥ Defense {2}).	{0} defeated (Attack {1} ≥ Defense {2}).	{0} defeated (Attack {1} ≥ Defense {2}).	{0} defeated (Attack {1} ≥ Defense {2}).	{0} defeated (Attack {1} ≥ Defense {2}).	{0} defeated (Attack {1} ≥ Defense {2}).
+run.log.encounter_lost	{0} flees: Attack {1} < Defense {2}, -{3} HP.	{0} fugge: Attacco {1} < Difesa {2}, -{3} HP.	{0} flees: Attack {1} < Defense {2}, -{3} HP.	{0} flees: Attack {1} < Defense {2}, -{3} HP.	{0} flees: Attack {1} < Defense {2}, -{3} HP.	{0} flees: Attack {1} < Defense {2}, -{3} HP.	{0} flees: Attack {1} < Defense {2}, -{3} HP.	{0} flees: Attack {1} < Defense {2}, -{3} HP.	{0} flees: Attack {1} < Defense {2}, -{3} HP.
+run.log.trap	Trap! -{0} HP.	Trappola! -{0} HP.	Trap! -{0} HP.	Trap! -{0} HP.	Trap! -{0} HP.	Trap! -{0} HP.	Trap! -{0} HP.	Trap! -{0} HP.	Trap! -{0} HP.
+run.log.trap_disarmed	Trap disarmed by your tools.	Trappola disinnescata dagli Attrezzi.	Trap disarmed by your tools.	Trap disarmed by your tools.	Trap disarmed by your tools.	Trap disarmed by your tools.	Trap disarmed by your tools.	Trap disarmed by your tools.	Trap disarmed by your tools.
+run.log.healed	+{0} HP.	+{0} HP.	+{0} HP.	+{0} HP.	+{0} HP.	+{0} HP.	+{0} HP.	+{0} HP.	+{0} HP.
+run.log.coins	+{0} coins.	+{0} monete.	+{0} coins.	+{0} coins.	+{0} coins.	+{0} coins.	+{0} coins.	+{0} coins.	+{0} coins.
+run.log.xp	+{0} XP.	+{0} XP.	+{0} XP.	+{0} XP.	+{0} XP.	+{0} XP.	+{0} XP.	+{0} XP.	+{0} XP.
+run.log.line	Line {0} completed.	Linea {0} completata.	Line {0} completed.	Line {0} completed.	Line {0} completed.	Line {0} completed.	Line {0} completed.	Line {0} completed.	Line {0} completed.
+run.log.level	Level {0}!	Livello {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!
+run.log.equipped	Equipped: {0}.	Equipaggiato: {0}.	Equipped: {0}.	Equipped: {0}.	Equipped: {0}.	Equipped: {0}.	Equipped: {0}.	Equipped: {0}.	Equipped: {0}.
+run.log.discarded	Lost: {0}.	Perso: {0}.	Lost: {0}.	Lost: {0}.	Lost: {0}.	Lost: {0}.	Lost: {0}.	Lost: {0}.	Lost: {0}.
+run.log.key_silver	Silver key obtained.	Chiave d'argento ottenuta.	Silver key obtained.	Silver key obtained.	Silver key obtained.	Silver key obtained.	Silver key obtained.	Silver key obtained.	Silver key obtained.
+run.log.key_gold	Gold key obtained.	Chiave d'oro ottenuta.	Gold key obtained.	Gold key obtained.	Gold key obtained.	Gold key obtained.	Gold key obtained.	Gold key obtained.	Gold key obtained.
+run.log.chest	Chest opened.	Forziere aperto.	Chest opened.	Chest opened.	Chest opened.	Chest opened.	Chest opened.	Chest opened.	Chest opened.
+run.log.chest_vanished	The chest vanishes: you needed the key.	Il forziere svanisce: serviva la chiave.	The chest vanishes: you needed the key.	The chest vanishes: you needed the key.	The chest vanishes: you needed the key.	The chest vanishes: you needed the key.	The chest vanishes: you needed the key.	The chest vanishes: you needed the key.	The chest vanishes: you needed the key.
+run.log.npc_killed	{0} killed.	{0} ucciso.	{0} killed.	{0} killed.	{0} killed.	{0} killed.	{0} killed.	{0} killed.	{0} killed.
+run.log.npc_fled	{0} flees: -{1} HP.	{0} fugge: -{1} HP.	{0} flees: -{1} HP.	{0} flees: -{1} HP.	{0} flees: -{1} HP.	{0} flees: -{1} HP.	{0} flees: -{1} HP.	{0} flees: -{1} HP.	{0} flees: -{1} HP.
+run.log.bought	Bought: {0} (-{1} coins).	Acquistato: {0} (-{1} monete).	Bought: {0} (-{1} coins).	Bought: {0} (-{1} coins).	Bought: {0} (-{1} coins).	Bought: {0} (-{1} coins).	Bought: {0} (-{1} coins).	Bought: {0} (-{1} coins).	Bought: {0} (-{1} coins).
+run.log.clue	Clue {0} on {1}: {2}.	Indizio {0} su {1}: {2}.	Clue {0} on {1}: {2}.	Clue {0} on {1}: {2}.	Clue {0} on {1}: {2}.	Clue {0} on {1}: {2}.	Clue {0} on {1}: {2}.	Clue {0} on {1}: {2}.	Clue {0} on {1}: {2}.
+run.log.clue_lost	Clue lost: no free line.	Indizio perso: nessuna linea libera.	Clue lost: no free line.	Clue lost: no free line.	Clue lost: no free line.	Clue lost: no free line.	Clue lost: no free line.	Clue lost: no free line.	Clue lost: no free line.
+run.log.lantern	The Lantern reveals: {0}.	La Lanterna rivela: {0}.	The Lantern reveals: {0}.	The Lantern reveals: {0}.	The Lantern reveals: {0}.	The Lantern reveals: {0}.	The Lantern reveals: {0}.	The Lantern reveals: {0}.	The Lantern reveals: {0}.
+run.end.won	VICTORY! The Boss is defeated.	VITTORIA! Il Boss è sconfitto.	VICTORY! The Boss is defeated.	VICTORY! The Boss is defeated.	VICTORY! The Boss is defeated.	VICTORY! The Boss is defeated.	VICTORY! The Boss is defeated.	VICTORY! The Boss is defeated.	VICTORY! The Boss is defeated.
+run.end.dead	DEFEAT: you died.	SCONFITTA: sei morto.	DEFEAT: you died.	DEFEAT: you died.	DEFEAT: you died.	DEFEAT: you died.	DEFEAT: you died.	DEFEAT: you died.	DEFEAT: you died.
+run.end.boss_fled	DEFEAT: the Boss fled.	SCONFITTA: il Boss è fuggito.	DEFEAT: the Boss fled.	DEFEAT: the Boss fled.	DEFEAT: the Boss fled.	DEFEAT: the Boss fled.	DEFEAT: the Boss fled.	DEFEAT: the Boss fled.	DEFEAT: the Boss fled.
+run.end.summary	Level {0} · Attack {1} · Coins {2}	Livello {0} · Attacco {1} · Monete {2}	Level {0} · Attack {1} · Coins {2}	Level {0} · Attack {1} · Coins {2}	Level {0} · Attack {1} · Coins {2}	Level {0} · Attack {1} · Coins {2}	Level {0} · Attack {1} · Coins {2}	Level {0} · Attack {1} · Coins {2}	Level {0} · Attack {1} · Coins {2}
+run.end.continue	Continue	Continua	Continue	Continue	Continue	Continue	Continue	Continue	Continue

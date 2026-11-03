@@ -104,11 +104,11 @@ Il vecchio GDD (Notion, congelato all'08/08/2026) non è più una fonte: dove co
 | 2 | Piccolo 2, Trappola livello 2 |
 | 3 | Forziere d'argento, Paesani, Contadino |
 | 4 | Fontana (unica tile di livello 4, per ora) |
-| 5 | Strega, Cacciatore, Fabbro, Locanda, Mercante, Mini-boss, Forziere d'oro |
-| 6 | Boss |
+| 5 | Strega, Cacciatore, Fabbro, Locanda, Mercante, Mini-boss, Forziere d'oro, **Boss** **[D-033]** |
+| 6 | (vuoto nel livello 1) |
 
 - **R-082** Le Vuote e la partenza non hanno bordo (sono già scoperte).
-- **R-083** Il livello 2 contiene solo contenuti negativi; il livello 3 solo positivi; il livello 4 solo la Fontana. Accettato da Franci. **Attenzione:** il livello 6 è occupato dal solo Boss e il livello 4 dalla sola Fontana, quindi il bordo li identifica.
+- **R-083** Il livello 2 contiene solo contenuti negativi; il livello 3 solo positivi; il livello 4 solo la Fontana. Accettato da Franci. **Attenzione:** il livello 4 è occupato dalla sola Fontana, quindi il bordo la identifica. Il Boss sta al livello 5 insieme a NPC, mini-boss e forziere d'oro (D-033, Franci 03/11/2026): non è riconoscibile dal bordo; cliccare una tile di livello 5 con Attacco < 8 può far fuggire il Boss e perdere la partita.
 
 ## 10. Indizi
 

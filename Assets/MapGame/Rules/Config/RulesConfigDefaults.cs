@@ -67,7 +67,8 @@ namespace hp55games.MapGame.Rules
             void Def(ContentKind k, int qty, ContentDef d) { d.Kind = k; c.Census[k] = qty; c.Contents[k] = d; }
             Def(ContentKind.Start, 1, new ContentDef { Category = ContentCategory.None });
             Def(ContentKind.Empty, 14, new ContentDef { Category = ContentCategory.None });
-            Def(ContentKind.Boss, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 6, Defense = 8, IsObjective = true, ClueTarget = ClueTarget.Boss });
+            // D-033 (Franci, 03/11/2026): Boss nascosto al livello 5, non più identificabile dal bordo.
+            Def(ContentKind.Boss, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 8, IsObjective = true, ClueTarget = ClueTarget.Boss });
             Def(ContentKind.MiniBossWeapon, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, ItemId = MiniBossWeapon, ClueTarget = ClueTarget.MiniBoss });
             Def(ContentKind.MiniBossSilverKey, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, GivesKey = KeyKind.Silver, ClueTarget = ClueTarget.MiniBoss });
             Def(ContentKind.MiniBossGoldKey, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, GivesKey = KeyKind.Gold, ClueTarget = ClueTarget.MiniBoss });

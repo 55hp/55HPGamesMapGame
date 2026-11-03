@@ -13,13 +13,17 @@ namespace hp55games.MapGame.Rules
         public static LineRef Row(int r) => new LineRef(true, r);
         public static LineRef Col(int c) => new LineRef(false, c);
 
-        /// <summary>Etichetta per il giocatore: colonne A–J, righe 1–10.</summary>
-        public string Label => IsRow ? (Index + 1).ToString() : ((char)('A' + Index)).ToString();
+        /// <summary>
+        /// Etichetta per il giocatore (04 §1): colonne A–J da sinistra, righe 1–10 dall'alto.
+        /// In griglia la riga 0 è in basso (asse y di Unity verso l'alto), quindi la riga di indice i
+        /// si chiama height − i.
+        /// </summary>
+        public string Label(int height) => IsRow ? (height - Index).ToString() : ((char)('A' + Index)).ToString();
 
         public bool Equals(LineRef o) => IsRow == o.IsRow && Index == o.Index;
         public override bool Equals(object obj) => obj is LineRef o && Equals(o);
         public override int GetHashCode() => (IsRow ? 1000 : 0) + Index;
-        public override string ToString() => (IsRow ? "Row " : "Col ") + Label;
+        public override string ToString() => (IsRow ? "Row#" : "Col#") + Index;
     }
 
     /// <summary>Risultato puro della generazione: contenuto per tile, partenza, Boss, conteggi per gli indizi.</summary>
