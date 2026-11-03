@@ -19,7 +19,7 @@ Start/Boss: porta in Rules `PlaceStart`/`PlaceEnd` di `MapClusterGenerator` senz
 - Commit/push quando i test sono verdi.
 
 ## Verifica
-- [ ] `dotnet test Tools/RulesHarness` verde (se tocca Rules)
+- [ ] `Tools/RulesHarness/run.sh` verde (se tocca Rules)
 - [ ] Nessuna regola nuova inventata (TODO R-xxx dove serve)
 - [ ] Numeri letti da `RulesConfig`
 

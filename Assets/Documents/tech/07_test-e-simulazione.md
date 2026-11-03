@@ -2,7 +2,7 @@
 
 ## 1. Principi
 
-Ogni regola `R-xxx` implementata ha almeno un test che ne porta l'ID nel nome. I test leggono i numeri da `RulesConfig`, mai letterali. Rules si testa con `dotnet test Tools/RulesHarness` (§ architettura 3).
+Ogni regola `R-xxx` implementata ha almeno un test che ne porta l'ID nel nome. I test leggono i numeri da `RulesConfig`, mai letterali. Rules si testa con `Tools/RulesHarness/run.sh` (§ architettura 3).
 
 ## 2. Elenco minimo dei test di regole
 

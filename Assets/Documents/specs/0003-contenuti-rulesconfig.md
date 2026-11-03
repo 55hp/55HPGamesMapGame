@@ -20,7 +20,7 @@ Modello dati puro dei contenuti e config dei numeri di regola, con ScriptableObj
 - Commit/push quando i test sono verdi.
 
 ## Verifica
-- [ ] `dotnet test Tools/RulesHarness` verde (se tocca Rules)
+- [ ] `Tools/RulesHarness/run.sh` verde (se tocca Rules)
 - [ ] Nessuna regola nuova inventata (TODO R-xxx dove serve)
 - [ ] Numeri letti da `RulesConfig`
 

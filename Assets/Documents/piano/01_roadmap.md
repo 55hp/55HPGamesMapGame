@@ -4,7 +4,7 @@ Nessuna data: l'ordine conta, le date le decide Franci.
 
 | Milestone | Spec | Esito verificabile |
 |---|---|---|
-| M0 Fondamenta | 0001 | branch `v2`, Rules compila, `dotnet test` verde |
+| M0 Fondamenta | 0001 | branch `v2`, Rules compila, harness verde |
 | M1 Regole pure | 0002, 0003, 0007 | scambio/XP/level up testati; `RulesConfig` validata |
 | M2 Mappa | 0004 | 1000 seed generano mappe valide; ClueCounts corretti |
 | M3 Gioco giocabile | 0005, 0006, 0010, 0011 | partita completa cliccando, vittoria e sconfitta |

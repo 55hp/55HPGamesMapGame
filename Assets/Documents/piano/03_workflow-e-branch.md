@@ -14,7 +14,7 @@ git checkout -b v2 fdfe080fbf927808e80481022913526f5b35384e
 
 1. Franci sceglie la spec (o chiede ad Athena di scriverne una).
 2. Athena scrive intestazione, obiettivo e contratto; produce il prompt per Claude Code (e per Bezi se serve).
-3. Claude Code implementa, esegue `dotnet test Tools/RulesHarness`, compila "Lato codice", scrive report con commit.
+3. Claude Code implementa, esegue `Tools/RulesHarness/run.sh`, compila "Lato codice", scrive report con commit.
 4. Bezi esegue la checklist Editor dopo il commit di Claude Code e scrive il report.
 5. Franci lancia i test Unity, fa playtest, committa/pusha.
 
@@ -22,7 +22,7 @@ git checkout -b v2 fdfe080fbf927808e80481022913526f5b35384e
 
 Claude Code:
 ```
-Read CLAUDE.md, Assets/Documents/tech/00_INDICE.md, then specs/NNNN-*.md. Implement "Lato codice" only. Follow [DEFAULT] items as written; for rule gaps leave // TODO R-xxx and add a question under Report > Domande. Run dotnet test Tools/RulesHarness. Commit locally, files by path, no merge, no push. Fill the Bezi checklist and "Per Franci".
+Read CLAUDE.md, Assets/Documents/tech/00_INDICE.md, then specs/NNNN-*.md. Implement "Lato codice" only. Follow [DEFAULT] items as written; for rule gaps leave // TODO R-xxx and add a question under Report > Domande. Run Tools/RulesHarness/run.sh. Commit locally, files by path, no merge, no push. Fill the Bezi checklist and "Per Franci".
 ```
 Bezi:
 ```

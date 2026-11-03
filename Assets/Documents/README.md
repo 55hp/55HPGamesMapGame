@@ -12,7 +12,7 @@ Il giocatore scopre tile coperte in qualsiasi ordine. Ogni tile ha un bordo colo
 
 | Spec | Titolo | Stato | Commit |
 |---|---|---|---|
-| 0001 | Branch, assembly Rules, harness | da fare | — |
+| 0001 | Branch, assembly Rules, harness | fatto (codice), verifica Unity in corso | athena/v2-impl |
 | 0002 | RunState, equipaggiamento, scambio, XP | da fare | — |
 | 0003 | Modello contenuti e RulesConfig | da fare | — |
 | 0004 | Generatore a censimento | da fare | — |
@@ -33,4 +33,4 @@ Franci (design, commit/push, playtest) → Athena (documenti, prompt) → Claude
 
 ## Ambiente
 
-Unity Hub, Editor `2022.3.62f3`. Test regole: `dotnet test Tools/RulesHarness` (dopo spec 0001). Test Unity: Test Runner → EditMode.
+Unity Hub, Editor `2022.3.62f3`. Test regole: `Tools/RulesHarness/run.sh` (Linux, Mono) o `dotnet run --project Tools/RulesHarness` (Windows). Test Unity: Test Runner → EditMode.

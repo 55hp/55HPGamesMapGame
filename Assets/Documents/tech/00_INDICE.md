@@ -24,3 +24,4 @@ Per le regole vince la documentazione; per lo stato vince il codice. Se il codic
 | Data | File | Modifica |
 |---|---|---|
 | 2026-10-13 | tutti | Prima stesura v2 (consolidamento GDD, default D-001..D-024) |
+| 2026-11-03 | 01, 07, specs, README, CLAUDE.md | Rules in `Assets/MapGame/Rules/`; harness con NUnit di Unity (`run.sh`) al posto di `dotnet test` |

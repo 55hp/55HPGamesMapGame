@@ -8,7 +8,7 @@ Questo file contiene solo ciò che cambia *come* lavori.
 
 ## Comandi
 
-- Test delle regole fuori da Unity: `dotnet test Tools/RulesHarness`. Eseguilo sempre prima di dichiarare finito un task che tocca `Assets/Game/Rules/` o i suoi test.
+- Test delle regole fuori da Unity: `Tools/RulesHarness/run.sh`. Eseguilo sempre prima di dichiarare finito un task che tocca `Assets/MapGame/Rules/` o i suoi test.
 - Aprire: Unity Hub, Editor `2022.3.62f3` esatto (come `ProjectSettings/ProjectVersion.txt`).
 - Test in Unity: Test Runner → EditMode (`Assets/Tests/EditMode/`). Li lancia Franci; tu indica quali.
 - `.sln`/`.csproj` alla radice sono generati da Unity: non modificarli. L'unico progetto .NET che possiedi è `Tools/RulesHarness/`.

@@ -9,7 +9,7 @@ Implementare lo stato di run e la risoluzione di incontro, XP e progressione, tu
 R-020..R-025, R-029, R-031..R-036, R-040..R-044, R-038 (bonus monete a ogni guadagno), R-043. `RunState`, `EquipmentSlots`, `AttackCalculator`, `EncounterResolver.Resolve(runState, defense)` → `EncounterResult` (Won/Fled, danno, ricompensa). `XpService` con linee completate e livelli.
 
 ## Lato codice (Claude Code)
-Tutto in `Assets/Game/Rules/`. Eventi di regola come tipi puri (`DamageTaken`, `XpGained`, `LevelUpAvailable`, …). I numeri da `RulesConfig` (stub finché 0003 non c'è).
+Tutto in `Assets/MapGame/Rules/`. Eventi di regola come tipi puri (`DamageTaken`, `XpGained`, `LevelUpAvailable`, …). I numeri da `RulesConfig` (stub finché 0003 non c'è).
 
 ## Lato Editor (Bezi) — checklist
 - Nessuna.
@@ -19,7 +19,7 @@ Tutto in `Assets/Game/Rules/`. Eventi di regola come tipi puri (`DamageTaken`, `
 - Commit/push quando i test sono verdi.
 
 ## Verifica
-- [ ] `dotnet test Tools/RulesHarness` verde (se tocca Rules)
+- [ ] `Tools/RulesHarness/run.sh` verde (se tocca Rules)
 - [ ] Nessuna regola nuova inventata (TODO R-xxx dove serve)
 - [ ] Numeri letti da `RulesConfig`
 

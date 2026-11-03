@@ -26,7 +26,7 @@ Base: branch `v2` da `develop` @ `fdfe080fbf927808e80481022913526f5b35384e`. Il 
 
 ## 3. Test fuori da Unity
 
-`Tools/RulesHarness/` (progetto .NET, `net8.0`, `LangVersion 9.0`, NUnit) include per link i sorgenti `Assets/Game/Rules/**/*.cs` e i test `Assets/Tests/EditMode/Rules/**/*.cs`. Si esegue con `dotnet test Tools/RulesHarness`. Non si genera da Unity e non entra nei `.csproj` di Unity. Spec 0001.
+`Tools/RulesHarness/` (progetto .NET, `net472`, `LangVersion 9.0`, la NUnit inclusa da Unity in `Library/PackageCache`, runner minimale `Runner.cs`; su Linux gira con Mono) include per link i sorgenti `Assets/MapGame/Rules/**/*.cs` e i test `Assets/Tests/EditMode/Rules/**/*.cs`. Si esegue con `Tools/RulesHarness/run.sh` (Windows: `dotnet run --project Tools/RulesHarness`). Niente pacchetti NuGet: richiede che il progetto sia stato aperto almeno una volta in Unity. Non si genera da Unity e non entra nei `.csproj` di Unity. Spec 0001.
 
 ## 4. Stato di run
 

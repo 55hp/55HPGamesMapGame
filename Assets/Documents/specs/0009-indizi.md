@@ -19,7 +19,7 @@ Test come in 07 §2. Nessuna logica nella UI.
 - Commit/push quando i test sono verdi.
 
 ## Verifica
-- [ ] `dotnet test Tools/RulesHarness` verde (se tocca Rules)
+- [ ] `Tools/RulesHarness/run.sh` verde (se tocca Rules)
 - [ ] Nessuna regola nuova inventata (TODO R-xxx dove serve)
 - [ ] Numeri letti da `RulesConfig`
 
