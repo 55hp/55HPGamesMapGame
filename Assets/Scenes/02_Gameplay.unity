@@ -300,8 +300,6 @@ MonoBehaviour:
   _grid: {fileID: 1567416454}
   _unityGrid: {fileID: 1567416455}
   _camera: {fileID: 1296107420}
-  _cameraController: {fileID: 1296107422}
-  _doubleTapWindow: 0.4
 --- !u!4 &708546443
 Transform:
   m_ObjectHideFlags: 0
@@ -622,12 +620,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0889348113effc54883426ae4c8993d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _grid: {fileID: 1567416454}
-  _spawner: {fileID: 1567416452}
-  _scopertaOffset: 8
-  _minOrthoSize: 2
+  _hexGrid: {fileID: 1567416454}
+  _tileViewSpawner: {fileID: 1567416452}
+  _minOrthographicSize: 2
   _positionSmoothTime: 0.35
-  _sizeSmoothTime: 0.45
+  _orthographicSizeSmoothTime: 0.45
+  _keyboardZoomSpeed: 20
+  _keyboardZoomMinSize: 5
+  _keyboardZoomMaxSize: 50
+  _mouseWheelZoomSpeed: 5
 --- !u!1 &1504290695
 GameObject:
   m_ObjectHideFlags: 0
@@ -696,6 +697,7 @@ GameObject:
   - component: {fileID: 1567416454}
   - component: {fileID: 1567416452}
   - component: {fileID: 1567416455}
+  - component: {fileID: 1567416456}
   m_Layer: 0
   m_Name: GridHandler
   m_TagString: Untagged
@@ -758,6 +760,20 @@ Grid:
   m_CellGap: {x: 0, y: 0, z: 0}
   m_CellLayout: 1
   m_CellSwizzle: 2
+--- !u!114 &1567416456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1567416451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fd4cbe862f54714ca4c2e7048a4f577, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _referenceHeight: 1080
+  _logLines: 7
 --- !u!1 &2133809958
 GameObject:
   m_ObjectHideFlags: 0
