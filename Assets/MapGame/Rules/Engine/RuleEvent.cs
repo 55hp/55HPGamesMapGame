@@ -22,6 +22,7 @@ namespace hp55games.MapGame.Rules
         ChestOpened,
         ChestVanished,      // R-054
         NpcOpened,
+        DecisionResolved,   // ogni risposta valida a una decisione (anche "Vai via"), sempre presente
         NpcKilled,
         NpcFled,
         OfferBought,

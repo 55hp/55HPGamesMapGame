@@ -140,6 +140,7 @@ namespace hp55games.MapGame.Rules
 
             Begin();
             _pending.RemoveAt(0);
+            Emit(RuleEventType.DecisionResolved, e => { e.OfferId = optionId; e.TileIndex = d.TileIndex; });
             switch (d.Kind)
             {
                 case DecisionKind.Npc: SubmitNpc(d, opt); break;

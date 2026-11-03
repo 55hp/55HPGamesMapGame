@@ -328,7 +328,8 @@ namespace hp55games.MapGame.Rules.Tests
             e.Reveal(idx);
             Assert.AreEqual(DecisionKind.Npc, e.CurrentDecision.Kind);
             Assert.IsNull(e.CurrentDecision.Find(OptionIds.Attack), "Locanda intoccabile");
-            e.Submit(OptionIds.Close);
+            var evs = e.Submit(OptionIds.Close);
+            Assert.IsNotNull(First(evs, RuleEventType.DecisionResolved), "anche Vai via produce un evento");
             Assert.IsNull(e.CurrentDecision);
             Assert.IsTrue(e.IsRevealed(idx));
         }
