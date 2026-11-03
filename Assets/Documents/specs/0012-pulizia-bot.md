@@ -1,6 +1,6 @@
 # 0012 — Pulizia legacy e bot di bilanciamento
 
-**Stato**: bot fatto; pulizia legacy da fare · **Commit di riferimento**: —
+**Stato**: fatto (bot e pulizia) · **Commit di riferimento**: —
 
 ## Obiettivo
 Rimuovere il legacy e produrre il bot di simulazione.
@@ -30,3 +30,8 @@ Eseguibile via `dotnet test` o console in `Tools/`. Output in `Tools/RulesHarnes
 - `RandomPolicy`, `GreedyPolicy`, `BalanceSimulator` in Rules/Bot. Esecuzione: `Tools/RulesHarness/run.sh --sim 10000 [file.csv] [Nome=valore …]`.
 - Risultati 10 000 partite (D-031 applicata): Greedy 48,2% vittorie, Random 0%. Con Attacco base 0 (regole originali) Greedy 2,1%. HP 6 → 62%, HP 7 → 78% (non applicato: HP 5 è una decisione chiusa).
 - Pulizia legacy (MapClusterGenerator, Food, analyzer a cluster, popup v1) non ancora fatta.
+
+### Athena — 2026-11-03 (seconda parte) — pulizia legacy
+- Rimossi (codice): `MapClusterGenerator`, gli analyzer a cluster/strade/reachability, `UIPopup_Encounter`, `UIPopup_Shop`, `RevealEffectPopupDispatcher`, `MapGameGameplayHud`, `SurvivalConfig`, `TraderConfig`, `EnemyConfig`, `EncounterEvents`, `TradeEvents`, gli stub v1 di `HexGridController`.
+- Scollegati e rimossi da Bezi prima del codice: dispatcher dalla scena, voci Addressables e prefab dei due popup, `UIGameHUD`, i tre config dal `MainConfigCatalog`.
+- Lasciati di proposito (inerti, non toccano la partita): `LevelConfig`, `EventClusterShape`/`Catalog` e i loro editor, i campi cluster di `MapGenerationConfig`, `Food`/`HasKeyDL6` in `IGameContextService` (template Core, non modificabile).
