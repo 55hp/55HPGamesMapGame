@@ -1,0 +1,187 @@
+using System.Collections.Generic;
+
+namespace hp55games.MapGame.Rules
+{
+    /// <summary>
+    /// Dati del livello 1, trascritti da 02_regole, 03_contenuti e data/*.csv.
+    /// Unico punto del codice in cui compaiono questi numeri.
+    /// </summary>
+    public static class RulesConfigDefaults
+    {
+        public const string Knife = "knife";
+        public const string WeaponL2 = "weapon_l2";
+        public const string WeaponL3 = "weapon_l3";
+        public const string WeaponL4 = "weapon_l4";
+        public const string HunterBow = "hunter_bow";
+        public const string SmithHammer = "smith_hammer";
+        public const string WitchStaff = "witch_staff";
+        public const string MiniBossWeapon = "miniboss_weapon";
+        public const string Dragonslayer = "dragonslayer";
+        public const string Ring2 = "ring_2";
+        public const string HunterTools = "hunter_tools";
+        public const string Lantern = "lantern";
+
+        public static RulesConfig Level1()
+        {
+            var c = new RulesConfig
+            {
+                Width = 10,
+                Height = 10,
+                StartMinBorderDistance = 3,
+                EndDistanceWeights = new List<DistanceWeight>
+                {
+                    new DistanceWeight(4, 1), new DistanceWeight(5, 2), new DistanceWeight(6, 3),
+                    new DistanceWeight(7, 2), new DistanceWeight(8, 1),
+                },
+                StartHp = 5,
+                StartMaxHp = 5,
+                // D-031 (Athena, 03/11/2026, da rivedere): Attacco base 1 invece di 0 (R-023).
+                // Con 0 il Coltello (+1) non batte il Piccolo 1 (Difesa 2) e la progressione non parte:
+                // bot Greedy 2% di vittorie. Con 1: 48% (Random 0%). Vedi report spec 0012.
+                BaseAttack = 1,
+                StartWeaponId = Knife,
+                XpPerLevel = 10,
+                LineCompleteXp = 1,
+                LevelUpAttack = 1,
+                LevelUpCoinBonus = 1,
+                LevelUpMaxHp = 1,
+                NpcDefense = 5,
+            };
+
+            // Oggetti (03 §6, data/items.csv)
+            void Item(string id, ItemSlot slot, int bonus, ItemEffect fx = ItemEffect.None) => c.Items[id] = new ItemDef(id, slot, bonus, fx);
+            Item(Knife, ItemSlot.Weapon, 1);
+            Item(WeaponL2, ItemSlot.Weapon, 2);
+            Item(WeaponL3, ItemSlot.Weapon, 3);
+            Item(WeaponL4, ItemSlot.Weapon, 4);
+            Item(HunterBow, ItemSlot.Weapon, 5);
+            Item(SmithHammer, ItemSlot.Weapon, 5);
+            Item(WitchStaff, ItemSlot.Weapon, 5);
+            Item(MiniBossWeapon, ItemSlot.Weapon, 5);
+            Item(Dragonslayer, ItemSlot.Weapon, 6);
+            Item(Ring2, ItemSlot.Ring, 2);
+            Item(HunterTools, ItemSlot.Trinket, 0, ItemEffect.DisarmTraps);
+            Item(Lantern, ItemSlot.Trinket, 0, ItemEffect.Lantern);
+
+            // Censimento (03 §1, data/tile_census.csv) e definizioni
+            void Def(ContentKind k, int qty, ContentDef d) { d.Kind = k; c.Census[k] = qty; c.Contents[k] = d; }
+            Def(ContentKind.Start, 1, new ContentDef { Category = ContentCategory.None });
+            Def(ContentKind.Empty, 14, new ContentDef { Category = ContentCategory.None });
+            Def(ContentKind.Boss, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 6, Defense = 8, IsObjective = true, ClueTarget = ClueTarget.Boss });
+            Def(ContentKind.MiniBossWeapon, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, ItemId = MiniBossWeapon, ClueTarget = ClueTarget.MiniBoss });
+            Def(ContentKind.MiniBossSilverKey, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, GivesKey = KeyKind.Silver, ClueTarget = ClueTarget.MiniBoss });
+            Def(ContentKind.MiniBossGoldKey, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, GivesKey = KeyKind.Gold, ClueTarget = ClueTarget.MiniBoss });
+            Def(ContentKind.MiniBossCoins, 2, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, Coins = 5, ClueTarget = ClueTarget.MiniBoss });
+            Def(ContentKind.Monster1, 15, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 1, Defense = 2, Xp = 1, Coins = 2, ClueTarget = ClueTarget.MonstersNormal });
+            Def(ContentKind.Monster2, 10, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 2, Defense = 3, Xp = 2, Coins = 3, ClueTarget = ClueTarget.MonstersNormal });
+            Def(ContentKind.Trap1, 10, new ContentDef { Category = ContentCategory.Trap, MaskLevel = 1, TrapDamage = 1 });
+            Def(ContentKind.Trap2, 5, new ContentDef { Category = ContentCategory.Trap, MaskLevel = 2, TrapDamage = 2 });
+            Def(ContentKind.Bush, 20, new ContentDef { Category = ContentCategory.Heal, MaskLevel = 1, Heal = 1, ClueTarget = ClueTarget.Bush });
+            Def(ContentKind.ChestSimpleBerries, 1, new ContentDef { Category = ContentCategory.Chest, MaskLevel = 1, Heal = 2 });
+            Def(ContentKind.ChestSimpleWeapon, 1, new ContentDef { Category = ContentCategory.Chest, MaskLevel = 1, ItemId = WeaponL2 });
+            Def(ContentKind.ChestSimpleCoins, 1, new ContentDef { Category = ContentCategory.Chest, MaskLevel = 1, Coins = 4 });
+            Def(ContentKind.ChestSilver, 1, new ContentDef { Category = ContentCategory.Chest, MaskLevel = 3, ItemId = WeaponL4, RequiresKey = KeyKind.Silver });
+            Def(ContentKind.ChestGold, 1, new ContentDef { Category = ContentCategory.Chest, MaskLevel = 5, ItemId = Dragonslayer, RequiresKey = KeyKind.Gold });
+            Def(ContentKind.Fountain, 1, new ContentDef { Category = ContentCategory.Heal, MaskLevel = 4, FullHeal = true, ClueTarget = ClueTarget.Fountain });
+            Def(ContentKind.Witch, 1, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 5, ClueTarget = ClueTarget.Witch });
+            Def(ContentKind.Hunter, 1, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 5, ClueTarget = ClueTarget.Hunter });
+            Def(ContentKind.Smith, 1, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 5, ClueTarget = ClueTarget.Smith });
+            Def(ContentKind.Inn, 2, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 5, ClueTarget = ClueTarget.Inn });
+            Def(ContentKind.Trader, 2, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 5, ClueTarget = ClueTarget.Trader });
+            Def(ContentKind.Farmer, 3, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 3 });
+            Def(ContentKind.Villagers, 3, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 3 });
+
+            // NPC (03 §3, data/npc_offers.csv). Prezzi indizi: 1 per 5, 2 per 9 (D-027).
+            NpcOfferDef Clue(string id, ClueTarget t, int n, int price) =>
+                new NpcOfferDef { Id = id, Effect = NpcOfferEffect.Clues, ClueTarget = t, Amount = n, Price = price };
+
+            c.Npcs[ContentKind.Hunter] = new NpcDef
+            {
+                Kind = ContentKind.Hunter, Fightable = true, KillItemId = HunterBow,
+                Offers =
+                {
+                    new NpcOfferDef { Id = "hunter_game", Price = 3, Effect = NpcOfferEffect.Heal, Amount = 3 },
+                    new NpcOfferDef { Id = "hunter_tools", Price = 10, Effect = NpcOfferEffect.GiveItem, ItemId = HunterTools },
+                    Clue("hunter_clue_1", ClueTarget.MiniBoss, 1, 5),
+                    Clue("hunter_clue_2", ClueTarget.MiniBoss, 2, 9),
+                },
+            };
+            c.Npcs[ContentKind.Smith] = new NpcDef
+            {
+                Kind = ContentKind.Smith, Fightable = true, KillItemId = SmithHammer,
+                Offers =
+                {
+                    new NpcOfferDef { Id = "smith_upgrade", Price = 5, Effect = NpcOfferEffect.SmithUpgrade, Amount = 1, OncePerRun = true },
+                    Clue("smith_clue_1", ClueTarget.Inn, 1, 5),
+                    Clue("smith_clue_2", ClueTarget.Inn, 2, 9),
+                },
+            };
+            c.Npcs[ContentKind.Witch] = new NpcDef
+            {
+                Kind = ContentKind.Witch, Fightable = true, KillItemId = WitchStaff,
+                Offers =
+                {
+                    new NpcOfferDef { Id = "witch_ring", Price = 8, Effect = NpcOfferEffect.GiveItem, ItemId = Ring2 },
+                    new NpcOfferDef { Id = "witch_lantern", Price = 10, Effect = NpcOfferEffect.GiveItem, ItemId = Lantern },
+                    Clue("witch_clue_1", ClueTarget.Hunter, 1, 5),
+                    Clue("witch_clue_2", ClueTarget.Hunter, 2, 9),
+                },
+            };
+            c.Npcs[ContentKind.Inn] = new NpcDef
+            {
+                Kind = ContentKind.Inn, Fightable = false,
+                Offers =
+                {
+                    new NpcOfferDef { Id = "inn_rest", Price = 5, Effect = NpcOfferEffect.FullHeal },
+                    Clue("inn_clue_trader_1", ClueTarget.Trader, 1, 5),
+                    Clue("inn_clue_trader_2", ClueTarget.Trader, 2, 9),
+                    Clue("inn_clue_monsters_1", ClueTarget.MonstersNormal, 1, 5),
+                    Clue("inn_clue_monsters_2", ClueTarget.MonstersNormal, 2, 9),
+                },
+            };
+            c.Npcs[ContentKind.Trader] = new NpcDef
+            {
+                Kind = ContentKind.Trader, Fightable = true, KillCoins = 10,
+                Offers =
+                {
+                    new NpcOfferDef { Id = "trader_weapon", Price = 10, Effect = NpcOfferEffect.GiveItem, ItemId = WeaponL3 },
+                    // D-028 (Athena, 03/11/2026, da rivedere): bersaglio degli indizi del Mercante = Boss,
+                    // prezzi standard 5/9. Era [APERTO] (R-066, D-020).
+                    Clue("trader_clue_boss_1", ClueTarget.Boss, 1, 5),
+                    Clue("trader_clue_boss_2", ClueTarget.Boss, 2, 9),
+                },
+            };
+            c.Npcs[ContentKind.Farmer] = new NpcDef
+            {
+                Kind = ContentKind.Farmer, Fightable = false,
+                Offers =
+                {
+                    new NpcOfferDef { Id = "farmer_food", Price = 3, Effect = NpcOfferEffect.Heal, Amount = 1 },
+                    Clue("farmer_clue_1", ClueTarget.Bush, 1, 5),
+                    Clue("farmer_clue_2", ClueTarget.Bush, 2, 9),
+                },
+            };
+            c.Npcs[ContentKind.Villagers] = new NpcDef
+            {
+                Kind = ContentKind.Villagers, Fightable = false,
+                Offers =
+                {
+                    Clue("villagers_clue_fountain", ClueTarget.Fountain, 1, 5),
+                    Clue("villagers_clue_smith", ClueTarget.Smith, 1, 5),
+                    Clue("villagers_clue_bush", ClueTarget.Bush, 1, 5),
+                },
+            };
+
+            // Missioni (R-070, data/missions.csv)
+            void Mission(string id, ClueTarget t) => c.Missions.Add(new MissionDef { Id = id, Target = t, StartClues = 2 });
+            Mission("hunt_witch", ClueTarget.Witch);
+            Mission("hunt_hunter", ClueTarget.Hunter);
+            Mission("hunt_smith", ClueTarget.Smith);
+            Mission("hunt_inn", ClueTarget.Inn);
+            Mission("hunt_trader", ClueTarget.Trader);
+            Mission("hunt_miniboss", ClueTarget.MiniBoss);
+
+            return c;
+        }
+    }
+}
