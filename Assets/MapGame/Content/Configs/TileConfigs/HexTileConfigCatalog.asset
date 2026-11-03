@@ -32,6 +32,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 20b2a0bd375d25542901acdc066dd622, type: 2}
   - {fileID: 11400000, guid: 38083c169cab40844b9abf2ac1948f80, type: 2}
   - {fileID: 11400000, guid: 631c5716b2caf6145bf845e996dc32c1, type: 2}
+  - {fileID: 11400000, guid: 6aaca153ff9024f47826c820476fd3de, type: 2}
+  - {fileID: 11400000, guid: e446cd9404ea583448511fa0af8c5c43, type: 2}
+  - {fileID: 11400000, guid: 19f1f4a0e4e1673439eb4e81cce6732d, type: 2}
+  - {fileID: 11400000, guid: 134a5754bec8ee14e86bd0b166f88470, type: 2}
+  - {fileID: 11400000, guid: ee295ff0e017cec48a029072fcdd16df, type: 2}
+  - {fileID: 11400000, guid: 552a14f0a6f07b04b941f8a88ebcd50a, type: 2}
+  - {fileID: 11400000, guid: cb70ce9ff06527e42ab373a283427f0d, type: 2}
   DifficultyLevelBorderColors:
   - {r: 0, g: 0, b: 0, a: 1}
   - {r: 0.2, g: 0.8, b: 0.4, a: 1}

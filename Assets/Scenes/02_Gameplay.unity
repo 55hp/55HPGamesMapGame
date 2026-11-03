@@ -774,6 +774,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _referenceHeight: 1080
   _logLines: 7
+  _camera: {fileID: 1296107420}
 --- !u!1 &2133809958
 GameObject:
   m_ObjectHideFlags: 0
