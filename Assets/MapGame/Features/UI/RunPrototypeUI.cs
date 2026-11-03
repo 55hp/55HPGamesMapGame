@@ -17,16 +17,40 @@ namespace hp55games.MapGame.Features.UI
     {
         [Tooltip("Altezza di riferimento: l'interfaccia scala con lo schermo.")]
         [SerializeField] private float _referenceHeight = 1080f;
-        [SerializeField] private int _logLines = 7;
+        [SerializeField] private int _logLines = 5;
 
         private HexGridController _grid;
         private readonly List<string> _log = new List<string>();
         private GUIStyle _box, _label, _button, _title, _small;
-        private Vector2 _clueScroll;
 
         private void Awake() => _grid = GetComponent<HexGridController>();
-        private void OnEnable() => _grid.RuleEventsRaised += OnEvents;
-        private void OnDisable() => _grid.RuleEventsRaised -= OnEvents;
+        private void OnEnable()
+        {
+            _grid.RuleEventsRaised += OnEvents;
+            _grid.GridInitialized += OnGridInitialized;
+        }
+
+        private void OnDisable()
+        {
+            _grid.RuleEventsRaised -= OnEvents;
+            _grid.GridInitialized -= OnGridInitialized;
+        }
+
+        private void OnGridInitialized() => _log.Clear();
+
+        private void Update()
+        {
+            // Mentre c'è una scelta i tocchi servono ai pulsanti, non alla griglia; dopo un clic su un pulsante
+            // si lascia un margine di qualche frame perché il rilascio non scopra la tile sotto.
+            if (_grid.CurrentDecision != null) _grid.InputBlockedUntilFrame = Time.frameCount + 3;
+        }
+
+        private bool LayoutButton(string text, params GUILayoutOption[] opts)
+        {
+            bool pressed = GUILayout.Button(text, _button, opts);
+            if (pressed) _grid.InputBlockedUntilFrame = Time.frameCount + 3;
+            return pressed;
+        }
 
         // ---------------------------------------------------------------- registro eventi
 
@@ -84,57 +108,54 @@ namespace hp55games.MapGame.Features.UI
             EnsureStyles();
 
             DrawHud(engine, w);
-            DrawClues(engine, w, h);
-            DrawLog(w, h);
-
             var d = engine.CurrentDecision;
             if (d != null) DrawDecision(engine, d, w, h);
-            else if (engine.State.Status != RunStatus.Playing) DrawEnd(engine, w, h);
+            else DrawLog(w, h);
+            if (d == null && engine.State.Status != RunStatus.Playing) DrawEnd(engine, w, h);
         }
 
         private void DrawHud(RulesEngine e, float w)
         {
             var s = e.State;
             var sb = new StringBuilder();
-            sb.Append($"HP {s.Hp}/{s.MaxHp}    Attacco {s.Attack}    Monete {s.Coins}    Livello {s.Level} (XP {s.Xp}/{s.Level * e.Config.XpPerLevel})");
-            sb.Append("    Chiavi: ").Append(s.HasSilverKey ? "argento " : "").Append(s.HasGoldKey ? "oro" : "").Append(!s.HasSilverKey && !s.HasGoldKey ? "—" : "");
-            sb.Append($"\nArma: {Txt.Item(s.Weapon?.Id)}   Anello: {Txt.Item(s.Ring?.Id)}   Trinket: {Txt.Item(s.Trinket?.Id)}");
-            if (s.CoinBonusPerGain > 0) sb.Append($"   Bonus monete +{s.CoinBonusPerGain}");
-            if (s.Mission != null) sb.Append($"\nMissione: uccidi il Boss (Difesa {e.Config.Content(ContentKind.Boss).Defense}). Bordo = livello di mascheramento 1–6.");
-            GUI.Box(new Rect(10, 10, w - 20, 118), sb.ToString(), _box);
-        }
-
-        private void DrawClues(RulesEngine e, float w, float h)
-        {
-            var rect = new Rect(10, 138, 330, h - 138 - 250);
-            GUI.Box(rect, "Indizi (linea: bersaglio = numero)", _title);
-            GUILayout.BeginArea(new Rect(rect.x + 8, rect.y + 40, rect.width - 16, rect.height - 48));
-            _clueScroll = GUILayout.BeginScrollView(_clueScroll);
-            if (e.ClueResults.Count == 0) GUILayout.Label("Nessuno.", _small);
-            foreach (var kv in e.ClueResults)
-                GUILayout.Label($"{(kv.Key.IsRow ? "Riga" : "Colonna")} {kv.Key.Label}: {Txt.Clue(kv.Value.target)} = {kv.Value.count}", _label);
-            GUILayout.EndScrollView();
-            GUILayout.EndArea();
+            sb.Append($"HP {s.Hp}/{s.MaxHp}   Att {s.Attack}   Monete {s.Coins}   Liv {s.Level} (XP {s.Xp}/{s.Level * e.Config.XpPerLevel})");
+            if (s.HasSilverKey || s.HasGoldKey) sb.Append("   Chiavi: ").Append(s.HasSilverKey ? "argento " : "").Append(s.HasGoldKey ? "oro" : "");
+            if (s.CoinBonusPerGain > 0) sb.Append($"   +{s.CoinBonusPerGain} monete/guadagno");
+            sb.Append($"\nArma {Txt.Item(s.Weapon?.Id)} · Anello {Txt.Item(s.Ring?.Id)} · Trinket {Txt.Item(s.Trinket?.Id)}");
+            sb.Append($"\nObiettivo: Boss (bordo viola, Difesa {e.Config.Content(ContentKind.Boss).Defense}).");
+            if (e.ClueResults.Count > 0)
+            {
+                sb.Append("  Indizi: ");
+                bool first = true;
+                foreach (var kv in e.ClueResults)
+                {
+                    if (!first) sb.Append(" · ");
+                    sb.Append($"{kv.Key.Label} {Txt.Clue(kv.Value.target)} {kv.Value.count}");
+                    first = false;
+                }
+            }
+            float height = _box.CalcHeight(new GUIContent(sb.ToString()), w - 20) + 4;
+            GUI.Box(new Rect(10, 10, w - 20, height), sb.ToString(), _box);
         }
 
         private void DrawLog(float w, float h)
         {
             var sb = new StringBuilder();
             for (int i = Mathf.Max(0, _log.Count - _logLines); i < _log.Count; i++) sb.AppendLine(_log[i]);
-            GUI.Box(new Rect(10, h - 240, 700, 230), sb.ToString(), _box);
+            GUI.Box(new Rect(10, h - 200, w - 20, 190), sb.ToString(), _box);
         }
 
         private void DrawDecision(RulesEngine e, Decision d, float w, float h)
         {
-            float pw = d.Kind == DecisionKind.ClueLine ? 760 : 620;
-            float ph = d.Kind == DecisionKind.ClueLine ? 420 : 110 + d.Options.Count * 66;
-            var r = new Rect((w - pw) / 2, (h - ph) / 2, pw, ph);
+            float pw = Mathf.Min(w - 20, 760);
+            float ph = d.Kind == DecisionKind.ClueLine ? 260 : 70 + d.Options.Count * 62;
+            var r = new Rect((w - pw) / 2, h - ph - 10, pw, ph);
             GUI.Box(r, Title(e, d), _title);
-            GUILayout.BeginArea(new Rect(r.x + 16, r.y + 70, r.width - 32, r.height - 80));
+            GUILayout.BeginArea(new Rect(r.x + 12, r.y + 56, r.width - 24, r.height - 62));
 
             if (d.Kind == DecisionKind.ClueLine)
             {
-                GUILayout.Label("Tocca una riga (1–10) o una colonna (A–J) libera:", _label);
+                GUILayout.Label("Scegli una riga (1–10) o una colonna (A–J) libera: vedrai quanti ce ne sono.", _small);
                 DrawLineButtons(d, true);
                 DrawLineButtons(d, false);
             }
@@ -143,8 +164,7 @@ namespace hp55games.MapGame.Features.UI
                 foreach (var o in d.Options)
                 {
                     GUI.enabled = o.Enabled;
-                    string label = OptionLabel(e, d, o);
-                    if (GUILayout.Button(label, _button, GUILayout.Height(58))) _grid.Submit(o.Id);
+                    if (LayoutButton(OptionLabel(e, d, o), GUILayout.Height(56))) _grid.Submit(o.Id);
                     GUI.enabled = true;
                 }
             }
@@ -154,17 +174,17 @@ namespace hp55games.MapGame.Features.UI
         private void DrawLineButtons(Decision d, bool rows)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(rows ? "Righe" : "Colonne", _label, GUILayout.Width(110));
+            GUILayout.Label(rows ? "Righe" : "Colonne", _label, GUILayout.Width(100));
             for (int i = 0; i < 10; i++)
             {
                 var line = rows ? LineRef.Row(i) : LineRef.Col(i);
                 var opt = d.Find(OptionIds.Line(line));
                 GUI.enabled = opt != null;
-                if (GUILayout.Button(line.Label, _button, GUILayout.Width(56), GUILayout.Height(56)) && opt != null) _grid.Submit(opt.Id);
+                if (LayoutButton(line.Label, GUILayout.Width(58), GUILayout.Height(58)) && opt != null) _grid.Submit(opt.Id);
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
-            GUILayout.Space(12);
+            GUILayout.Space(6);
         }
 
         private string Title(RulesEngine e, Decision d)
@@ -199,7 +219,7 @@ namespace hp55games.MapGame.Features.UI
         {
             var s = e.State;
             string t = s.Status == RunStatus.Won ? "VITTORIA" : s.LossReason == LossReason.BossFled ? "SCONFITTA — il Boss è fuggito" : "SCONFITTA";
-            GUI.Box(new Rect((w - 620) / 2, (h - 160) / 2, 620, 160), $"{t}\nLivello {s.Level} · Monete {s.Coins} · Attacco {s.Attack}", _title);
+            GUI.Box(new Rect((w - 620) / 2, h - 380, 620, 150), $"{t}\nLivello {s.Level} · Monete {s.Coins} · Attacco {s.Attack}", _title);
         }
 
         private void EnsureStyles()

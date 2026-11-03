@@ -181,8 +181,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         // ---------------------------------------------------------------- comandi
 
+        /// <summary>
+        /// La UI lo alza quando un tocco appartiene a un suo pulsante: IInputService legge l'input grezzo
+        /// e altrimenti lo stesso tocco scoprirebbe anche la tile sottostante.
+        /// </summary>
+        public int InputBlockedUntilFrame { get; set; }
+
         public bool TryRevealTile(HexCoord target)
         {
+            if (Time.frameCount <= InputBlockedUntilFrame) return false;
             if (!IsClickable(target)) return false;
             var events = _engine.Reveal(_tiles[target].RulesIndex);
             if (events.Count == 0) return false;

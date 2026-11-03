@@ -78,7 +78,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 view.transform.localPosition = _unityGrid.GetCellCenterLocal(new Vector3Int(row, col, 0));                view.Setup(coord);
                 view.ApplyState(tile.Spotting);
                 bool tileExplored = tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted;
-                view.SetClickable(_grid.IsClickable(coord) || tileExplored);
+                view.SetClickable(!tileExplored); // v2: nel prefab il bordo è anche l'indicatore; le coperte lo mostrano sempre (R-080)
                 view.SetDifficultyLevel(tile.DifficultyLevel);
                 if (tile.Spotting == SpottingState.Spotted || tile.TypeShown)
                     view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: tileExplored);
@@ -96,7 +96,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     var tile = kvp.Value;
                     bool tileExplored = tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted;
                     view.ApplyState(tile.Spotting);
-                    view.SetClickable(_grid.IsClickable(kvp.Key) || tileExplored);
+                    view.SetClickable(!tileExplored);
                     if (tile.Spotting == SpottingState.Spotted || tile.TypeShown)
                         view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: tileExplored);
                 }
