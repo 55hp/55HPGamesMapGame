@@ -1,6 +1,6 @@
 # 0002 — RunState, equipaggiamento, scambio, XP
 
-**Stato**: da fare · **Commit di riferimento**: —
+**Stato**: fatto (codice e test) · **Commit di riferimento**: —
 
 ## Obiettivo
 Implementare lo stato di run e la risoluzione di incontro, XP e progressione, tutto in Rules.
@@ -25,3 +25,9 @@ Tutto in `Assets/MapGame/Rules/`. Eventi di regola come tipi puri (`DamageTaken`
 
 ## Report
 (append-only)
+
+### Athena — 2026-11-03 — branch `athena/v2-impl`
+- `RunState` (Rules/Run), `RulesEngine` con scambio unico (R-031..R-034), danno `max(0, Difesa − Attacco)`, XP e level up (R-040..R-043), bonus monete per evento (R-038).
+- Al posto di `AttackCalculator`/`EncounterResolver`/`XpService` separati c'è un solo `RulesEngine` a decisioni pendenti (01 §6): le regole restano in un punto solo. Attacco calcolato da `RunState.Attack`.
+- Eventi: un tipo piatto `RuleEvent` con `RuleEventType` (più semplice da tradurre in Features).
+- Test: `RulesEngineTests` (R-020..R-043).

@@ -1,6 +1,6 @@
 # 0006 — UI incontro e HUD v2
 
-**Stato**: da fare · **Commit di riferimento**: —
+**Stato**: provvisorio: UI di prototipo IMGUI · **Commit di riferimento**: —
 
 ## Obiettivo
 Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, slot.
@@ -26,3 +26,10 @@ Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, s
 
 ## Report
 (append-only)
+
+### Athena — 2026-11-03 — branch `athena/v2-impl`
+- `RunPrototypeUI` (IMGUI) su `GridHandler`: HUD, scelte (NPC, level up, indizi, oggetti), etichette 1–10/A–J ai bordi con il risultato degli indizi, registro eventi. Serve a giocare e bilanciare subito.
+- Eccezione consapevole alla regola 10 (testi hardcoded, niente TMP): va sostituita dai prefab di questa spec. I pop-up v1 (`Popup_Encounter`, `Popup_Shop`) non vengono più aperti.
+
+#### Per Bezi
+- Prefab HUD v2 e pop-up (06 §2–§4) quando si passa dalla UI di prototipo a quella definitiva.

@@ -22,7 +22,7 @@ Il vecchio GDD (Notion, congelato all'08/08/2026) non è più una fonte: dove co
 - **R-005** Le tile **Vuote** sono scoperte fin dall'inizio e non sono cliccabili.
 - **R-006** Le Strade (Road) non esistono più nel livello 1. Cascate, cluster, PathCluster ed EventCluster non si usano.
 - **R-007** Il posizionamento è sparso e pseudocasuale con seed (stesso seed = stessa mappa): vedi `04_mappa.md`. Niente cluster.
-- **R-008** Il punto di partenza è la prima tile esplorata (n = 1 più le Vuote). Piazzamento **come nel codice attuale** (`MapClusterGenerator.PlaceStart/PlaceEnd`, da portare in Rules senza cambiarne il comportamento): la partenza cade a caso tra le tile ad almeno `StartMinBorderDistance` (3) dal bordo; il Boss va alla tile più vicina alla distanza (in esagoni) estratta con i pesi `EndDistanceWeights` (4,5,6,7,8 con pesi 1,2,3,2,1). Il Boss è **nascosto** come ogni altra tile coperta (decisione di Franci, D-025: diverso dal codice attuale, dove il Boss parte Spotted; `RevealInitialTiles` non lo deve più rivelare).
+- **R-008** Il punto di partenza è la prima tile esplorata (n = 1 più le Vuote). Piazzamento **come nel codice attuale** (`MapClusterGenerator.PlaceStart/PlaceEnd`, da portare in Rules senza cambiarne il comportamento): la partenza cade a caso tra le tile ad almeno `StartMinBorderDistance` (3) dal bordo; il Boss va a una tile (a caso tra le più vicine, **[DEFAULT D-029]**) alla distanza (in esagoni) estratta con i pesi `EndDistanceWeights` (4,5,6,7,8 con pesi 1,2,3,2,1). Il Boss è **nascosto** come ogni altra tile coperta (decisione di Franci, D-025: diverso dal codice attuale, dove il Boss parte Spotted; `RevealInitialTiles` non lo deve più rivelare).
 - **R-009** Il numero di tile per tipo è fisso e uguale a ogni partita (censimento in `03_contenuti.md`): niente casualità sulla composizione, solo sulla posizione.
 
 ## 3. Il giocatore
@@ -30,9 +30,9 @@ Il vecchio GDD (Notion, congelato all'08/08/2026) non è più una fonte: dove co
 - **R-020** HP iniziali 5, massimo 5 (alzabile col level up, R-042).
 - **R-021** Sconfitta (unica per morte): HP < 1.
 - **R-022** Il giocatore ha **un solo parametro di combattimento, l'Attacco**. Non esiste una Difesa del giocatore. Il bersaglio ha solo Difesa.
-- **R-023** Attacco = Attacco base (0) + bonus Arma + bonus Anello + bonus Trinket + potenziamento del Fabbro + level up spesi sull'Attacco. Tutti i bonus sono cumulabili, senza tetto.
+- **R-023** Attacco = Attacco base (**1** **[DEFAULT D-031]**) + bonus Arma + bonus Anello + bonus Trinket + potenziamento del Fabbro + level up spesi sull'Attacco. Tutti i bonus sono cumulabili, senza tetto.
 - **R-024** Slot di equipaggiamento: Arma, Anello, Trinket, uno ciascuno. Si parte col **Coltello** (Arma di livello 1, +1 Attacco). Il bonus di un'arma di livello N è +N.
-- **R-025** Equipaggiare un oggetto in uno slot occupato fa **perdere definitivamente** quello vecchio. Vale per Arma, Anello e Trinket. Se lo slot è vuoto l'oggetto si equipaggia in automatico.
+- **R-025** Equipaggiare un oggetto in uno slot occupato fa **perdere definitivamente** quello vecchio. Vale per Arma, Anello e Trinket. Se lo slot è vuoto l'oggetto si equipaggia in automatico. Un oggetto **trovato** con lo slot occupato apre la scelta Equipaggia / Lascia; un oggetto **comprato** si equipaggia subito **[DEFAULT D-030]**.
 - **R-026** Le monete si guadagnano con le uccisioni e da alcune tile e si spendono con gli NPC. Non esiste metaprogressione fuori dalla run in questa versione **[APERTO]**.
 - **R-027** Il **Cibo non esiste**. Muoversi (cliccare) non costa nulla.
 - **R-028** Chiavi: due flag di run, Chiave d'argento e Chiave d'oro (R-053). Non si consumano.
@@ -84,7 +84,7 @@ Il vecchio GDD (Notion, congelato all'08/08/2026) non è più una fonte: dove co
 - **R-063** Attaccare un NPC con Attacco ≥ 5 lo uccide e dà il premio associato (`03_contenuti.md` §3). Con Attacco < 5 l'NPC fugge senza premio e il giocatore subisce `5 − Attacco` di danno (stessa regola R-033). **[DEFAULT D-011]**
 - **R-064** Le offerte di ogni NPC sono in `03_contenuti.md` §3. Prezzi degli indizi: uno 5 monete, due insieme 9.
 - **R-065** I due Mercanti hanno lo stesso catalogo ma sono istanze separate: ciascuno ha la propria tile e la propria vita. Uccidere uno non tocca l'altro.
-- **R-066** Il Mercante vende l'arma di livello 3 (10 monete) e anche indizi; il bersaglio dei suoi indizi e il resto del catalogo sono **[APERTI]** (`03_contenuti.md` §3).
+- **R-066** Il Mercante vende l'arma di livello 3 (10 monete) e indizi sul **Boss** (1 per 5, 2 per 9) **[DEFAULT D-028]**; il resto del catalogo è **[APERTO]** (`03_contenuti.md` §3).
 
 ## 8. Missione e vittoria
 

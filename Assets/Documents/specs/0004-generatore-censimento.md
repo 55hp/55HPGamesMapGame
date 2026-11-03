@@ -1,6 +1,6 @@
 # 0004 — Generatore a censimento
 
-**Stato**: da fare · **Commit di riferimento**: —
+**Stato**: fatto (codice e test) · **Commit di riferimento**: —
 
 ## Obiettivo
 Generatore puro sparso con seed (04_mappa).
@@ -25,3 +25,8 @@ Start/Boss: porta in Rules `PlaceStart`/`PlaceEnd` di `MapClusterGenerator` senz
 
 ## Report
 (append-only)
+
+### Athena — 2026-11-03 — branch `athena/v2-impl`
+- `CensusMapGenerator` (Rules) + `CensusMapAdapter` (Features, `IMapGenerator`). `MapGenerationService` non istanzia più `MapClusterGenerator`.
+- Start/Boss: stessa logica di `PlaceStart`/`PlaceEnd`, ma con `IRandomSource`: le posizioni non coincidono al bit con il codice v1 (che usava `System.Random`). Boss a caso a parità di distanza (D-029).
+- `ClueCounts` precalcolati per riga e colonna. Test su 1000 seed: censimento, Start/Boss, determinismo, conteggi.

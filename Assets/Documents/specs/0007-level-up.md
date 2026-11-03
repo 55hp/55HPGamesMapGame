@@ -1,6 +1,6 @@
 # 0007 — Flusso di level up
 
-**Stato**: da fare · **Commit di riferimento**: —
+**Stato**: fatto (regole e UI di prototipo) · **Commit di riferimento**: —
 
 ## Obiettivo
 Decisione pendente con tre scelte e relativo pop-up.
@@ -25,3 +25,6 @@ Test: ogni opzione; cumulabilità; più livelli.
 
 ## Report
 (append-only)
+
+### Athena — 2026-11-03 — branch `athena/v2-impl`
+- Decisione `LevelUp` con 3 opzioni, non chiudibile; più livelli in una mossa = più decisioni in fila. Test `R042_*`.

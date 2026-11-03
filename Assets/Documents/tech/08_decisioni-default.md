@@ -35,9 +35,15 @@ Ultima revisione di Franci: 13/10/2026.
 | D-026 | Scelta della missione | a caso dal seed a ogni nuova partita | confermata |
 | D-027 | Prezzi NPC e bonus monete | prezzi come da pagina NPC; **due indizi insieme = 9 per tutti**; bonus monete per evento di guadagno | confermata |
 
-## Aperte
+## Aperte (Athena, sessione delegata 03/11/2026: implementate, da rivedere da Franci)
 
-Nessuna.
+| ID | Tema | Decisione | Motivo |
+|---|---|---|---|
+| D-028 | Indizi del Mercante (R-066, D-020) | bersaglio **Boss**, 1 per 5 / 2 per 9 | il Boss è l'unico bersaglio che nessuno vende; il Mercante diventa la fonte di direzione verso l'obiettivo (P5) |
+| D-029 | Posizione del Boss a parità di distanza | scelta **a caso** tra le tile alla distanza estratta | il codice v1 prendeva la prima in ordine di scansione: Boss quasi sempre sopra la partenza, prevedibile |
+| D-030 | Oggetto trovato con slot occupato (R-025) | scelta **Equipaggia / Lascia** (forzieri, uccisioni); gli acquisti dagli NPC si equipaggiano subito | trovare un'arma peggiore non deve far perdere quella migliore senza scelta; l'acquisto è già una scelta |
+| D-031 | Attacco base (R-023) | **1** (con il Coltello si parte con Attacco 2) | con 0 nessun mostro è battibile a inizio partita e la progressione non parte: bot Greedy 2% di vittorie; con 1 sale a 48% (bot Random 0%) |
+| D-032 | Missione all'avvio (R-070) | estratta dal flusso casuale del motore (seed della partita), non dal generatore della mappa | determinismo: stesso seed = stessa missione e stessa mappa |
 
 ## Domande aperte vere
 

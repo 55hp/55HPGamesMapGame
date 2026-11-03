@@ -16,7 +16,8 @@ Inn,Clue Trader (2),9,2 clues,no
 Inn,Clue MonstersNormal (1),5,clue,no
 Inn,Clue MonstersNormal (2),9,2 clues,no
 Trader,Arma L3,10,weapon L3,no
-Trader,Clues (TBD),?,target and prices OPEN (R-066),no
+Trader,Clue Boss (1),5,clue (D-028),no
+Trader,Clue Boss (2),9,2 clues (D-028),no
 Farmer,Cibo,3,+1 HP,no
 Farmer,Clue Bush (1),5,clue,no
 Farmer,Clue Bush (2),9,2 clues,no

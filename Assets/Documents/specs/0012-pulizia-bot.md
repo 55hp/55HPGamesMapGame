@@ -1,6 +1,6 @@
 # 0012 — Pulizia legacy e bot di bilanciamento
 
-**Stato**: da fare · **Commit di riferimento**: —
+**Stato**: bot fatto; pulizia legacy da fare · **Commit di riferimento**: —
 
 ## Obiettivo
 Rimuovere il legacy e produrre il bot di simulazione.
@@ -25,3 +25,8 @@ Eseguibile via `dotnet test` o console in `Tools/`. Output in `Tools/RulesHarnes
 
 ## Report
 (append-only)
+
+### Athena — 2026-11-03 — branch `athena/v2-impl`
+- `RandomPolicy`, `GreedyPolicy`, `BalanceSimulator` in Rules/Bot. Esecuzione: `Tools/RulesHarness/run.sh --sim 10000 [file.csv] [Nome=valore …]`.
+- Risultati 10 000 partite (D-031 applicata): Greedy 48,2% vittorie, Random 0%. Con Attacco base 0 (regole originali) Greedy 2,1%. HP 6 → 62%, HP 7 → 78% (non applicato: HP 5 è una decisione chiusa).
+- Pulizia legacy (MapClusterGenerator, Food, analyzer a cluster, popup v1) non ancora fatta.

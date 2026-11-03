@@ -1,6 +1,6 @@
 # 0010 — Forzieri, chiavi, ricompense mini-boss
 
-**Stato**: da fare · **Commit di riferimento**: —
+**Stato**: fatto (regole e UI di prototipo) · **Commit di riferimento**: —
 
 ## Obiettivo
 Forzieri semplici/argento/oro, chiavi come flag, ricompense dei 4 tipi di mini-boss.
@@ -25,3 +25,6 @@ Test per ogni contenuto fisso.
 
 ## Report
 (append-only)
+
+### Athena — 2026-11-03 — branch `athena/v2-impl`
+- Forzieri semplici, d'argento e d'oro; senza chiave svaniscono (R-054); mini-boss con ricompense fisse; chiavi come flag di run.

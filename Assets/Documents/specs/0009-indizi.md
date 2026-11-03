@@ -1,6 +1,6 @@
 # 0009 — Sistema di indizi
 
-**Stato**: da fare · **Commit di riferimento**: —
+**Stato**: fatto (regole e UI di prototipo) · **Commit di riferimento**: —
 
 ## Obiettivo
 ClueService, pannello indizi, etichette di riga/colonna.
@@ -25,3 +25,6 @@ Test come in 07 §2. Nessuna logica nella UI.
 
 ## Report
 (append-only)
+
+### Athena — 2026-11-03 — branch `athena/v2-impl`
+- Coda di decisioni `ClueLine` con le sole linee libere; catena di 2; indizio perso se non c'è una linea libera (R-096); conteggi dal layout (R-093). Etichette di bordo nella UI di prototipo.

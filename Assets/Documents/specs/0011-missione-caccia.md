@@ -1,6 +1,6 @@
 # 0011 — Missione Caccia
 
-**Stato**: da fare · **Commit di riferimento**: —
+**Stato**: fatto (regole e UI di prototipo) · **Commit di riferimento**: —
 
 ## Obiettivo
 Vittoria/sconfitta, Boss fuggito, indizi di partenza.
@@ -25,3 +25,6 @@ Test: 6 missioni con bersaglio e 2 indizi corretti; Boss con Attacco ≥ 8 vince
 
 ## Report
 (append-only)
+
+### Athena — 2026-11-03 — branch `athena/v2-impl`
+- 6 missioni, scelta dal seed (D-026, D-032), 2 indizi di partenza in catena; Boss `IsObjective`, vittoria con Attacco ≥ 8, Boss fuggito = sconfitta; la pagina risultati legacy riceve Lives ≤ 0 anche in quel caso.

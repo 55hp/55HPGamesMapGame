@@ -64,7 +64,7 @@ Regola comune: scelta unica per tile (R-062). Combattere: Attacco ≥ 5 uccide e
 | Fabbro | 5 | sì | Martello del Fabbro (arma L5) | Potenziamento +1 Attacco permanente 5 (una sola volta); indizio Inn 5 / due 9 |
 | Strega | 5 | sì | Bastone della Strega (arma L5) | Anello +2 Attacco 8; Lanterna (Trinket) 10; indizio Hunter 5 / due 9 |
 | Locanda | 5 | no | — | Cura completa 5; indizio Trader 5 / due 9; indizio MonstersNormal (Piccolo 1 + Piccolo 2) 5 / due 9 |
-| Mercante | 5 | sì | 10 monete | Arma L3 10; indizi (bersaglio e prezzi **[APERTI]**); resto del catalogo **[APERTO]** |
+| Mercante | 5 | sì | 10 monete | Arma L3 10; indizio Boss 5 / due 9 **[DEFAULT D-028]**; resto del catalogo **[APERTO]** |
 | Contadino | 3 | no | — | Cibo 3 monete → +1 HP; indizio Bush 5 / due **9** (come da pagina NPC) |
 | Paesani | 3 | no | — | Indizio Fountain 5; indizio Smith 5; indizio Bush 5 (come da pagina NPC; nessuno sconto) |
 

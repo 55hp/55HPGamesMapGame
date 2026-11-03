@@ -25,3 +25,4 @@ Per le regole vince la documentazione; per lo stato vince il codice. Se il codic
 |---|---|---|
 | 2026-10-13 | tutti | Prima stesura v2 (consolidamento GDD, default D-001..D-024) |
 | 2026-11-03 | 01, 07, specs, README, CLAUDE.md | Rules in `Assets/MapGame/Rules/`; harness con NUnit di Unity (`run.sh`) al posto di `dotnet test` |
+| 2026-11-03 | 02, 03, 08, data/npc_offers.csv | Decisioni D-028..D-032 (sessione delegata ad Athena), da rivedere |
