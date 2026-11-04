@@ -185,6 +185,20 @@ namespace hp55games.MapGame.Rules
             for (int k = 0; k < len; k++) yield return line.IsRow ? line.Index * w + k : k * w + line.Index;
         }
 
+        /// <summary>Linea con indizio che ha più tile coperte senza bordo visibile (candidata a una Ricognizione di linea).</summary>
+        private static LineRef? BestCluedLine(RulesEngine e, bool row)
+        {
+            LineRef? best = null; int bestHidden = 1;
+            foreach (var kv in e.ClueResults)
+            {
+                if (kv.Key.IsRow != row || kv.Value.count == 0) continue;
+                int hidden = 0;
+                foreach (int idx in LineTiles(e.Config, kv.Key)) if (!e.IsRevealed(idx) && !e.IsMaskVisible(idx)) hidden++;
+                if (hidden > bestHidden) { bestHidden = hidden; best = kv.Key; }
+            }
+            return best;
+        }
+
         // ------------------------------------------------------------ decisioni
 
         public string ChooseOption(RulesEngine e, Decision d)
@@ -193,11 +207,23 @@ namespace hp55games.MapGame.Rules
             {
                 // Compra indizi sui pericoli (mini-boss, mostri) se l'Attacco non basta ancora: valgono di più.
                 var s = e.State;
+                // D-045: Ricognizione di linea su una riga/colonna che ha già un indizio (la rende leggibile come in Classica).
+                foreach (var o in d.Options)
+                {
+                    if (!o.Enabled || !o.Id.Contains("_scout_row") && !o.Id.Contains("_scout_col")) continue;
+                    bool row = o.Id.Contains("_scout_row");
+                    if (BestCluedLine(e, row) != null) return o.Id;
+                }
                 if (s.Attack < e.Config.NpcDefense && s.Hp > 2)
                     foreach (var o in d.Options)
                         if (o.Enabled && o.Price > 0 && o.Id.Contains("clue")
                             && (o.ClueTarget == ClueTarget.MiniBoss || o.ClueTarget == ClueTarget.MonstersNormal)) return o.Id;
                 return _fallback.ChooseOption(e, d);
+            }
+            if (d.Kind == DecisionKind.Scout && ScoutShapes.IsLine(d.ScoutShape))
+            {
+                var line = BestCluedLine(e, d.ScoutShape == ScoutShapes.Row);
+                if (line != null && d.Find(OptionIds.Line(line.Value)) != null) return OptionIds.Line(line.Value);
             }
             if (d.Kind != DecisionKind.ClueLine) return _fallback.ChooseOption(e, d);
             PrepareContext(e);

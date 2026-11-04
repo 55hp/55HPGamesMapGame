@@ -554,7 +554,7 @@ namespace hp55games.MapGame.Rules.Tests
         [Test]
         public void D043_Fog_NoBordersExceptScouted_ClickFree()
         {
-            var c = Config(); c.Mode = GameMode.Fog; c.FogStartScoutRadii.Clear();
+            var c = Config(); c.Mode = GameMode.Fog; c.FogStartScouts.Clear();
             var e = Started(config: c);
             for (int i = 0; i < e.Layout.Tiles.Length; i++)
                 if (!e.IsRevealed(i)) { Assert.IsFalse(e.IsMaskVisible(i), $"tile {i}"); Assert.IsTrue(e.IsRevealable(i)); }
@@ -563,7 +563,7 @@ namespace hp55games.MapGame.Rules.Tests
         [Test]
         public void D043_FogShowBoss_BossBorderVisible()
         {
-            var c = Config(); c.Mode = GameMode.Fog; c.FogShowBoss = true; c.FogStartScoutRadii.Clear();
+            var c = Config(); c.Mode = GameMode.Fog; c.FogShowBoss = true; c.FogStartScouts.Clear();
             var e = Started(config: c);
             Assert.IsTrue(e.IsMaskVisible(e.Layout.BossIndex));
         }
@@ -571,7 +571,7 @@ namespace hp55games.MapGame.Rules.Tests
         [Test]
         public void D043_Scout_Radius1_ShowsCenterAndNeighbors()
         {
-            var c = Config(); c.Mode = GameMode.Fog; c.FogStartScoutRadii = new System.Collections.Generic.List<int> { 1 };
+            var c = Config(); c.Mode = GameMode.Fog; c.FogStartScouts = new System.Collections.Generic.List<int> { 1 };
             var e = new RulesEngine(c, 1);
             e.Start();
             while (e.CurrentDecision != null && e.CurrentDecision.Kind != DecisionKind.Scout)
@@ -599,6 +599,34 @@ namespace hp55games.MapGame.Rules.Tests
             var c = Config(); c.Mode = GameMode.FogAdjacent; var e = Started(config: c);
             for (int i = 0; i < e.Layout.Tiles.Length; i++)
                 if (!e.IsRevealed(i)) Assert.AreEqual(e.IsAdjacentToRevealed(i), e.IsRevealable(i), $"tile {i}");
+        }
+    
+        [Test]
+        public void D045_RowScout_ByTileOrLabel_ShowsWholeRow()
+        {
+            var c = Config(); c.Mode = GameMode.Fog; c.FogStartScouts = new System.Collections.Generic.List<int> { ScoutShapes.Row, ScoutShapes.Column };
+            var e = new RulesEngine(c, 3);
+            e.Start();
+            while (e.CurrentDecision != null && e.CurrentDecision.Kind != DecisionKind.Scout)
+                e.Submit(e.CurrentDecision.Options.First(o => o.Enabled).Id);
+            Assert.AreEqual(ScoutShapes.Row, e.CurrentDecision.ScoutShape);
+            int w = c.Width;
+            int tile = 4 * w + 7; // riga 4 (indice motore), colonna 7
+            e.Submit(OptionIds.Tile(tile));
+            for (int col = 0; col < w; col++) { int i = 4 * w + col; if (!e.IsRevealed(i)) Assert.IsTrue(e.IsMaskVisible(i), $"riga, tile {i}"); }
+            Assert.AreEqual(ScoutShapes.Column, e.CurrentDecision.ScoutShape);
+            e.Submit(OptionIds.Line(LineRef.Col(2)));
+            for (int r = 0; r < c.Height; r++) { int i = r * w + 2; if (!e.IsRevealed(i)) Assert.IsTrue(e.IsMaskVisible(i), $"colonna, tile {i}"); }
+        }
+
+        [Test]
+        public void D045_LineScoutOffers_Priced()
+        {
+            var c = Config(); c.Mode = GameMode.Fog; var e = Started(config: c);
+            e.State.Coins = 100;
+            e.Reveal(Find(e, ContentKind.Inn));
+            var row = e.CurrentDecision.Options.First(o => o.Id == "inn_scout_row");
+            Assert.AreEqual(c.ScoutPriceLine, row.Price);
         }
     }
 }

@@ -70,3 +70,13 @@ Partite per riga: 2000 (seed 0..1999). Override: nessuno.
 | Esplorazione | greedy | 43.1% | 57.0% | 0.0% | 2.76 | 5.78 | 4.04 | 12.50 | 58.05 | 0.00 | 29.16 | 100.0% | 18.31 | 0.54 | 6.26 | 2.91 | 2.50 | 4.50 | 0.00 |
 | Esplorazione | clue | 43.7% | 56.3% | 0.0% | 2.79 | 5.84 | 4.12 | 12.51 | 58.37 | 0.00 | 29.16 | 100.0% | 18.53 | 0.56 | 6.31 | 2.93 | 2.58 | 4.58 | 0.00 |
 
+## 2026-11-04 — Nebbia + Ricognizione di riga/colonna 7 monete da Locanda e Paesani (D-045)
+
+Partite per riga: 2000 (seed 0..1999). Override: nessuno.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Nebbia | random | 0.0% | 99.7% | 0.3% | 1.04 | 2.13 | - | 7.86 | 13.99 | 12.08 | 92.50 | 100.0% | 2.25 | 0.01 | 1.83 | 1.01 | 0.80 | 2.80 | 0.00 |
+| Nebbia | greedy | 20.8% | 78.6% | 0.7% | 1.92 | 4.67 | 4.52 | 9.85 | 39.31 | 15.78 | 79.85 | 58.7% | 10.22 | 0.67 | 4.50 | 2.52 | 2.54 | 4.54 | 0.00 |
+| Nebbia | clue | 19.8% | 80.1% | 0.2% | 1.83 | 4.44 | 4.20 | 9.90 | 37.49 | 14.22 | 80.75 | 60.4% | 9.70 | 0.59 | 4.22 | 2.38 | 2.54 | 4.54 | 0.00 |
+

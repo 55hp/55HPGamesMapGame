@@ -121,6 +121,16 @@ namespace hp55games.MapGame.Rules
             return score;
         }
 
+        public static List<int> ScoutAreaOf(int center, int shape, int w, int h)
+        {
+            var area = new List<int>();
+            if (shape == ScoutShapes.Row) { for (int c = 0; c < w; c++) area.Add((center / w) * w + c); return area; }
+            if (shape == ScoutShapes.Column) { for (int r = 0; r < h; r++) area.Add(r * w + center % w); return area; }
+            area.Add(center);
+            if (shape == ScoutShapes.Cluster) area.AddRange(HexGridMath.Neighbors(center, w, h));
+            return area;
+        }
+
         /// <summary>D-043: centro della Ricognizione con più tile nascoste nell'area, vicino alla partenza a parità.</summary>
         public static string ChooseScout(RulesEngine e, Decision d, IRandomSource rng)
         {
@@ -130,8 +140,7 @@ namespace hp55games.MapGame.Rules
             foreach (var o in d.Options)
             {
                 int hidden = 0;
-                var area = new List<int> { o.TileIndex };
-                if (d.ScoutRadius >= 1) area.AddRange(HexGridMath.Neighbors(o.TileIndex, w, h));
+                var area = ScoutAreaOf(o.TileIndex, d.ScoutShape, w, h);
                 foreach (int idx in area) if (!e.IsRevealed(idx) && !e.IsMaskVisible(idx)) hidden++;
                 int score = hidden * 10 - HexGridMath.Distance(o.TileIndex, e.Layout.StartIndex, w) * 2
                     + (e.IsAdjacentToRevealed(o.TileIndex) ? 5 : 0);
@@ -204,8 +213,8 @@ namespace hp55games.MapGame.Rules
             }
             if (s.Hp < s.MaxHp && Pick("inn_rest") != null && s.Hp <= s.MaxHp - 3) return "inn_rest";
             // D-043: in nebbia la visione vale: Ricognizione grande se possibile, altrimenti piccola.
-            foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.Scout && o.Amount >= 1 && Pick(o.Id) != null) return o.Id;
-            foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.Scout && o.Amount == 0 && Pick(o.Id) != null) return o.Id;
+            foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.Scout && o.Amount == ScoutShapes.Cluster && Pick(o.Id) != null) return o.Id;
+            foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.Scout && o.Amount == ScoutShapes.Single && Pick(o.Id) != null) return o.Id;
             return OptionIds.Close;
         }
     }

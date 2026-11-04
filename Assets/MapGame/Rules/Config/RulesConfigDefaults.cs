@@ -109,8 +109,8 @@ namespace hp55games.MapGame.Rules
             NpcOfferDef Clue(string id, ClueTarget t, int n, int price) =>
                 new NpcOfferDef { Id = id, Effect = NpcOfferEffect.Clues, ClueTarget = t, Amount = n, Price = price };
             // D-043: Ricognizione (solo nelle modalità con nebbia). Prezzo da RepriceOffers.
-            NpcOfferDef Scout(string id, int radius) =>
-                new NpcOfferDef { Id = id, Effect = NpcOfferEffect.Scout, Amount = radius };
+            NpcOfferDef Scout(string id, int shape) =>
+                new NpcOfferDef { Id = id, Effect = NpcOfferEffect.Scout, Amount = shape };
 
             c.Npcs[ContentKind.Hunter] = new NpcDef
             {
@@ -154,7 +154,8 @@ namespace hp55games.MapGame.Rules
                     Clue("inn_clue_trader_2", ClueTarget.Trader, 2, 9),
                     Clue("inn_clue_monsters_1", ClueTarget.MonstersNormal, 1, 5),
                     Clue("inn_clue_monsters_2", ClueTarget.MonstersNormal, 2, 9),
-                    Scout("inn_scout_0", 0), Scout("inn_scout_1", 1),
+                    Scout("inn_scout_0", ScoutShapes.Single), Scout("inn_scout_1", ScoutShapes.Cluster),
+                    Scout("inn_scout_row", ScoutShapes.Row), Scout("inn_scout_col", ScoutShapes.Column),
                 },
             };
             c.Npcs[ContentKind.Trader] = new NpcDef
@@ -187,7 +188,8 @@ namespace hp55games.MapGame.Rules
                     Clue("villagers_clue_fountain", ClueTarget.Fountain, 1, 5),
                     Clue("villagers_clue_smith", ClueTarget.Smith, 1, 5),
                     Clue("villagers_clue_bush", ClueTarget.Bush, 1, 5),
-                    Scout("villagers_scout_0", 0), Scout("villagers_scout_1", 1),
+                    Scout("villagers_scout_0", ScoutShapes.Single), Scout("villagers_scout_1", ScoutShapes.Cluster),
+                    Scout("villagers_scout_row", ScoutShapes.Row), Scout("villagers_scout_col", ScoutShapes.Column),
                 },
             };
 
@@ -202,11 +204,13 @@ namespace hp55games.MapGame.Rules
 
             // D-043 (Franci, 04/11/2026; valori iterati da Athena col bot, vedi data/balance/confronti.md):
             // in nebbia si parte con due Ricognizioni da 7 tile e una da 1; ogni linea completata ne dà una da 7.
-            c.FogStartScoutRadii = new List<int> { 1, 1, 0 };
-            c.FogLineCompleteScoutRadius = 1;
+            c.FogStartScouts = new List<int> { 1, 1, 0 };
+            c.FogLineCompleteScoutShape = 1;
             // D-044: indizi -20/-22% (4/7, proporzione 1,75 vs 1,8); Ricognizione 1 (una tile) e 5 (sette tile).
             c.CluePrice1 = 4; c.CluePrice2 = 7;
-            c.ScoutPriceRadius0 = 1; c.ScoutPriceRadius1 = 5;
+            c.ScoutPriceSingle = 1; c.ScoutPriceCluster = 5;
+            // D-045 (Franci, 04/11/2026): Ricognizione di riga o colonna intera, 7 monete, solo da Locanda e Paesani.
+            c.ScoutPriceLine = 7;
             c.RepriceOffers();
             return c;
         }

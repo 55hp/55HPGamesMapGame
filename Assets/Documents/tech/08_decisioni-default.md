@@ -47,6 +47,7 @@ Ultima revisione di Franci: 13/10/2026.
 | D-042 | Avatar | il personaggio compare sull'ultima tile toccata; l'icona del contenuto sfuma | Franci 04/11/2026, solo presentazione |
 | D-043 | Nebbia e Ricognizione | Nebbia senza bordi adiacenti; Ricognizione da 1 o 7 tile; sottomodalità "Boss visibile"; partenza 2×7 + 1×1, linea completata → 1×7, Locanda/Paesani 1 e 5 monete | Franci 04/11/2026 (idea, Boss opzionale); valori iterati da Athena col bot: Greedy 20,8% (Boss nascosto) / 26,6% (Boss visibile) |
 | D-044 | Prezzi degli indizi | 4 per uno, 7 per due (circa -20%, proporzione mantenuta) | Franci 04/11/2026: -30% indicativo; nessun effetto misurabile col bot |
+| D-045 | Ricognizione di riga/colonna | 7 monete, solo da Locanda e Paesani; si posa toccando una tile della linea o l'etichetta | Franci 04/11/2026; bot con indizi in Nebbia 18,1% → 19,8% |
 | D-035 | Seed della partita | casuale a ogni partita; `MapGenerationConfig.UseFixedSeed` per riprodurre una mappa; `CurrentRunSeed` ≠ 0 vince sempre | prima ogni partita aveva la stessa mappa (Seed 12345 fisso), modifica di D-024 decisa da Athena |
 
 ## Aperte (Athena, sessione delegata 03/11/2026: implementate, da rivedere da Franci)

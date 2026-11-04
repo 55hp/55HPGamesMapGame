@@ -24,16 +24,17 @@ namespace hp55games.MapGame.Rules
         public bool FogShowBoss { get; set; }
         /// <summary>In Nebbia il bordo si vede anche sulle tile adiacenti a una scoperta (comportamento D-040, ora spento di default).</summary>
         public bool FogRevealsAdjacent { get; set; }
-        /// <summary>Ricognizioni di partenza nelle modalità con nebbia (raggi, in ordine).</summary>
-        public List<int> FogStartScoutRadii { get; set; } = new List<int>();
-        /// <summary>Raggio della Ricognizione data da ogni linea completata in nebbia; -1 = nessuna.</summary>
-        public int FogLineCompleteScoutRadius { get; set; } = -1;
+        /// <summary>Ricognizioni di partenza nelle modalità con nebbia (forme ScoutShapes, in ordine).</summary>
+        public List<int> FogStartScouts { get; set; } = new List<int>();
+        /// <summary>Forma della Ricognizione data da ogni linea completata in nebbia (ScoutShapes); -1 = nessuna.</summary>
+        public int FogLineCompleteScoutShape { get; set; } = -1;
 
         // Prezzi (D-044): applicati alle offerte da RepriceOffers.
         public int CluePrice1 { get; set; }
         public int CluePrice2 { get; set; }
-        public int ScoutPriceRadius0 { get; set; }
-        public int ScoutPriceRadius1 { get; set; }
+        public int ScoutPriceSingle { get; set; }
+        public int ScoutPriceCluster { get; set; }
+        public int ScoutPriceLine { get; set; }
 
         // Plancia (R-001, R-008)
         public int Width { get; set; }
@@ -92,7 +93,7 @@ namespace hp55games.MapGame.Rules
                 foreach (var o in npc.Offers)
                 {
                     if (o.Effect == NpcOfferEffect.Clues) o.Price = o.Amount >= 2 ? CluePrice2 : CluePrice1;
-                    else if (o.Effect == NpcOfferEffect.Scout) o.Price = o.Amount >= 1 ? ScoutPriceRadius1 : ScoutPriceRadius0;
+                    else if (o.Effect == NpcOfferEffect.Scout) o.Price = ScoutShapes.IsLine(o.Amount) ? ScoutPriceLine : o.Amount == ScoutShapes.Cluster ? ScoutPriceCluster : ScoutPriceSingle;
                 }
         }
 

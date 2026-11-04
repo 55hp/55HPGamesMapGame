@@ -39,8 +39,8 @@ namespace hp55games.MapGame.Rules
         /// <summary>ClueLine: bersaglio dell'indizio da posare.</summary>
         public ClueTarget ClueTarget { get; internal set; }
 
-        /// <summary>Scout (D-043): raggio della Ricognizione (0 = una tile, 1 = tile + 6 vicine).</summary>
-        public int ScoutRadius { get; internal set; }
+        /// <summary>Scout (D-043/D-045): forma della Ricognizione, vedi <see cref="ScoutShapes"/>.</summary>
+        public int ScoutShape { get; internal set; }
 
         /// <summary>Item: oggetto trovato e oggetto attuale nello slot.</summary>
         public string NewItemId { get; internal set; }
@@ -54,6 +54,16 @@ namespace hp55games.MapGame.Rules
             foreach (var o in Options) if (o.Id == id) return o;
             return null;
         }
+    }
+
+    /// <summary>Forme della Ricognizione (D-043, D-045). Valgono anche come NpcOfferDef.Amount delle offerte Scout.</summary>
+    public static class ScoutShapes
+    {
+        public const int Single = 0;   // una tile
+        public const int Cluster = 1;  // tile + 6 vicine
+        public const int Row = 2;      // riga intera della tile scelta
+        public const int Column = 3;   // colonna intera della tile scelta
+        public static bool IsLine(int shape) => shape == Row || shape == Column;
     }
 
     /// <summary>Id fissi delle opzioni.</summary>

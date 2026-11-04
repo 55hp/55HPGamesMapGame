@@ -75,11 +75,21 @@ namespace hp55games.MapGame.Rules
         /// <summary>D-043: tile coperte di cui il giocatore non vede il bordo.</summary>
         private bool IsHidden(int index) => !_revealed[index] && !IsMaskVisible(index);
 
-        private IEnumerable<int> ScoutArea(int center, int radius)
+        private IEnumerable<int> ScoutArea(int center, int shape)
         {
+            int w = _config.Width, h = _config.Height;
+            switch (shape)
+            {
+                case ScoutShapes.Row:
+                    for (int c = 0; c < w; c++) yield return (center / w) * w + c;
+                    yield break;
+                case ScoutShapes.Column:
+                    for (int r = 0; r < h; r++) yield return r * w + center % w;
+                    yield break;
+            }
             yield return center;
-            if (radius >= 1)
-                foreach (int nb in HexGridMath.Neighbors(center, _config.Width, _config.Height)) yield return nb;
+            if (shape == ScoutShapes.Cluster)
+                foreach (int nb in HexGridMath.Neighbors(center, w, h)) yield return nb;
         }
 
         public bool IsAdjacentToRevealed(int index)
@@ -133,7 +143,7 @@ namespace hp55games.MapGame.Rules
             Emit(RuleEventType.MissionStarted, e => { e.ClueTarget = mission.Target; e.Amount = mission.StartClues; });
             for (int i = 0; i < mission.StartClues; i++) ReceiveClue(mission.Target);
             if (_config.Mode != GameMode.Open)
-                foreach (int radius in _config.FogStartScoutRadii) ReceiveScout(radius); // D-043
+                foreach (int radius in _config.FogStartScouts) ReceiveScout(radius); // D-043
 
             // Linee già complete per le Vuote (R-041 conta solo linee completate da una mossa: qui no XP).
             for (int i = 0; i < _revealed.Length; i++) if (_revealed[i]) MarkCompletedLinesSilently(i);
@@ -447,8 +457,8 @@ namespace hp55games.MapGame.Rules
             GainXp(completed * _config.LineCompleteXp); // R-041
             if (State.Mission != null) // D-039
                 for (int i = 0; i < completed * _config.LineCompleteClues; i++) ReceiveClue(State.Mission.Target);
-            if (_config.Mode != GameMode.Open && _config.FogLineCompleteScoutRadius >= 0) // D-043
-                for (int i = 0; i < completed; i++) ReceiveScout(_config.FogLineCompleteScoutRadius);
+            if (_config.Mode != GameMode.Open && _config.FogLineCompleteScoutShape >= 0) // D-043
+                for (int i = 0; i < completed; i++) ReceiveScout(_config.FogLineCompleteScoutShape);
         }
 
         private void MarkCompletedLinesSilently(int index)
@@ -520,13 +530,13 @@ namespace hp55games.MapGame.Rules
         {
             if (!AnyHidden()) return; // niente da vedere: non viene conferita (R-067)
             Emit(RuleEventType.ScoutReceived, e => e.Amount = radius);
-            Push(new Decision { Kind = DecisionKind.Scout, ScoutRadius = radius });
+            Push(new Decision { Kind = DecisionKind.Scout, ScoutShape = radius });
         }
 
         private void SubmitScout(Decision d, DecisionOption opt)
         {
-            foreach (int idx in ScoutArea(opt.TileIndex, d.ScoutRadius)) _scouted[idx] = true;
-            Emit(RuleEventType.ScoutUsed, e => { e.TileIndex = opt.TileIndex; e.Amount = d.ScoutRadius; });
+            foreach (int idx in ScoutArea(opt.TileIndex, d.ScoutShape)) _scouted[idx] = true;
+            Emit(RuleEventType.ScoutUsed, e => { e.TileIndex = opt.TileIndex; e.Amount = d.ScoutShape; });
         }
 
         /// <summary>Ricalcola le opzioni delle decisioni di linea e di Ricognizione in testa; senza opzioni sono perse (R-096).</summary>
@@ -541,12 +551,25 @@ namespace hp55games.MapGame.Rules
                     for (int i = 0; i < _revealed.Length; i++)
                     {
                         bool useful = false;
-                        foreach (int idx in ScoutArea(i, d.ScoutRadius)) if (IsHidden(idx)) { useful = true; break; }
+                        foreach (int idx in ScoutArea(i, d.ScoutShape)) if (IsHidden(idx)) { useful = true; break; }
                         if (useful) d.Options.Add(new DecisionOption { Id = OptionIds.Tile(i), LabelKey = "ui.scout.tile", TileIndex = i });
+                    }
+                    // D-045: la Ricognizione di riga/colonna si posa anche toccando l'etichetta della linea.
+                    if (ScoutShapes.IsLine(d.ScoutShape) && d.Options.Count > 0)
+                    {
+                        int w = _config.Width;
+                        var lines = new HashSet<string>();
+                        var tileOpts = new List<DecisionOption>(d.Options);
+                        foreach (var o in tileOpts)
+                        {
+                            var line = d.ScoutShape == ScoutShapes.Row ? LineRef.Row(o.TileIndex / w) : LineRef.Col(o.TileIndex % w);
+                            string id = OptionIds.Line(line);
+                            if (lines.Add(id)) d.Options.Add(new DecisionOption { Id = id, LabelKey = "ui.scout.line", TileIndex = o.TileIndex, Line = line });
+                        }
                     }
                     if (d.Options.Count > 0) return;
                     _pending.RemoveAt(0);
-                    Emit(RuleEventType.ScoutLost, e => e.Amount = d.ScoutRadius);
+                    Emit(RuleEventType.ScoutLost, e => e.Amount = d.ScoutShape);
                     continue;
                 }
                 foreach (var line in AllLines())

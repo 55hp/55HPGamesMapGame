@@ -38,7 +38,8 @@ namespace hp55games.MapGame.Features.UI.Run
         {
             if (!enabled) return;
             var d = e.CurrentDecision;
-            bool choosing = d != null && d.Kind == DecisionKind.ClueLine;
+            // Etichette cliccabili per posare un indizio o una Ricognizione di riga/colonna (D-045).
+            bool choosing = d != null && (d.Kind == DecisionKind.ClueLine || (d.Kind == DecisionKind.Scout && ScoutShapes.IsLine(d.ScoutShape)));
             foreach (var line in e.AllLines())
             {
                 var view = Get(line);
