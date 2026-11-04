@@ -102,3 +102,11 @@ Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, s
 - `UIRunHUD.prefab`: eliminare l'oggetto Log (`RunLogView`) e riassegnare lo spazio al tabellone.
 - Prefab della tile: 6 pallini (SpriteRenderer) negli angoli interni in senso orario da alto-sinistra in `_levelPips`; anello esterno in `_thickBorder`.
 - `HexTileConfigCatalog.DifficultyLevelBorderColors`: L1 `#9CCB5A`, L2 `#F2B544`, L3 `#5AB4F0`, L4 `#7FE0D0`, L5 `#F06A3C`, L6 `#D6244F`.
+- Pagina risultati (UX 4): `RunResults` (statistiche dagli eventi, registrato a ogni partita) + `RunResultsView` sulla pagina: causa, missione, livello, Attacco, nemici e mini-boss sconfitti, personaggi, indizi, caselle, monete, danni, numero della mappa.
+- Tutorial (UX 5): `TutorialPopupView`, 6 pagine `run.tutorial.*`, si apre da solo alla prima partita (PlayerPrefs `mapgame.tutorial_seen`) e dal pulsante "?".
+- Mappa del giorno (LD 4): `DailyChallengeButton` nel menu → `RunSeedRequest` (seed dalla data UTC), consumato da `HexGridController` per una partita ("Riprova" dopo la mappa del giorno dà una mappa nuova).
+
+#### Per Bezi
+- `UIResults_Page.prefab`: blocco statistiche con `RunResultsView` (`_cause`, `_stats`, `_seed`); nascondere le etichette Punteggio/Record.
+- `UIRunHUD.prefab`: pulsante "?" nella barra superiore e popup tutorial a pagine con `TutorialPopupView` (titolo, corpo scrollabile, "1/6", Indietro/Avanti/Chiudi), sopra tutto il resto dell'HUD.
+- `MainMenu_page.prefab`: pulsante "MAPPA DEL GIORNO" (chiave `run.menu.daily`) sotto GIOCA con `DailyChallengeButton`.

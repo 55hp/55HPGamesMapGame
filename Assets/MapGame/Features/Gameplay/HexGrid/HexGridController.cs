@@ -37,6 +37,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         private RulesConfig _rules;
         private RulesEngine _engine;
         private int _seed;
+        private RunResults _results;
+        private bool _resultsInitial;
 
         private readonly Dictionary<HexCoord, HexTileData> _tiles = new Dictionary<HexCoord, HexTileData>();
         private readonly Dictionary<int, HexCoord> _indexToCoord = new Dictionary<int, HexCoord>();
@@ -134,13 +136,22 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             }
 
             // D-035: senza seed di run nel contesto, mappa nuova a ogni partita (seed fisso solo se richiesto).
-            if (_context != null && _context.CurrentRunSeed != 0) _seed = _context.CurrentRunSeed;
+            // Mappa del giorno: richiesta dal menu tramite RunSeedRequest, consumata qui (una partita).
+            bool daily = false;
+            if (ServiceRegistry.TryResolve(out RunSeedRequest request) && request.HasRequest)
+            {
+                _seed = request.Seed; daily = request.IsDaily; request.Clear();
+            }
+            else if (_context != null && _context.CurrentRunSeed != 0) _seed = _context.CurrentRunSeed;
             else if (_mapConfig != null && _mapConfig.UseFixedSeed) _seed = _mapConfig.Seed;
             else _seed = UnityEngine.Random.Range(1, int.MaxValue);
             Debug.Log($"[HexGridController] Seed partita: {_seed}");
 
             _engine = new RulesEngine(_rules, unchecked((ulong)_seed));
             IsAwaitingEndConfirm = false;
+            _results = new RunResults(_seed, daily);
+            ServiceRegistry.Register(_results);
+            _resultsInitial = true;
             if (!_engine.Layout.Success)
             {
                 Debug.LogError("[HexGridController] Generazione mappa fallita: " + _engine.Layout.FailureReason, this);
@@ -259,6 +270,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             // Va impostato prima di notificare la UI: EndPanelView si mostra solo se IsAwaitingEndConfirm è già vero.
             if (won || lost) IsAwaitingEndConfirm = true;
+
+            if (_results != null && _engine != null) { _results.Apply(events, _engine, _resultsInitial); _resultsInitial = false; }
 
             SyncContext();
             ReachabilityChanged?.Invoke();
