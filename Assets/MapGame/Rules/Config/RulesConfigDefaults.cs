@@ -53,6 +53,11 @@ namespace hp55games.MapGame.Rules
                 LevelUpCoinBonus = 1,
                 LevelUpMaxHp = 1,
                 NpcDefense = 5,
+                // D-039 (Franci, 04/11/2026): +1 indizio sul bersaglio della missione per linea completata;
+                // i Piccoli 2 uccisi danno un indizio sugli Arbusti [DEFAULT: quali mostri e quale bersaglio].
+                LineCompleteClues = 1,
+                MonsterKillClueKinds = new List<ContentKind> { ContentKind.Monster2 },
+                MonsterKillClueTarget = ClueTarget.Bush,
             };
 
             // Oggetti (03 §6, data/items.csv)
@@ -153,10 +158,10 @@ namespace hp55games.MapGame.Rules
                 Offers =
                 {
                     new NpcOfferDef { Id = "trader_weapon", Price = 10, Effect = NpcOfferEffect.GiveItem, ItemId = WeaponL3 },
-                    // D-028 (Athena, 03/11/2026, da rivedere): bersaglio degli indizi del Mercante = Boss,
-                    // prezzi standard 5/9. Era [APERTO] (R-066, D-020).
-                    Clue("trader_clue_boss_1", ClueTarget.Boss, 1, 5),
-                    Clue("trader_clue_boss_2", ClueTarget.Boss, 2, 9),
+                    // D-038 (Franci, 04/11/2026): con il Boss visibile al livello 6 gli indizi del Mercante
+                    // vanno su un bersaglio di livello 5 estratto tra quelli ancora coperti (annulla D-028).
+                    new NpcOfferDef { Id = "trader_clue_1", Effect = NpcOfferEffect.Clues, RandomTargetMaskLevel = 5, Amount = 1, Price = 5 },
+                    new NpcOfferDef { Id = "trader_clue_2", Effect = NpcOfferEffect.Clues, RandomTargetMaskLevel = 5, Amount = 2, Price = 9 },
                 },
             };
             c.Npcs[ContentKind.Farmer] = new NpcDef

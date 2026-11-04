@@ -198,8 +198,8 @@ run.offer.inn_clue_trader_2	2 clues: Merchant	2 indizi: Mercante	2 clues: Mercha
 run.offer.inn_clue_monsters_1	1 clue: Monsters	1 indizio: Mostri	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters
 run.offer.inn_clue_monsters_2	2 clues: Monsters	2 indizi: Mostri	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters
 run.offer.trader_weapon	Sword (+3 Attack)	Spada (+3 Attacco)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)
-run.offer.trader_clue_boss_1	1 clue: Boss	1 indizio: Boss	1 clue: Boss	1 clue: Boss	1 clue: Boss	1 clue: Boss	1 clue: Boss	1 clue: Boss	1 clue: Boss
-run.offer.trader_clue_boss_2	2 clues: Boss	2 indizi: Boss	2 clues: Boss	2 clues: Boss	2 clues: Boss	2 clues: Boss	2 clues: Boss	2 clues: Boss	2 clues: Boss
+run.offer.trader_clue_1	1 clue: {0}	1 indizio: {0}	1 clue: {0}	1 clue: {0}	1 clue: {0}	1 clue: {0}	1 clue: {0}	1 clue: {0}	1 clue: {0}
+run.offer.trader_clue_2	2 clues: {0}	2 indizi: {0}	2 clues: {0}	2 clues: {0}	2 clues: {0}	2 clues: {0}	2 clues: {0}	2 clues: {0}	2 clues: {0}
 run.offer.farmer_food	Food (+1 HP)	Cibo (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)
 run.offer.farmer_clue_1	1 clue: Bushes	1 indizio: Arbusti	1 clue: Bushes	1 clue: Bushes	1 clue: Bushes	1 clue: Bushes	1 clue: Bushes	1 clue: Bushes	1 clue: Bushes
 run.offer.farmer_clue_2	2 clues: Bushes	2 indizi: Arbusti	2 clues: Bushes	2 clues: Bushes	2 clues: Bushes	2 clues: Bushes	2 clues: Bushes	2 clues: Bushes	2 clues: Bushes

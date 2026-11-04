@@ -165,6 +165,7 @@ namespace hp55games.MapGame.Rules
                 if (def.ItemId != null) FindItem(def.ItemId);
                 if (def.GivesKey != KeyKind.None) GainKey(def.GivesKey);
                 GainXp(def.Xp);
+                if (_config.MonsterKillClueKinds.Contains(def.Kind)) ReceiveClue(_config.MonsterKillClueTarget); // D-039
             }
             else
             {
@@ -218,9 +219,24 @@ namespace hp55games.MapGame.Rules
                     PredictedWin = atk >= defense, PredictedDamage = atk >= defense ? 0 : defense - atk,
                 });
             }
+            ClueTarget? randomTarget = null;
             foreach (var offer in npc.Offers)
             {
                 var o = new DecisionOption { Id = offer.Id, LabelKey = offer.NameKey, Price = offer.Price };
+                if (offer.Effect == NpcOfferEffect.Clues)
+                {
+                    // D-038: un indizio su contenuti già tutti scoperti non esiste: l'offerta non compare.
+                    ClueTarget target;
+                    if (offer.RandomTargetMaskLevel > 0)
+                    {
+                        if (randomTarget == null) randomTarget = PickRandomClueTarget(offer.RandomTargetMaskLevel);
+                        if (randomTarget == null) continue;
+                        target = randomTarget.Value;
+                    }
+                    else target = offer.ClueTarget;
+                    if (!HasCoveredTarget(target)) continue;
+                    o.ClueTarget = target;
+                }
                 if (offer.OncePerRun && offer.Effect == NpcOfferEffect.SmithUpgrade && State.SmithUpgradeBought)
                 { o.Enabled = false; o.DisabledReasonKey = "ui.npc.reason.already_bought"; }
                 else if (State.Coins < offer.Price)
@@ -272,7 +288,7 @@ namespace hp55games.MapGame.Rules
                     State.SmithUpgradeBought = true;
                     break;
                 case NpcOfferEffect.Clues:
-                    for (int i = 0; i < offer.Amount; i++) ReceiveClue(offer.ClueTarget);
+                    for (int i = 0; i < offer.Amount; i++) ReceiveClue(opt.ClueTarget);
                     break;
             }
         }
@@ -384,6 +400,8 @@ namespace hp55games.MapGame.Rules
                 Emit(RuleEventType.LineCompleted, e => e.Line = l);
             }
             GainXp(completed * _config.LineCompleteXp); // R-041
+            if (State.Mission != null) // D-039
+                for (int i = 0; i < completed * _config.LineCompleteClues; i++) ReceiveClue(State.Mission.Target);
         }
 
         private void MarkCompletedLinesSilently(int index)
@@ -405,8 +423,33 @@ namespace hp55games.MapGame.Rules
             return true;
         }
 
+        /// <summary>D-038: esiste ancora almeno una tile coperta del bersaglio? Altrimenti l'indizio sarebbe inutile.</summary>
+        public bool HasCoveredTarget(ClueTarget target)
+        {
+            for (int i = 0; i < _revealed.Length; i++)
+                if (!_revealed[i] && CensusMapGenerator.Matches(_config, Layout.Tiles[i], target)) return true;
+            return false;
+        }
+
+        /// <summary>D-038: bersaglio estratto (seed della partita) tra quelli del livello dato con tile ancora coperte.</summary>
+        private ClueTarget? PickRandomClueTarget(int maskLevel)
+        {
+            var candidates = new List<ClueTarget>();
+            foreach (ClueTarget t in Enum.GetValues(typeof(ClueTarget)))
+            {
+                bool atLevel = false;
+                foreach (var def in _config.Contents.Values)
+                    if (def.ClueTarget == t && def.MaskLevel == maskLevel && _config.Census.TryGetValue(def.Kind, out int q) && q > 0) atLevel = true;
+                if (atLevel && HasCoveredTarget(t)) candidates.Add(t);
+            }
+            if (candidates.Count == 0) return null;
+            return candidates[_rng.Range(0, candidates.Count)];
+        }
+
         private void ReceiveClue(ClueTarget target)
         {
+            // D-038: chi conferisce un indizio su contenuti già tutti scoperti non lo conferisce.
+            if (!HasCoveredTarget(target)) return;
             Emit(RuleEventType.ClueReceived, e => e.ClueTarget = target);
             Push(new Decision { Kind = DecisionKind.ClueLine, ClueTarget = target });
         }

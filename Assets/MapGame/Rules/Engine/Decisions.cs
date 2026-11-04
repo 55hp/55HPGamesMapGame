@@ -19,6 +19,8 @@ namespace hp55games.MapGame.Rules
         public string ItemId { get; internal set; }
         /// <summary>Attacco a un NPC: esito già noto (combattimento deterministico, R-063). Per mostrarlo prima della scelta (C1).</summary>
         public bool PredictedWin { get; internal set; }
+        /// <summary>Offerta di indizi: bersaglio effettivo (fisso o estratto, D-038).</summary>
+        public ClueTarget ClueTarget { get; internal set; }
         public int PredictedDamage { get; internal set; }
     }
 

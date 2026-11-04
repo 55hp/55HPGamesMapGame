@@ -93,7 +93,8 @@ namespace hp55games.MapGame.Features.UI.Run
                 case OptionIds.Equip: return T("run.item.equip");
                 case OptionIds.Discard: return T("run.item.discard");
             }
-            return Offer(o.Id);
+            // Le offerte di indizi ricevono il bersaglio effettivo (D-038: per il Mercante è estratto all'apertura).
+            return T("run.offer." + o.Id, Clue(o.ClueTarget));
         }
 
         /// <summary>Riga secondaria: prezzo, motivo di disabilitazione, rischio dell'attacco.</summary>

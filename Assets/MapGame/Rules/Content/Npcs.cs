@@ -19,6 +19,11 @@ namespace hp55games.MapGame.Rules
         public int Amount { get; set; }
         public string ItemId { get; set; }
         public ClueTarget ClueTarget { get; set; }
+        /// <summary>
+        /// D-038: se > 0 il bersaglio degli indizi non è fisso ma estratto, all'apertura dell'NPC, tra i ClueTarget
+        /// con contenuti di questo livello di mascheramento ancora coperti. ClueTarget viene ignorato.
+        /// </summary>
+        public int RandomTargetMaskLevel { get; set; }
         /// <summary>Acquistabile una sola volta per run (Fabbro).</summary>
         public bool OncePerRun { get; set; }
 

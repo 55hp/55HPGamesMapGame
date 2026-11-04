@@ -504,5 +504,39 @@ namespace hp55games.MapGame.Rules.Tests
                 if (kv.Key != ContentKind.Boss && c.Census.TryGetValue(kv.Key, out int q) && q > 0)
                     Assert.AreNotEqual(boss, kv.Value.MaskLevel, kv.Key.ToString());
         }
+    
+        [Test]
+        public void D038_TraderClue_TargetIsCoveredLevel5()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.Reveal(Find(e, ContentKind.Trader));
+            var clue = e.CurrentDecision.Options.FirstOrDefault(o => o.Id == "trader_clue_1");
+            Assert.IsNotNull(clue);
+            bool level5 = c.Contents.Values.Any(d => d.ClueTarget == clue.ClueTarget && d.MaskLevel == 5);
+            Assert.IsTrue(level5, clue.ClueTarget.ToString());
+            Assert.IsTrue(e.HasCoveredTarget(clue.ClueTarget));
+        }
+
+        [Test]
+        public void D038_NoClueOffer_WhenTargetAllRevealed()
+        {
+            var c = Config(); var e = Started(config: c);
+            // Scopre tutti gli arbusti, poi apre un Contadino: le sue offerte di indizi sugli Arbusti non compaiono.
+            e.State.Hp = 100; e.State.MaxHp = 100;
+            for (int i = 0; i < e.Layout.Tiles.Length; i++)
+                if (e.Layout.Tiles[i] == ContentKind.Bush && !e.IsRevealed(i)) { e.Reveal(i); ResolveAll(e); }
+            Assert.IsFalse(e.HasCoveredTarget(ClueTarget.Bush));
+            e.Reveal(Find(e, ContentKind.Farmer));
+            Assert.IsFalse(e.CurrentDecision.Options.Any(o => o.Id.StartsWith("farmer_clue")));
+        }
+
+        [Test]
+        public void D039_Monster2Kill_GivesBushClue()
+        {
+            var c = Config(); var e = Started(config: c);
+            SetAttack(e, c.Content(ContentKind.Monster2).Defense);
+            var evs = e.Reveal(Find(e, ContentKind.Monster2));
+            Assert.IsTrue(evs.Any(x => x.Type == RuleEventType.ClueReceived && x.ClueTarget == c.MonsterKillClueTarget));
+        }
     }
 }

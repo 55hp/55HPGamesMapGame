@@ -40,6 +40,8 @@ Ultima revisione di Franci: 13/10/2026.
 
 | D-036 | Monete iniziali e partenza sicura | 5 monete; niente livelli 2/5/6 adiacenti alla partenza; Piccolo 1 o forziere di monete entro 3 | Franci 04/11/2026 |
 | D-037 | Boss e mascheramento | Boss di nuovo **unico al livello 6** (annulla D-033) | Franci 04/11/2026; bot Greedy 38,5% → 49% |
+| D-038 | Indizi del Mercante e indizi inutili | Mercante: bersaglio di livello 5 estratto tra quelli ancora coperti (annulla D-028); nessun indizio su bersagli già tutti scoperti, né in vendita né in premio | Franci 04/11/2026 |
+| D-039 | Indizi come ricompensa | +1 indizio sul bersaglio della missione per linea completata; Piccolo 2 ucciso → 1 indizio sugli Arbusti (mostri e bersaglio: default di Athena) | Franci 04/11/2026; bot Greedy 48,8% |
 | D-035 | Seed della partita | casuale a ogni partita; `MapGenerationConfig.UseFixedSeed` per riprodurre una mappa; `CurrentRunSeed` ≠ 0 vince sempre | prima ogni partita aveva la stessa mappa (Seed 12345 fisso), modifica di D-024 decisa da Athena |
 
 ## Aperte (Athena, sessione delegata 03/11/2026: implementate, da rivedere da Franci)

@@ -18,7 +18,7 @@ Pilastro P6. Questo è il sistema che dà al giocatore informazione prima del cl
 
 ## 3. Fonti
 
-- **R-097** (a) set di partenza della missione; (b) acquisto dagli NPC (`03_contenuti.md` §3); (c) tile Indizio dedicata (quantità 0 per ora, D-013).
+- **R-097** (a) set di partenza della missione; (b) acquisto dagli NPC (`03_contenuti.md` §3); (c) tile Indizio dedicata (quantità 0 per ora, D-013); (d) **+1 indizio sul bersaglio della missione per ogni riga o colonna completata** **[D-039]**; (e) ogni **Piccolo 2** ucciso dà 1 indizio sugli **Arbusti** **[D-039, DEFAULT su quali mostri e quale bersaglio]**. Vale R-067 (niente indizi su bersagli già tutti scoperti).
 - **R-098** Indizi di partenza: dipendono dalla missione (R-070): **2 indizi sul bersaglio della missione** (uno dei 5 tipi di NPC di livello 5 oppure i mini-boss), scelti in catena a inizio partita (D-018, Franci).
 - **R-099** Le offerte "due indizi insieme" consegnano due indizi dello stesso bersaglio (uno per due linee diverse), scelti in catena.
 

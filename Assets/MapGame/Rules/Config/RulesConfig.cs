@@ -37,6 +37,13 @@ namespace hp55games.MapGame.Rules
         public int LevelUpCoinBonus { get; set; }
         public int LevelUpMaxHp { get; set; }
 
+        // Indizi come ricompensa (D-039)
+        /// <summary>Indizi sul bersaglio della missione per ogni riga o colonna completata.</summary>
+        public int LineCompleteClues { get; set; }
+        /// <summary>Mostri che, uccisi, danno un indizio su MonsterKillClueTarget.</summary>
+        public List<ContentKind> MonsterKillClueKinds { get; set; } = new List<ContentKind>();
+        public ClueTarget MonsterKillClueTarget { get; set; }
+
         // NPC (R-061)
         public int NpcDefense { get; set; }
 

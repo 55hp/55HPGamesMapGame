@@ -85,7 +85,8 @@ Il vecchio GDD (Notion, congelato all'08/08/2026) non è più una fonte: dove co
 - **R-063** Attaccare un NPC con Attacco ≥ 5 lo uccide e dà il premio associato (`03_contenuti.md` §3). Con Attacco < 5 l'NPC fugge senza premio e il giocatore subisce `5 − Attacco` di danno (stessa regola R-033). **[DEFAULT D-011]**
 - **R-064** Le offerte di ogni NPC sono in `03_contenuti.md` §3. Prezzi degli indizi: uno 5 monete, due insieme 9.
 - **R-065** I due Mercanti hanno lo stesso catalogo ma sono istanze separate: ciascuno ha la propria tile e la propria vita. Uccidere uno non tocca l'altro.
-- **R-066** Il Mercante vende l'arma di livello 3 (10 monete) e indizi sul **Boss** (1 per 5, 2 per 9) **[DEFAULT D-028]**; il resto del catalogo è **[APERTO]** (`03_contenuti.md` §3).
+- **R-066** Il Mercante vende l'arma di livello 3 (10 monete) e indizi (1 per 5, 2 per 9) su un bersaglio di **livello 5 estratto a caso all'apertura** tra quelli con tile ancora coperte **[D-038]**; il resto del catalogo è **[APERTO]** (`03_contenuti.md` §3).
+- **R-067** Un indizio su un bersaglio le cui tile sono già tutte scoperte non esiste: chi lo vende non lo mette in vendita (l'offerta non compare), chi lo conferisce non lo conferisce, senza compensazione **[D-038]**.
 
 ## 8. Missione e vittoria
 
