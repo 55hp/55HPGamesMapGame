@@ -14,6 +14,8 @@ namespace hp55games.MapGame.Rules
         /// <summary>Chiave del motivo per cui è disabilitata (null se abilitata).</summary>
         public string DisabledReasonKey { get; internal set; }
         public int Price { get; internal set; }
+        /// <summary>D-054: pezzi disponibili da mostrare (-1 = infinito, 0 = non mostrare).</summary>
+        public int Stock { get; internal set; }
         /// <summary>Per le decisioni di linea.</summary>
         public LineRef Line { get; internal set; }
         public string ItemId { get; internal set; }

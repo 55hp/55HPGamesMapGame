@@ -1104,3 +1104,13 @@ Partite per riga: 2000 (seed 0..1999). Override: FogStartScouts=0,0,0,1,1. Bot l
 | Nebbia | greedy | 36.6% | 61.9% | 1.6% | 2.33 | 5.69 | 4.67 | 10.32 | 46.54 | 20.38 | 76.23 | 56.7% | 12.84 | 1.01 | 5.65 | 3.76 | 0.00 | 0.00 | 0.00 |
 | Nebbia | clue | 36.4% | 61.4% | 2.2% | 2.31 | 5.65 | 4.69 | 10.11 | 45.81 | 20.29 | 76.60 | 57.3% | 12.71 | 1.01 | 5.45 | 3.68 | 0.00 | 0.00 | 0.00 |
 
+## 2026-11-04 — D-054 Nebbia: Ricognizioni comprabili finché ci sono monete
+
+Partite per riga: 2000 (seed 0..1999). Override: nessuno. Bot level up: default. Bot compra prima di attaccare: no.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Nebbia | random | 0.9% | 95.3% | 3.9% | 1.17 | 2.51 | 5.12 | 8.48 | 17.16 | 14.14 | 90.92 | 100.0% | 3.24 | 0.06 | 2.22 | 1.53 | 0.00 | 0.00 | 0.00 |
+| Nebbia | greedy | 35.5% | 62.3% | 2.3% | 2.18 | 5.49 | 4.55 | 10.13 | 44.32 | 20.22 | 77.34 | 53.9% | 12.03 | 0.87 | 5.39 | 5.43 | 0.00 | 0.00 | 0.00 |
+| Nebbia | clue | 38.5% | 59.7% | 1.9% | 2.24 | 5.64 | 4.62 | 10.04 | 45.19 | 20.88 | 76.90 | 54.1% | 12.47 | 0.96 | 5.48 | 5.64 | 0.00 | 0.00 | 0.00 |
+

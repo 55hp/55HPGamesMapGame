@@ -335,6 +335,7 @@ run.npc.attack_win	<color=#14501E><b>You win: {0}</b></color>	<color=#14501E><b>
 run.npc.reward_coins	{0} coins	{0} monete	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins
 run.npc.close	Leave	Vai via	Leave	Leave	Leave	Leave	Leave	Leave	Leave
 run.npc.price	{0} coins	{0} monete	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins
+run.npc.stock	x{0}	x{0}	x{0}	x{0}	x{0}	x{0}	x{0}	x{0}	x{0}
 run.npc.reason_coins	not enough coins	monete insufficienti	not enough coins	not enough coins	not enough coins	not enough coins	not enough coins	not enough coins	not enough coins
 run.npc.reason_bought	already bought	già comprato	already bought	already bought	already bought	already bought	already bought	already bought	already bought
 run.npc.reason_owned	already owned	già posseduto	already owned	already owned	already owned	already owned	already owned	already owned	already owned

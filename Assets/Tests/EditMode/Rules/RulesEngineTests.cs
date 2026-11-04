@@ -797,5 +797,27 @@ namespace hp55games.MapGame.Rules.Tests
             Assert.IsFalse(e.CurrentDecision.Options.Any(o => o.Id.Contains("clue")));
             Assert.IsTrue(e.CurrentDecision.Options.Any(o => o.Id.Contains("scout")));
         }
+
+        [Test]
+        public void D054_Scouts_BuyWhileCoinsLast()
+        {
+            var c = Config(); c.Mode = GameMode.Fog; var e = Started(config: c);
+            e.State.Coins = c.ScoutPriceSingle * 3;
+            int npc = Find(e, ContentKind.Villagers);
+            e.Reveal(npc);
+            for (int k = 0; k < 3; k++)
+            {
+                Assert.AreEqual(DecisionKind.Npc, e.CurrentDecision.Kind, $"acquisto {k}");
+                Assert.AreEqual(-1, e.CurrentDecision.Find("villagers_scout_0").Stock);
+                e.Submit("villagers_scout_0");
+                Assert.AreEqual(DecisionKind.Scout, e.CurrentDecision.Kind);
+                e.Submit(e.CurrentDecision.Options.First(o => o.Enabled).Id);
+            }
+            Assert.AreEqual(0, e.State.Coins);
+            Assert.AreEqual(DecisionKind.Npc, e.CurrentDecision.Kind);
+            Assert.IsFalse(e.CurrentDecision.Find("villagers_scout_0").Enabled);
+            e.Submit(OptionIds.Close);
+            Assert.IsNull(e.CurrentDecision);
+        }
 }
 }

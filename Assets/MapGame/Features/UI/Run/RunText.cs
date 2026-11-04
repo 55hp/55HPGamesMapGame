@@ -139,6 +139,8 @@ namespace hp55games.MapGame.Features.UI.Run
             if (OptionIds.IsEquip(o.Id)) return T("run.item.equip_detail", Item(o.ItemId));
             if (o.Price <= 0) return "";
             string price = T("run.npc.price", o.Price);
+            // D-054: quantità disponibile (∞ per le Ricognizioni).
+            if (o.Stock != 0) price += " · " + (o.Stock < 0 ? "∞" : T("run.npc.stock", o.Stock));
             if (o.Enabled) return price;
             string reason = o.DisabledReasonKey == "ui.npc.reason.already_bought" ? "run.npc.reason_bought"
                 : o.DisabledReasonKey == "ui.npc.reason.already_owned" ? "run.npc.reason_owned" : "run.npc.reason_coins";

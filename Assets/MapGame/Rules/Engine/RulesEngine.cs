@@ -262,8 +262,17 @@ namespace hp55games.MapGame.Rules
 
         private void OpenNpc(int index, ContentDef def)
         {
-            var npc = _config.Npcs[def.Kind];
-            var d = new Decision { Kind = DecisionKind.Npc, TileIndex = index, Npc = def.Kind };
+            var d = BuildNpcDecision(index, def.Kind);
+            Emit(RuleEventType.NpcOpened, e => { e.TileIndex = index; e.Kind = def.Kind; });
+            CheckMission(def, index);
+            Push(d);
+        }
+
+        /// <summary>Pannello di un NPC con le opzioni valide adesso (D-054: si ricostruisce dopo ogni Ricognizione comprata).</summary>
+        private Decision BuildNpcDecision(int index, ContentKind kind)
+        {
+            var npc = _config.Npcs[kind];
+            var d = new Decision { Kind = DecisionKind.Npc, TileIndex = index, Npc = kind };
             if (npc.Fightable)
             {
                 int atk = State.Attack, defense = _config.NpcDefense;
@@ -276,7 +285,9 @@ namespace hp55games.MapGame.Rules
             ClueTarget? randomTarget = null;
             foreach (var offer in npc.Offers)
             {
-                var o = new DecisionOption { Id = offer.Id, LabelKey = offer.NameKey, Price = offer.Price };
+                // D-054: le Ricognizioni non finiscono (Stock -1 = infinito), gli oggetti sono pezzi unici (Stock 1).
+                var o = new DecisionOption { Id = offer.Id, LabelKey = offer.NameKey, Price = offer.Price,
+                    Stock = offer.Effect == NpcOfferEffect.Scout ? -1 : offer.Effect == NpcOfferEffect.GiveItem ? 1 : 0 };
                 // D-043: la Ricognizione esiste solo con la nebbia e se resta qualcosa da vedere (R-067).
                 if (offer.Effect == NpcOfferEffect.Scout && (_config.Mode == GameMode.Open || !AnyHidden())) continue;
                 // D-049: la Bussola serve solo in Nebbia; la Mappa solo se resta un forziere d'oro o d'argento da trovare.
@@ -309,9 +320,7 @@ namespace hp55games.MapGame.Rules
                 d.Options.Add(o);
             }
             d.Options.Add(new DecisionOption { Id = OptionIds.Close, LabelKey = "ui.npc.close" });
-            Emit(RuleEventType.NpcOpened, e => { e.TileIndex = index; e.Kind = def.Kind; });
-            CheckMission(def, index);
-            Push(d);
+            return d;
         }
 
         private void SubmitNpc(Decision d, DecisionOption opt)
@@ -358,6 +367,8 @@ namespace hp55games.MapGame.Rules
                     break;
                 case NpcOfferEffect.Scout:
                     ReceiveScout(offer.Amount);
+                    // D-054 (Franci, 05/11/2026): dopo una Ricognizione l'NPC resta aperto, si compra finché ci sono monete.
+                    Push(BuildNpcDecision(d.TileIndex, d.Npc));
                     break;
                 case NpcOfferEffect.TreasureMap: break; // D-051: sostituita dalle Mappe Trinket
             }
