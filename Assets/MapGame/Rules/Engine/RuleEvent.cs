@@ -34,6 +34,7 @@ namespace hp55games.MapGame.Rules
         ScoutUsed,          // D-043: Ricognizione posata (TileIndex = centro, Amount = raggio)
         ScoutLost,          // D-043: nessuna tile da ricognire
         MissionReached,     // D-046: bersaglio della missione raggiunto (Amount = Attacco guadagnato)
+        PhoenixSaved,       // D-052: l'Amuleto della Fenice si consuma e lascia il giocatore a Amount HP
         GameWon,
         GameLost,
     }

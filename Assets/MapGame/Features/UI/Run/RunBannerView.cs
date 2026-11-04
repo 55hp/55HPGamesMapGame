@@ -84,6 +84,7 @@ namespace hp55games.MapGame.Features.UI.Run
                 switch (ev.Type)
                 {
                     case RuleEventType.LevelUp: _queue.Enqueue(RunText.T("run.banner.level_up", ev.Amount)); break;
+                    case RuleEventType.PhoenixSaved: _queue.Enqueue(RunText.T("run.banner.phoenix")); break;
                     case RuleEventType.MissionReached: _queue.Enqueue(RunText.T("run.banner.mission_reached", ev.Amount)); break;
                     case RuleEventType.KeyObtained:
                         _queue.Enqueue(RunText.T(ev.Key == KeyKind.Gold ? "run.banner.key_gold" : "run.banner.key_silver"));

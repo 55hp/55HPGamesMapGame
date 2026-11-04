@@ -748,5 +748,38 @@ namespace hp55games.MapGame.Rules.Tests
             Assert.IsTrue(e.State.HasItem(RulesConfigDefaults.MapSilver));
             Assert.IsTrue(c.Item(RulesConfigDefaults.MiniBossWeapon).TwoHanded);
         }
+
+        [Test]
+        public void D052_Shield_ReducesTrapDamage()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.State.Give(c.Item(RulesConfigDefaults.Shield));
+            int hp = e.State.Hp;
+            e.Reveal(Find(e, ContentKind.Trap2));
+            Assert.AreEqual(hp - (c.Content(ContentKind.Trap2).TrapDamage - c.ShieldReduction), e.State.Hp);
+        }
+
+        [Test]
+        public void D052_Phoenix_SavesOnce()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.State.Give(c.Item(RulesConfigDefaults.Phoenix));
+            e.State.Hp = 1;
+            var evs = e.Reveal(Find(e, ContentKind.Trap2));
+            Assert.AreEqual(RunStatus.Playing, e.State.Status);
+            Assert.AreEqual(c.PhoenixHp, e.State.Hp);
+            Assert.IsNotNull(First(evs, RuleEventType.PhoenixSaved));
+            Assert.IsFalse(e.State.HasItem(RulesConfigDefaults.Phoenix));
+        }
+
+        [Test]
+        public void D052_Herbarium_BushHealsMore()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.State.Give(c.Item(RulesConfigDefaults.Herbarium));
+            e.State.MaxHp = 20; e.State.Hp = 1;
+            e.Reveal(Find(e, ContentKind.Bush));
+            Assert.AreEqual(1 + c.Content(ContentKind.Bush).Heal + c.HerbariumBonus, e.State.Hp);
+        }
 }
 }

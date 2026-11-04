@@ -82,6 +82,21 @@ namespace hp55games.MapGame.Rules
         /// <summary>D-049: oggetti del Mercante attivi (spegnerli serve a misurarli uno per volta col bot).</summary>
         public bool OfferCompass { get; set; } = true;
         public int PurseBonus { get; set; } = 1;
+        /// <summary>D-052: danni in meno per colpo con lo Scudo (minimo 0).</summary>
+        public int ShieldReduction { get; set; } = 1;
+        /// <summary>D-052: colpi parati prima che lo Scudo si rompa (0 = non si rompe).</summary>
+        public int ShieldCharges { get; set; } = 0;
+        /// <summary>D-052: HP con cui l'Amuleto della Fenice lascia il giocatore.</summary>
+        public int PhoenixHp { get; set; } = 1;
+        /// <summary>D-052: HP in più curati da ogni Arbusto con l'Erbario.</summary>
+        public int HerbariumBonus { get; set; } = 1;
+        /// <summary>D-052: prezzi e presenza dei nuovi oggetti (spegnerli serve a misurarli col bot).</summary>
+        public int ShieldPrice { get; set; } = 6;
+        public int PhoenixPrice { get; set; } = 8;
+        public int HerbariumPrice { get; set; } = 4;
+        public bool OfferShield { get; set; } = true;
+        public bool OfferPhoenix { get; set; } = true;
+        public bool OfferHerbarium { get; set; } = true;
         /// <summary>D-050: Attacco di una seconda arma a una mano.</summary>
         public int OffHandWeaponBonus { get; set; } = 1;
         /// <summary>D-050: una seconda arma dà OffHandWeaponBonus solo se il suo bonus è almeno questo (2 = il Coltello non conta).</summary>
@@ -117,10 +132,14 @@ namespace hp55games.MapGame.Rules
             foreach (var npc in Npcs.Values)
             {
                 npc.Offers.RemoveAll(o => (!OfferCompass && o.ItemId == "compass") || (!OfferPurse && o.ItemId == "purse")
-                    || (!OfferTreasureMap && (o.ItemId == "map_gold" || o.ItemId == "map_silver")) || (!OfferAmulet && o.ItemId == "amulet"));
+                    || (!OfferTreasureMap && (o.ItemId == "map_gold" || o.ItemId == "map_silver"))
+                    || (!OfferShield && o.ItemId == "shield") || (!OfferPhoenix && o.ItemId == "phoenix") || (!OfferHerbarium && o.ItemId == "herbarium") || (!OfferAmulet && o.ItemId == "amulet"));
                 foreach (var o in npc.Offers)
                 {
                     if (o.ItemId == "map_gold" || o.ItemId == "map_silver") { o.Price = TreasureMapPrice; continue; }
+                    if (o.ItemId == "shield") { o.Price = ShieldPrice; continue; }
+                    if (o.ItemId == "phoenix") { o.Price = PhoenixPrice; continue; }
+                    if (o.ItemId == "herbarium") { o.Price = HerbariumPrice; continue; }
                     if (o.FixedPrice) continue;
                     if (o.ItemId == "amulet") { o.Price = AmuletPrice; continue; }
                     if (o.Effect == NpcOfferEffect.Clues) o.Price = o.Amount >= 2 ? CluePrice2 : CluePrice1;

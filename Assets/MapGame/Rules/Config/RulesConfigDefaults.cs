@@ -26,6 +26,9 @@ namespace hp55games.MapGame.Rules
         public const string Whetstone = "smith_whetstone"; // D-051: Cote del Fabbro (ex Potenziamento)
         public const string MapGold = "map_gold";          // D-051
         public const string MapSilver = "map_silver";      // D-051
+        public const string Shield = "shield";             // D-052
+        public const string Phoenix = "phoenix";           // D-052
+        public const string Herbarium = "herbarium";       // D-052
 
         public static RulesConfig Level1()
         {
@@ -91,6 +94,9 @@ namespace hp55games.MapGame.Rules
             Item(Whetstone, ItemSlot.Trinket, 1);
             Item(MapGold, ItemSlot.Trinket, 0, ItemEffect.MapGold);
             Item(MapSilver, ItemSlot.Trinket, 0, ItemEffect.MapSilver);
+            Item(Shield, ItemSlot.Hand, 0, ItemEffect.Shield);
+            Item(Phoenix, ItemSlot.Trinket, 0, ItemEffect.Phoenix);
+            Item(Herbarium, ItemSlot.Trinket, 0, ItemEffect.Herbarium);
 
             // Censimento (03 §1, data/tile_census.csv) e definizioni
             void Def(ContentKind k, int qty, ContentDef d) { d.Kind = k; c.Census[k] = qty; c.Contents[k] = d; }
@@ -168,6 +174,7 @@ namespace hp55games.MapGame.Rules
                 Offers =
                 {
                     new NpcOfferDef { Id = "inn_rest", Price = 5, Effect = NpcOfferEffect.FullHeal },
+                    new NpcOfferDef { Id = "inn_phoenix", Effect = NpcOfferEffect.GiveItem, ItemId = Phoenix }, // D-052
                     Clue("inn_clue_trader_1", ClueTarget.Trader, 1, 5),
                     Clue("inn_clue_trader_2", ClueTarget.Trader, 2, 9),
                     Clue("inn_clue_monsters_1", ClueTarget.MonstersNormal, 1, 5),
@@ -201,6 +208,7 @@ namespace hp55games.MapGame.Rules
                 Offers =
                 {
                     new NpcOfferDef { Id = "farmer_food", Price = 3, Effect = NpcOfferEffect.Heal, Amount = 1 },
+                    new NpcOfferDef { Id = "farmer_herbarium", Effect = NpcOfferEffect.GiveItem, ItemId = Herbarium }, // D-052
                     Clue("farmer_clue_1", ClueTarget.Bush, 1, 5),
                     Clue("farmer_clue_2", ClueTarget.Bush, 2, 9),
                 },
@@ -210,6 +218,7 @@ namespace hp55games.MapGame.Rules
                 Kind = ContentKind.Villagers, Fightable = false,
                 Offers =
                 {
+                    new NpcOfferDef { Id = "villagers_shield", Effect = NpcOfferEffect.GiveItem, ItemId = Shield }, // D-052
                     Clue("villagers_clue_fountain", ClueTarget.Fountain, 1, 5),
                     Clue("villagers_clue_smith", ClueTarget.Smith, 1, 5),
                     Clue("villagers_clue_bush", ClueTarget.Bush, 1, 5),
@@ -240,6 +249,9 @@ namespace hp55games.MapGame.Rules
             c.MissionRewardAttack = 1;
             c.MiniBossDefense = 5; // con 4 Classica ed Esplorazione salgono al 94% / 88% (bot Greedy): troppo facile
             c.TrinketPrice = 6;
+            // D-052 (Franci, 04/11/2026): Scudo dai Paesani, Fenice dalla Locanda, Erbario dal Contadino.
+            // Scudo che non si rompe: Esplorazione 92%; si rompe dopo 3 colpi: 64% (provvisorio, da decidere).
+            c.ShieldCharges = 3;
             c.RepriceOffers();
             return c;
         }

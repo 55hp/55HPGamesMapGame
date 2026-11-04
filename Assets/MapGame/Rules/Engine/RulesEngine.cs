@@ -244,7 +244,7 @@ namespace hp55games.MapGame.Rules
         private void ResolveHeal(ContentDef def)
         {
             if (def.FullHeal) Heal(State.MaxHp);
-            else Heal(def.Heal);
+            else Heal(def.Heal + (def.Kind == ContentKind.Bush && State.HasEffect(ItemEffect.Herbarium) ? _config.HerbariumBonus : 0)); // D-052
         }
 
         private void ResolveChest(int index, ContentDef def)
@@ -366,9 +366,22 @@ namespace hp55games.MapGame.Rules
 
         private void TakeDamage(int amount)
         {
+            if (State.HasEffect(ItemEffect.Shield) && amount > 0) // D-052
+            {
+                amount = Math.Max(0, amount - _config.ShieldReduction);
+                if (_config.ShieldCharges > 0 && --State.ShieldChargesLeft <= 0)
+                    DropHand(State.MainHand?.Effect == ItemEffect.Shield ? State.MainHand : State.OffHand); // lo Scudo si rompe
+            }
             if (amount <= 0) return;
             State.Hp -= amount;
             Emit(RuleEventType.DamageTaken, e => e.Amount = amount);
+            if (State.Hp < 1 && State.HasEffect(ItemEffect.Phoenix)) // D-052: la Fenice si consuma
+            {
+                var phoenix = State._trinkets.Find(t => t.Effect == ItemEffect.Phoenix);
+                State._trinkets.Remove(phoenix);
+                State.Hp = Math.Min(State.MaxHp, _config.PhoenixHp);
+                Emit(RuleEventType.PhoenixSaved, e => { e.ItemId = phoenix.Id; e.Amount = State.Hp; });
+            }
             if (State.Hp < 1) Lose(LossReason.Death); // R-021
         }
 
@@ -479,6 +492,7 @@ namespace hp55games.MapGame.Rules
 
         private void Place(ItemDef item)
         {
+            if (item.Effect == ItemEffect.Shield) State.ShieldChargesLeft = _config.ShieldCharges;
             if (item.TwoHanded || State.MainHand == null)
             {
                 if (item.TwoHanded) State.OffHand = null;

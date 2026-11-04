@@ -36,6 +36,8 @@ namespace hp55games.MapGame.Rules
         /// <summary>D-050: Attacco di un'arma in più oltre la migliore (dalla config).</summary>
         public int OffHandWeaponBonus { get; internal set; }
         public int OffHandWeaponMinBonus { get; internal set; }
+        /// <summary>D-052: colpi che lo Scudo può ancora parare (se ShieldCharges > 0).</summary>
+        public int ShieldChargesLeft { get; internal set; }
 
         public bool HasSilverKey { get; internal set; }
         public bool HasGoldKey { get; internal set; }

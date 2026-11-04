@@ -188,11 +188,17 @@ run.item.amulet	Amulet (+1)	Amuleto (+1)	Amulet (+1)	Amulet (+1)	Amulet (+1)	Amu
 run.item.smith_whetstone	Whetstone (+1)	Cote del Fabbro (+1)	Whetstone (+1)	Whetstone (+1)	Whetstone (+1)	Whetstone (+1)	Whetstone (+1)	Whetstone (+1)	Whetstone (+1)
 run.item.map_gold	Gold map	Mappa d'oro	Gold map	Gold map	Gold map	Gold map	Gold map	Gold map	Gold map
 run.item.map_silver	Silver map	Mappa d'argento	Silver map	Silver map	Silver map	Silver map	Silver map	Silver map	Silver map
+run.item.shield	Shield (-1 damage)	Scudo (-1 danno)	Shield (-1 damage)	Shield (-1 damage)	Shield (-1 damage)	Shield (-1 damage)	Shield (-1 damage)	Shield (-1 damage)	Shield (-1 damage)
+run.item.phoenix	Phoenix amulet	Amuleto della Fenice	Phoenix amulet	Phoenix amulet	Phoenix amulet	Phoenix amulet	Phoenix amulet	Phoenix amulet	Phoenix amulet
+run.item.herbarium	Herbarium	Erbario	Herbarium	Herbarium	Herbarium	Herbarium	Herbarium	Herbarium	Herbarium
 run.offer.hunter_game	Game meat (+3 HP)	Cacciagione (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)
 run.offer.hunter_tools	Hunter's tools (traps don't trigger)	Attrezzi del Cacciatore (le trappole non scattano)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)
 run.offer.hunter_clue_1	1 clue: Mini-boss	1 indizio: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss
 run.offer.hunter_clue_2	2 clues: Mini-boss	2 indizi: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss	2 clues: Mini-boss
 run.offer.smith_upgrade	Whetstone (+1 Attack)	Cote del Fabbro (+1 Attacco)	Whetstone (+1 Attack)	Whetstone (+1 Attack)	Whetstone (+1 Attack)	Whetstone (+1 Attack)	Whetstone (+1 Attack)	Whetstone (+1 Attack)	Whetstone (+1 Attack)
+run.offer.villagers_shield	Shield (-1 damage per hit)	Scudo (-1 danno a colpo)	Shield (-1 damage per hit)	Shield (-1 damage per hit)	Shield (-1 damage per hit)	Shield (-1 damage per hit)	Shield (-1 damage per hit)	Shield (-1 damage per hit)	Shield (-1 damage per hit)
+run.offer.inn_phoenix	Phoenix amulet (saves you once)	Amuleto della Fenice (ti salva una volta)	Phoenix amulet (saves you once)	Phoenix amulet (saves you once)	Phoenix amulet (saves you once)	Phoenix amulet (saves you once)	Phoenix amulet (saves you once)	Phoenix amulet (saves you once)	Phoenix amulet (saves you once)
+run.offer.farmer_herbarium	Herbarium (bushes heal +1)	Erbario (gli Arbusti curano +1)	Herbarium (bushes heal +1)	Herbarium (bushes heal +1)	Herbarium (bushes heal +1)	Herbarium (bushes heal +1)	Herbarium (bushes heal +1)	Herbarium (bushes heal +1)	Herbarium (bushes heal +1)
 run.offer.smith_clue_1	1 clue: Inn	1 indizio: Locanda	1 clue: Inn	1 clue: Inn	1 clue: Inn	1 clue: Inn	1 clue: Inn	1 clue: Inn	1 clue: Inn
 run.offer.smith_clue_2	2 clues: Inn	2 indizi: Locanda	2 clues: Inn	2 clues: Inn	2 clues: Inn	2 clues: Inn	2 clues: Inn	2 clues: Inn	2 clues: Inn
 run.offer.witch_ring	Ring (+2 Attack)	Anello (+2 Attacco)	Ring (+2 Attack)	Ring (+2 Attack)	Ring (+2 Attack)	Ring (+2 Attack)	Ring (+2 Attack)	Ring (+2 Attack)	Ring (+2 Attack)
@@ -252,6 +258,7 @@ run.float.heal	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+
 run.float.coins	+{0} coins	+{0} monete	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins
 run.float.xp	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP
 run.banner.level_up	LEVEL {0}!	LIVELLO {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!
+run.banner.phoenix	THE PHOENIX SAVES YOU!	LA FENICE TI SALVA!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!
 run.mission_intro.title	MISSION	MISSIONE	MISSION	MISSION	MISSION	MISSION	MISSION	MISSION	MISSION
 run.mission_intro.reward	Start: {1} clues on {0}\nReach it: +1 Attack	Partenza: {1} indizi su {0}\nRaggiungilo: +1 Attacco	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack
 run.mission_intro.go	Go!	Via!	Go!	Go!	Go!	Go!	Go!	Go!	Go!

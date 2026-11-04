@@ -195,6 +195,7 @@ namespace hp55games.MapGame.Rules
         {
             int v = RunState.HandsAttackOf(a, b, e.State.OffHandWeaponBonus, e.State.OffHandWeaponMinBonus);
             if (e.Config.Mode == GameMode.Fog && (a?.Effect == ItemEffect.Compass || b?.Effect == ItemEffect.Compass)) v += 1;
+            if (a?.Effect == ItemEffect.Shield || b?.Effect == ItemEffect.Shield) v += 1; // D-052: lo Scudo vale circa +1
             return v;
         }
 
