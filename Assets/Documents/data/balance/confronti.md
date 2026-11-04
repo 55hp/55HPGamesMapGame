@@ -884,3 +884,23 @@ Partite per riga: 2000 (seed 0..1999). Override: ShieldCharges=1. Bot level up: 
 | Nebbia | greedy | 34.4% | 64.3% | 1.4% | 2.23 | 5.47 | 4.73 | 9.88 | 44.40 | 20.44 | 77.30 | 54.4% | 11.68 | 0.94 | 5.37 | 3.98 | 2.96 | 4.96 | 0.00 |
 | Nebbia | clue | 30.7% | 68.9% | 0.4% | 2.09 | 5.18 | 4.66 | 9.78 | 40.99 | 15.73 | 79.01 | 60.0% | 10.86 | 0.88 | 4.89 | 3.66 | 2.88 | 4.88 | 0.00 |
 
+## 2026-11-04 — Nebbia, analisi indizi: base
+
+Partite per riga: 2000 (seed 0..1999). Override: nessuno. Bot level up: default. Bot compra prima di attaccare: no.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Nebbia | random | 0.7% | 97.4% | 2.0% | 1.14 | 2.44 | 4.31 | 8.26 | 16.41 | 13.98 | 91.30 | 100.0% | 3.05 | 0.04 | 2.10 | 1.32 | 1.22 | 3.21 | 0.00 |
+| Nebbia | greedy | 35.9% | 62.2% | 1.9% | 2.28 | 5.65 | 4.61 | 10.17 | 45.53 | 21.47 | 76.74 | 53.3% | 12.48 | 0.97 | 5.55 | 3.71 | 3.11 | 5.11 | 0.00 |
+| Nebbia | clue | 30.8% | 68.7% | 0.6% | 2.09 | 5.23 | 4.49 | 10.10 | 41.09 | 15.97 | 78.95 | 59.5% | 11.24 | 0.85 | 4.87 | 3.33 | 2.91 | 4.91 | 0.00 |
+
+## 2026-11-04 — Nebbia, analisi indizi: indizi a 99 monete (nessuno li compra)
+
+Partite per riga: 2000 (seed 0..1999). Override: CluePrice1=99, CluePrice2=99. Bot level up: default. Bot compra prima di attaccare: no.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Nebbia | random | 0.9% | 96.0% | 3.2% | 1.17 | 2.51 | 4.28 | 8.34 | 16.83 | 14.02 | 91.08 | 100.0% | 3.19 | 0.06 | 2.16 | 1.20 | 0.63 | 2.63 | 0.00 |
+| Nebbia | greedy | 35.9% | 62.2% | 1.9% | 2.28 | 5.65 | 4.61 | 10.17 | 45.53 | 21.47 | 76.74 | 53.3% | 12.48 | 0.97 | 5.55 | 3.71 | 3.11 | 5.11 | 0.00 |
+| Nebbia | clue | 36.5% | 62.8% | 0.8% | 2.21 | 5.59 | 4.56 | 9.82 | 43.21 | 16.55 | 77.90 | 60.1% | 12.04 | 0.96 | 5.19 | 3.47 | 2.89 | 4.89 | 0.00 |
+
