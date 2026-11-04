@@ -26,6 +26,7 @@ ui.btn.back	Back	Indietro	Atrás	Retour	Zurück	戻る	뒤로가기	返回	Volta
 ui.btn.continue	Continue	Continua	Continuar	Continuer	Fortsetzen	続ける	계속	继续	Continuar
 ui.btn.confirm	Confirm	Conferma	Confirmar	Confirmer	Bestätigen	確認	확인	确认	Confirmar
 ui.btn.retry	Retry	Riprova	Reintentar	Recommencer	Erneut versuchen	再挑戦	재시도	重试	Tentar Novamente
+ui.btn.menu	Menu	Menu	Menú	Menu	Menü	メニュー	메뉴	菜单	Menu
 ui.btn.next	Next	Avanti	Siguiente	Suivant	Weiter	次へ	다음	下一步	Próximo
 ui.btn.prev	Previous	Precedente	Anterior	Précédent	Vorherige	前へ	이전	上一步	Anterior
 ui.btn.skip	Skip	Salta	Omitir	Passer	Überspringen	スキップ	건너뛰기	跳过	Pular
