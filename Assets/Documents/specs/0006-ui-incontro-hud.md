@@ -119,3 +119,10 @@ Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, s
 - `MainMenu_page.prefab`: `MenuRunSetup` sulla radice; accanto a GIOCA due pulsanti con `GameModeButton` (Fog / FogAdjacent), testo `run.menu.mode_fog` / `run.menu.mode_explore` e riga descrittiva `run.menu.mode_*_desc`; descrizione sotto GIOCA `run.menu.mode_open_desc`.
 - `HexTileConfigCatalog`: colore livello 0 grigio neutro.
 - `02_Gameplay`: oggetto `PlayerAvatar` (SpriteRenderer con lo sprite del personaggio oggi usato dalla tile Start, sorting sopra le icone) con `PlayerAvatarView` (`_grid`, `_spawner`, `_avatar`).
+
+### Athena — 2026-11-04 (nona parte) — Nebbia con Ricognizione
+- Rules: D-043/D-044 (vedi `tech/08`), bot aggiornati, confronti in `data/balance/confronti.md`. Harness 59/59.
+- Features: tocco sul tabellone con Ricognizione in sospeso = scelta del centro (`HexGridController.TryRevealTile`); il pannello scelte non blocca il tabellone durante la Ricognizione; testi `run.scout.*`, offerte `run.offer.*_scout_*`; `FogBossToggle` (preferenza in PlayerPrefs).
+
+#### Per Bezi
+- `MainMenu_page.prefab`: sotto il pulsante NEBBIA una spunta "Boss visibile in Nebbia" (`run.menu.fog_show_boss`) con `FogBossToggle` (`_toggle`).

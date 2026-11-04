@@ -141,6 +141,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             ServiceRegistry.TryResolve(out RunSeedRequest request);
             // D-040: modalità scelta nel menu (resta per "Riprova"); di default Open.
             _rules.Mode = request != null ? request.Mode : GameMode.Open;
+            _rules.FogShowBoss = request != null && request.FogShowBoss; // D-043, sottomodalità
             if (request != null && request.HasRequest)
             {
                 _seed = request.Seed; daily = request.IsDaily; request.Clear();
@@ -218,6 +219,15 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (Time.frameCount <= InputBlockedUntilFrame) return false;
             // In pausa il popup copre la UI ma i tap sul tabellone arrivano comunque al raycast di mondo.
             if (ServiceRegistry.TryResolve<IGameStateMachine>(out var fsm) && fsm.Current is PauseState) return false;
+            // D-043: con una Ricognizione in sospeso il tocco sul tabellone sceglie il suo centro.
+            var pending = _engine?.CurrentDecision;
+            if (pending != null && pending.Kind == DecisionKind.Scout && _tiles.TryGetValue(target, out var st))
+            {
+                var scoutEvents = _engine.Submit(OptionIds.Tile(st.RulesIndex));
+                if (scoutEvents.Count == 0) { Haptic(HapticStrength.Light); return false; }
+                Dispatch(scoutEvents);
+                return true;
+            }
             if (!IsClickable(target))
             {
                 Haptic(HapticStrength.Light); // tocco non valido (tile già giocata o decisione aperta)

@@ -74,6 +74,8 @@ namespace hp55games.MapGame.Features.Gameplay.Run
         public bool HasRequest => Seed != 0;
         /// <summary>D-040: modalità della prossima partita. Resta impostata (anche per "Riprova") finché il menu non la azzera.</summary>
         public GameMode Mode { get; set; } = GameMode.Open;
+        /// <summary>D-043: sottomodalità della Nebbia con il bordo del Boss visibile. Preferenza del menu, non azzerata.</summary>
+        public bool FogShowBoss { get; set; }
 
         public void RequestDaily(int seed) { Seed = seed; IsDaily = true; }
 

@@ -16,7 +16,8 @@ Il vecchio GDD (Notion, congelato all'08/08/2026) non è più una fonte: dove co
 ## 2. Plancia e azione base
 
 - **R-001** Griglia esagonale 10×10 = 100 tile, coordinate assiali (Q,R) in memoria, conversione odd-q per il disegno. Etichette: colonne A–J, righe 1–10.
-- **R-002b** Modalità **[D-040]**: *Classica* (tutto come sotto), *Nebbia* (il bordo si vede solo sulle tile adiacenti a una scoperta; clic libero), *Esplorazione* (bordo visibile e clic consentito solo sulle tile adiacenti a una scoperta).
+- **R-002b** Modalità **[D-040]**: *Classica* (tutto come sotto), *Nebbia* (nessun bordo visibile, salvo quelli svelati dalla **Ricognizione** e, nella sottomodalità "Boss visibile", il bordo del Boss; clic libero) **[D-043]**, *Esplorazione* (bordo visibile e clic consentito solo sulle tile adiacenti a una scoperta).
+- **R-002c** **Ricognizione** **[D-043]** (solo Nebbia ed Esplorazione): si posa toccando una tile qualsiasi, coperta o scoperta; svela per sempre il bordo di quella tile (raggio 0) o anche delle 6 vicine (raggio 1). Non usa gli slot degli indizi. Fonti: partenza (2 da 7 tile + 1 da 1), ogni linea completata (1 da 7), Locanda e Paesani (1 moneta per 1 tile, 5 per 7 tile). Se non resta nulla da svelare non viene data (R-067).
 - **R-002** Il giocatore può cliccare **qualsiasi** tile coperta. Con m = tile totali e n = tile già scoperte, le scelte sono m − n. Nessun vincolo di adiacenza.
 - **R-003** Una tile girata non è più interagibile, senza eccezioni (neppure i forzieri).
 - **R-004** Una risorsa ottenuta oltre il massimo è persa.

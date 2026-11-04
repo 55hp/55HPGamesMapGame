@@ -35,8 +35,9 @@ namespace hp55games.MapGame.Features.UI.Run
 
         private void Update()
         {
-            // I tocchi sul pannello non devono scoprire la tile sottostante.
-            if (_root.activeSelf) _session?.BlockBoardInput();
+            // I tocchi sul pannello non devono scoprire la tile sottostante; la Ricognizione invece si posa toccando il tabellone.
+            var d = _session?.Engine?.CurrentDecision;
+            if (_root.activeSelf && (d == null || d.Kind != DecisionKind.Scout)) _session?.BlockBoardInput();
         }
 
         public void Bind(IRunSession session) => _session = session;
@@ -52,7 +53,7 @@ namespace hp55games.MapGame.Features.UI.Run
             _body.text = RunText.DecisionBody(e, d);
 
             int shown = 0;
-            if (d.Kind != DecisionKind.ClueLine)
+            if (d.Kind != DecisionKind.ClueLine && d.Kind != DecisionKind.Scout)
             {
                 foreach (var o in d.Options)
                 {

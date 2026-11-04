@@ -63,6 +63,7 @@ namespace hp55games.MapGame.Features.UI.Run
                 case DecisionKind.Npc: return Content(d.Npc);
                 case DecisionKind.LevelUp: return T("run.levelup.title", e.State.Level);
                 case DecisionKind.ClueLine: return T("run.clue.title", Clue(d.ClueTarget));
+                case DecisionKind.Scout: return T(d.ScoutRadius >= 1 ? "run.scout.title_area" : "run.scout.title_one");
                 case DecisionKind.Item: return T("run.item.found", Item(d.NewItemId));
                 default: return "";
             }
@@ -75,6 +76,7 @@ namespace hp55games.MapGame.Features.UI.Run
                 case DecisionKind.Npc: return T("run.npc.body");
                 case DecisionKind.LevelUp: return T("run.levelup.body");
                 case DecisionKind.ClueLine: return T("run.clue.body");
+                case DecisionKind.Scout: return T(d.ScoutRadius >= 1 ? "run.scout.body_area" : "run.scout.body_one");
                 case DecisionKind.Item: return T("run.item.body", Item(d.CurrentItemId));
                 default: return "";
             }
