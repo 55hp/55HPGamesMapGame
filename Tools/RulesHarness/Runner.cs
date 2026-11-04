@@ -120,6 +120,9 @@ namespace hp55games.MapGame.RulesHarness
             for (int a = 4; a < args.Length; a++) overrides.Add(args[a]);
 
             var modes = new System.Collections.Generic.List<hp55games.MapGame.Rules.GameMode> { hp55games.MapGame.Rules.GameMode.Open, hp55games.MapGame.Rules.GameMode.Fog, hp55games.MapGame.Rules.GameMode.FogAdjacent };
+            var botOv = overrides.Find(x => x.StartsWith("BotLevelUp="));
+            string botLevelUp = "default";
+            if (botOv != null) { overrides.Remove(botOv); botLevelUp = botOv.Substring("BotLevelUp=".Length); }
             var modeOv = overrides.Find(x => x.StartsWith("Mode="));
             if (modeOv != null) { overrides.Remove(modeOv); modes.Clear(); modes.Add((hp55games.MapGame.Rules.GameMode)Enum.Parse(typeof(hp55games.MapGame.Rules.GameMode), modeOv.Substring(5))); }
             var policies = new[] { "random", "greedy", "clue" };
@@ -150,8 +153,8 @@ namespace hp55games.MapGame.RulesHarness
                     ulong seed = (ulong)i;
                     hp55games.MapGame.Rules.IPlayerPolicy p =
                         name == "random" ? new hp55games.MapGame.Rules.RandomPolicy(seed + 99)
-                        : name == "greedy" ? (hp55games.MapGame.Rules.IPlayerPolicy)new hp55games.MapGame.Rules.GreedyPolicy(seed + 99)
-                        : new hp55games.MapGame.Rules.ClueAwarePolicy(seed + 99);
+                        : name == "greedy" ? (hp55games.MapGame.Rules.IPlayerPolicy)new hp55games.MapGame.Rules.GreedyPolicy(seed + 99, botLevelUp)
+                        : new hp55games.MapGame.Rules.ClueAwarePolicy(seed + 99, botLevelUp);
                     var r = hp55games.MapGame.Rules.BalanceSimulator.Play(config, seed, p);
                     if (r.Status == hp55games.MapGame.Rules.RunStatus.Won) { won++; hpWin += r.HpAtEnd; }
                     else if (r.Loss == hp55games.MapGame.Rules.LossReason.Death) death++;
@@ -172,7 +175,7 @@ namespace hp55games.MapGame.RulesHarness
             }
             if (md != null)
             {
-                var header = $"## {DateTime.UtcNow:yyyy-MM-dd} — {label}\n\nPartite per riga: {games} (seed 0..{games - 1}). Override: {(overrides.Count == 0 ? "nessuno" : string.Join(", ", overrides))}.\n\n";
+                var header = $"## {DateTime.UtcNow:yyyy-MM-dd} — {label}\n\nPartite per riga: {games} (seed 0..{games - 1}). Override: {(overrides.Count == 0 ? "nessuno" : string.Join(", ", overrides))}. Bot level up: {botLevelUp}.\n\n";
                 System.IO.File.AppendAllText(md, header + sb + "\n");
             }
             return 0;

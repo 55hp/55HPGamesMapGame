@@ -214,6 +214,7 @@ namespace hp55games.MapGame.Rules
                 GainCoins(def.Coins);
                 if (def.ItemId != null) FindItem(def.ItemId);
                 if (def.GivesKey != KeyKind.None) GainKey(def.GivesKey);
+                CheckMission(def, index);
                 GainXp(def.Xp);
                 if (_config.MonsterKillClueKinds.Contains(def.Kind)) ReceiveClue(_config.MonsterKillClueTarget); // D-039
             }
@@ -297,6 +298,7 @@ namespace hp55games.MapGame.Rules
             }
             d.Options.Add(new DecisionOption { Id = OptionIds.Close, LabelKey = "ui.npc.close" });
             Emit(RuleEventType.NpcOpened, e => { e.TileIndex = index; e.Kind = def.Kind; });
+            CheckMission(def, index);
             Push(d);
         }
 
@@ -501,6 +503,16 @@ namespace hp55games.MapGame.Rules
             }
             if (candidates.Count == 0) return null;
             return candidates[_rng.Range(0, candidates.Count)];
+        }
+
+        /// <summary>D-046: il bersaglio della missione è raggiunto aprendo quell'NPC o uccidendo un mini-boss (caccia ai mini-boss).</summary>
+        private void CheckMission(ContentDef def, int index)
+        {
+            if (State.MissionReached || State.Mission == null || def.ClueTarget != State.Mission.Target) return;
+            State.MissionReached = true;
+            State.MissionBonus += _config.MissionRewardAttack;
+            int amount = _config.MissionRewardAttack;
+            Emit(RuleEventType.MissionReached, e => { e.TileIndex = index; e.Kind = def.Kind; e.Amount = amount; e.ClueTarget = def.ClueTarget.Value; });
         }
 
         private void ReceiveClue(ClueTarget target)

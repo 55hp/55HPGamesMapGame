@@ -71,6 +71,14 @@ namespace hp55games.MapGame.Rules
         public List<ContentKind> MonsterKillClueKinds { get; set; } = new List<ContentKind>();
         public ClueTarget MonsterKillClueTarget { get; set; }
 
+        // Missione (D-046)
+        /// <summary>Attacco permanente ottenuto raggiungendo il bersaglio della missione (0 = nessuna ricompensa).</summary>
+        public int MissionRewardAttack { get; set; }
+        /// <summary>D-047: Difesa di tutti i mini-boss (applicata da ApplyMiniBossDefense).</summary>
+        public int MiniBossDefense { get; set; }
+        /// <summary>D-048: prezzo degli oggetti Trinket venduti dagli NPC (applicato da RepriceOffers).</summary>
+        public int TrinketPrice { get; set; }
+
         // NPC (R-061)
         public int NpcDefense { get; set; }
 
@@ -89,10 +97,15 @@ namespace hp55games.MapGame.Rules
         /// </summary>
         public void RepriceOffers()
         {
+            // D-047: la Difesa dei mini-boss segue MiniBossDefense.
+            if (MiniBossDefense > 0)
+                foreach (var d in Contents.Values)
+                    if (d.ClueTarget == ClueTarget.MiniBoss) d.Defense = MiniBossDefense;
             foreach (var npc in Npcs.Values)
                 foreach (var o in npc.Offers)
                 {
                     if (o.Effect == NpcOfferEffect.Clues) o.Price = o.Amount >= 2 ? CluePrice2 : CluePrice1;
+                    else if (o.Effect == NpcOfferEffect.GiveItem && TrinketPrice > 0 && Item(o.ItemId)?.Slot == ItemSlot.Trinket) o.Price = TrinketPrice;
                     else if (o.Effect == NpcOfferEffect.Scout) o.Price = ScoutShapes.IsLine(o.Amount) ? ScoutPriceLine : o.Amount == ScoutShapes.Cluster ? ScoutPriceCluster : ScoutPriceSingle;
                 }
         }

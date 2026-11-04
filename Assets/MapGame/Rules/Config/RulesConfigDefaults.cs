@@ -211,6 +211,10 @@ namespace hp55games.MapGame.Rules
             c.ScoutPriceSingle = 1; c.ScoutPriceCluster = 5;
             // D-045 (Franci, 04/11/2026): Ricognizione di riga o colonna intera, 7 monete, solo da Locanda e Paesani.
             c.ScoutPriceLine = 7;
+            // D-046/D-047/D-048 (Franci, 04/11/2026; valori scelti col bot): ricompensa missione, mini-boss, Trinket.
+            c.MissionRewardAttack = 1;
+            c.MiniBossDefense = 5; // con 4 Classica ed Esplorazione salgono al 94% / 88% (bot Greedy): troppo facile
+            c.TrinketPrice = 6;
             c.RepriceOffers();
             return c;
         }

@@ -15,10 +15,10 @@ namespace hp55games.MapGame.Rules
         private readonly IRandomSource _rng;
         private readonly GreedyPolicy _fallback;
 
-        public ClueAwarePolicy(ulong seed)
+        public ClueAwarePolicy(ulong seed, string levelUp = "default")
         {
             _rng = new SplitMix64Random(seed);
-            _fallback = new GreedyPolicy(seed ^ 0x5EEDUL);
+            _fallback = new GreedyPolicy(seed ^ 0x5EEDUL, levelUp);
         }
 
         // ------------------------------------------------------------ tile
@@ -92,13 +92,16 @@ namespace hp55games.MapGame.Rules
                 case 4: return hp < s.MaxHp ? 70 : 5;
                 case 5:
                 {
-                    if (atk >= cfg.NpcDefense) return 45;
+                    // D-046: il bersaglio della missione vale +Attacco: lo si cerca finché non è raggiunto.
+                    int mission = 0;
+                    if (!s.MissionReached && s.Mission != null) mission = (int)(30 * Probability(e, i, s.Mission.Target));
+                    if (atk >= GreedyPolicy.MiniBossDefense(cfg)) return 45 + mission;
                     double pMb = Probability(e, i, ClueTarget.MiniBoss);
                     double pNpc = 0;
                     foreach (var t in NpcTargets) pNpc += Probability(e, i, t);
                     if (pNpc > 1) pNpc = 1;
-                    int dmg = cfg.NpcDefense - atk; // stesso danno di un mini-boss (Difesa 5)
-                    double ev = pNpc * 35 - pMb * (dmg >= hp ? 200 : 20 * dmg);
+                    int dmg = GreedyPolicy.MiniBossDefense(cfg) - atk;
+                    double ev = pNpc * 35 - pMb * (dmg >= hp ? 200 : 20 * dmg) + mission;
                     return (int)Math.Round(ev);
                 }
                 case 6: return atk >= cfg.Content(ContentKind.Boss).Defense ? 1000 : -1000;

@@ -38,7 +38,11 @@ namespace hp55games.MapGame.Rules
         /// <summary>R-023: base + Arma + Anello + Trinket + Fabbro + level up.</summary>
         public int Attack =>
             BaseAttack + (Weapon?.AttackBonus ?? 0) + (Ring?.AttackBonus ?? 0) + (Trinket?.AttackBonus ?? 0)
-            + SmithBonus + LevelAttackBonus;
+            + SmithBonus + LevelAttackBonus + MissionBonus;
+
+        /// <summary>D-046: bonus di Attacco per aver raggiunto il bersaglio della missione.</summary>
+        public int MissionBonus { get; internal set; }
+        public bool MissionReached { get; internal set; }
 
         public bool HasKey(KeyKind key) =>
             key == KeyKind.None || (key == KeyKind.Silver && HasSilverKey) || (key == KeyKind.Gold && HasGoldKey);

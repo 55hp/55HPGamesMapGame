@@ -71,7 +71,9 @@ namespace hp55games.MapGame.Rules
     public sealed class GreedyPolicy : IPlayerPolicy
     {
         private readonly IRandomSource _rng;
-        public GreedyPolicy(ulong seed) { _rng = new SplitMix64Random(seed); }
+        private readonly string _levelUp;
+        /// <param name="levelUp">"default" (Attacco, HP max se HP ≤ 2), "attack", "coins": per misurare le opzioni del level up.</param>
+        public GreedyPolicy(ulong seed, string levelUp = "default") { _rng = new SplitMix64Random(seed); _levelUp = levelUp ?? "default"; }
 
         public int ChooseTile(RulesEngine e)
         {
@@ -105,12 +107,15 @@ namespace hp55games.MapGame.Rules
                 case 3: return 60;
                 case 4: return hp < s.MaxHp ? 70 : 5;
                 case 2: return atk >= 3 ? 40 : (hp >= 4 ? 10 : -50);
-                case 5: return atk >= cfg.NpcDefense ? 45 : (hp >= 4 ? 20 : -40);
+                // Aprire un NPC non costa nulla: il rischio del livello 5 sono i mini-boss (Difesa pubblica, D-047).
+                case 5: return atk >= MiniBossDefense(cfg) ? 45 : (hp >= 4 ? 20 : -40);
                 case 6: return atk >= cfg.Content(ContentKind.Boss).Defense ? 1000 : -1000;
                 case 0: return 25; // Vuota (D-041): nessun rischio, avanza le linee
                 default: return 0;
             }
         }
+
+        public static int MiniBossDefense(RulesConfig cfg) => cfg.Content(ContentKind.MiniBossCoins).Defense;
 
         public static int BlindScore(RulesEngine e, int i)
         {
@@ -171,6 +176,8 @@ namespace hp55games.MapGame.Rules
             switch (d.Kind)
             {
                 case DecisionKind.LevelUp:
+                    if (_levelUp == "coins") return OptionIds.LevelCoins;
+                    if (_levelUp == "attack") return OptionIds.LevelAttack;
                     return s.Hp <= 2 ? OptionIds.LevelMaxHp : OptionIds.LevelAttack;
                 case DecisionKind.Item:
                     var ni = cfg.Item(d.NewItemId); var ci = cfg.Item(d.CurrentItemId);

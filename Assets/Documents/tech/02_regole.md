@@ -96,6 +96,7 @@ Il vecchio GDD (Notion, congelato all'08/08/2026) non è più una fonte: dove co
 - **R-071** "Raggiungi una tile" è eliminata (con scelta libera non garantisce rischio).
 - **R-072** Vittoria: Boss ucciso. Sconfitta: HP < 1 oppure Boss fuggito (R-039). Valido per tutte le missioni.
 - **R-073** Il Boss ha `IsObjective = true`. È l'unico nemico con quel flag.
+- **R-074** Raggiungere il bersaglio della missione (aprire un NPC di quel tipo, o uccidere un mini-boss nella caccia ai mini-boss) dà **+1 Attacco permanente**, una volta per partita **[D-046]**. All'avvio un pop-up estrae e annuncia la missione.
 
 ## 9. Mascheramento (livello di difficoltà 1–6)
 

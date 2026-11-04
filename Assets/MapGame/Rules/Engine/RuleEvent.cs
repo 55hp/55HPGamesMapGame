@@ -33,6 +33,7 @@ namespace hp55games.MapGame.Rules
         ScoutReceived,      // D-043: Ricognizione ottenuta (Amount = raggio)
         ScoutUsed,          // D-043: Ricognizione posata (TileIndex = centro, Amount = raggio)
         ScoutLost,          // D-043: nessuna tile da ricognire
+        MissionReached,     // D-046: bersaglio della missione raggiunto (Amount = Attacco guadagnato)
         GameWon,
         GameLost,
     }
