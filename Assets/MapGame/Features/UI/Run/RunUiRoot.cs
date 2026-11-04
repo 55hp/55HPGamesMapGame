@@ -15,16 +15,15 @@ namespace hp55games.MapGame.Features.UI.Run
         [SerializeField] private RunHudView _hud;
         [SerializeField] private DecisionPanelView _decision;
         [SerializeField] private BoardLineLabelsView _lineLabels;
-        [SerializeField] private RunLogView _log;
         [SerializeField] private EndPanelView _end;
 
         private IRunSession _session;
 
         private void Awake()
         {
-            if (_hud == null || _decision == null || _lineLabels == null || _log == null || _end == null)
+            if (_hud == null || _decision == null || _lineLabels == null || _end == null)
             {
-                Debug.LogError("[RunUiRoot] Viste non assegnate (_hud, _decision, _lineLabels, _log, _end).", this);
+                Debug.LogError("[RunUiRoot] Viste non assegnate (_hud, _decision, _lineLabels, _end).", this);
                 enabled = false;
                 return;
             }
@@ -48,7 +47,6 @@ namespace hp55games.MapGame.Features.UI.Run
             _hud.Bind(_session);
             _decision.Bind(_session);
             _lineLabels.Bind(_session);
-            _log.Bind(_session);
             _end.Bind(_session);
             OnSessionStarted();
         }
@@ -63,7 +61,6 @@ namespace hp55games.MapGame.Features.UI.Run
 
         private void OnSessionStarted()
         {
-            _log.Clear();
             RefreshAll();
         }
 
@@ -71,7 +68,6 @@ namespace hp55games.MapGame.Features.UI.Run
         {
             var e = _session?.Engine;
             if (e == null) return;
-            _log.Append(e, events);
             RefreshAll();
         }
 

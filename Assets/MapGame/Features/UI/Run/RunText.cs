@@ -100,7 +100,14 @@ namespace hp55games.MapGame.Features.UI.Run
         public static string OptionDetail(RulesEngine e, Decision d, DecisionOption o)
         {
             var c = e.Config;
-            if (o.Id == OptionIds.Attack) return T("run.npc.attack_detail", c.NpcDefense, e.State.Attack);
+            if (o.Id == OptionIds.Attack)
+            {
+                // C1: l'esito è già deciso dal motore; lo mostriamo prima della scelta (P2).
+                if (!o.PredictedWin) return T("run.npc.attack_lose", o.PredictedDamage);
+                var npc = c.Npcs[d.Npc];
+                string reward = npc.KillItemId != null ? Item(npc.KillItemId) : T("run.npc.reward_coins", npc.KillCoins);
+                return T("run.npc.attack_win", reward);
+            }
             if (o.Id == OptionIds.Equip) return T("run.item.equip_detail", Item(d.CurrentItemId));
             if (o.Price <= 0) return "";
             string price = T("run.npc.price", o.Price);

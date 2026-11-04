@@ -43,6 +43,13 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         [Tooltip("4) Sfondo, varia per tipo di ambiente — vedi SetBackground.")]
         [SerializeField] private SpriteRenderer _background;
 
+        [Header("Livello leggibile senza colore (daltonismo)")]
+        [Tooltip("Pallini negli angoli interni, in senso orario a partire da quello in alto a sinistra. Si accendono i primi N per il livello N.")]
+        [SerializeField] private SpriteRenderer[] _levelPips = new SpriteRenderer[0];
+        [Tooltip("Anello esterno aggiuntivo (bordo più spesso) per i livelli >= _thickBorderMinLevel (Boss).")]
+        [SerializeField] private SpriteRenderer _thickBorder;
+        [SerializeField] private int _thickBorderMinLevel = 6;
+
         [Header("Configurazione visiva condivisa")]
         [SerializeField] private HexTileConfigCatalog _visualConfig;
 
@@ -101,8 +108,21 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public void SetDifficultyLevel(int difficultyLevel)
         {
             if (_border == null || _visualConfig == null) return;
-            _border.color = _visualConfig.GetDifficultyLevelColor(difficultyLevel);
+            var color = _visualConfig.GetDifficultyLevelColor(difficultyLevel);
+            _border.color = color;
+            for (int i = 0; i < _levelPips.Length; i++)
+            {
+                if (_levelPips[i] == null) continue;
+                _levelPips[i].color = color;
+                _levelPips[i].gameObject.SetActive(i < difficultyLevel && _border.gameObject.activeSelf);
+            }
+            if (_thickBorder != null)
+            {
+                _thickBorder.color = color;
+                _thickBorder.gameObject.SetActive(difficultyLevel >= _thickBorderMinLevel && _border.gameObject.activeSelf);
+            }
         }
+
 
         /// <summary>
         /// Sfondo (componente 4). Punto unico da cui _background viene scritto — vedi doc
@@ -128,6 +148,12 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public void Reveal(TileType type, bool showIcon, bool showAlpha = false)
         {
             _border?.gameObject.SetActive(!showAlpha);
+            // Pallini e anello seguono il bordo: spariti a tile giocata.
+            if (showAlpha)
+            {
+                foreach (var pip in _levelPips) if (pip != null) pip.gameObject.SetActive(false);
+                _thickBorder?.gameObject.SetActive(false);
+            }
 
             if (_visualConfig != null)
             {

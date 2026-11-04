@@ -17,6 +17,9 @@ namespace hp55games.MapGame.Rules
         /// <summary>Per le decisioni di linea.</summary>
         public LineRef Line { get; internal set; }
         public string ItemId { get; internal set; }
+        /// <summary>Attacco a un NPC: esito già noto (combattimento deterministico, R-063). Per mostrarlo prima della scelta (C1).</summary>
+        public bool PredictedWin { get; internal set; }
+        public int PredictedDamage { get; internal set; }
     }
 
     /// <summary>Decisione pendente: il motore resta in attesa di Submit con un'opzione abilitata.</summary>

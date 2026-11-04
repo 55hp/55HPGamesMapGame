@@ -210,7 +210,14 @@ namespace hp55games.MapGame.Rules
             var npc = _config.Npcs[def.Kind];
             var d = new Decision { Kind = DecisionKind.Npc, TileIndex = index, Npc = def.Kind };
             if (npc.Fightable)
-                d.Options.Add(new DecisionOption { Id = OptionIds.Attack, LabelKey = "ui.npc.attack" });
+            {
+                int atk = State.Attack, defense = _config.NpcDefense;
+                d.Options.Add(new DecisionOption
+                {
+                    Id = OptionIds.Attack, LabelKey = "ui.npc.attack",
+                    PredictedWin = atk >= defense, PredictedDamage = atk >= defense ? 0 : defense - atk,
+                });
+            }
             foreach (var offer in npc.Offers)
             {
                 var o = new DecisionOption { Id = offer.Id, LabelKey = offer.NameKey, Price = offer.Price };
