@@ -128,8 +128,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 }
             }
 
-            int fallbackSeed = _mapConfig != null ? _mapConfig.Seed : 12345;
-            _seed = _context != null && _context.CurrentRunSeed != 0 ? _context.CurrentRunSeed : fallbackSeed;
+            // D-035: senza seed di run nel contesto, mappa nuova a ogni partita (seed fisso solo se richiesto).
+            if (_context != null && _context.CurrentRunSeed != 0) _seed = _context.CurrentRunSeed;
+            else if (_mapConfig != null && _mapConfig.UseFixedSeed) _seed = _mapConfig.Seed;
+            else _seed = UnityEngine.Random.Range(1, int.MaxValue);
+            Debug.Log($"[HexGridController] Seed partita: {_seed}");
 
             _engine = new RulesEngine(_rules, unchecked((ulong)_seed));
             IsAwaitingEndConfirm = false;

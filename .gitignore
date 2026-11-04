@@ -39,6 +39,10 @@ Thumbs.db
 
 # Bezi AI plugin
 /Packages/com.bezi.sidekick/
+# Arte acquistata spostata da Bezi fuori da Assets/Temp: resta solo in locale (repo pubblico)
+Assets/Art/_2D/UI/
+Assets/Art/_2D/UI.meta
+
 # RulesHarness (test regole fuori da Unity)
 Tools/RulesHarness/bin/
 Tools/RulesHarness/obj/

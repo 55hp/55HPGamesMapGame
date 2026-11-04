@@ -66,6 +66,13 @@ namespace hp55games.MapGame.Features.Configs
         /// </summary>
         public int Seed = 12345;
 
+        /// <summary>
+        /// D-035: se false (default) ogni partita usa un seed casuale; se true usa sempre Seed
+        /// (utile per riprodurre una mappa). Un CurrentRunSeed ≠ 0 nel contesto vince comunque.
+        /// </summary>
+        [Tooltip("Spento: mappa nuova a ogni partita. Acceso: sempre la mappa del Seed (debug).")]
+        public bool UseFixedSeed = false;
+
         [Header("Piazzamento Start/End")]
         public DistanceWeight[] EndDistanceWeights =
         {

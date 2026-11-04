@@ -38,6 +38,8 @@ Ultima revisione di Franci: 13/10/2026.
 | D-033 | Boss e mascheramento | Boss al **livello 5**, non più unico al 6 | Franci 03/11/2026; bot Greedy 48% → 38,5% (il bot non usa gli indizi) |
 | D-034 | Orientamento e UI definitiva | **portrait**; HUD, scelte, etichette di bordo ed esito nel prefab `UIRunHUD` istanziato da `MapGameGameplayHudService` sotto `UIRoot.hud`; niente pop-up Addressables per la partita v2 | Franci 03/11/2026 (portrait); struttura scelta da Athena |
 
+| D-035 | Seed della partita | casuale a ogni partita; `MapGenerationConfig.UseFixedSeed` per riprodurre una mappa; `CurrentRunSeed` ≠ 0 vince sempre | prima ogni partita aveva la stessa mappa (Seed 12345 fisso), modifica di D-024 decisa da Athena |
+
 ## Aperte (Athena, sessione delegata 03/11/2026: implementate, da rivedere da Franci)
 
 | ID | Tema | Decisione | Motivo |
