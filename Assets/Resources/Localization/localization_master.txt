@@ -261,6 +261,7 @@ run.banner.level_up	LEVEL {0}!	LIVELLO {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEV
 run.banner.phoenix	THE PHOENIX SAVES YOU!	LA FENICE TI SALVA!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!	THE PHOENIX SAVES YOU!
 run.mission_intro.title	MISSION	MISSIONE	MISSION	MISSION	MISSION	MISSION	MISSION	MISSION	MISSION
 run.mission_intro.reward	Start: {1} clues on {0}\nReach it: +1 Attack	Partenza: {1} indizi su {0}\nRaggiungilo: +1 Attacco	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack
+run.mission_intro.reward_noclues	Reach it: +1 Attack	Raggiungilo: +1 Attacco	Reach it: +1 Attack	Reach it: +1 Attack	Reach it: +1 Attack	Reach it: +1 Attack	Reach it: +1 Attack	Reach it: +1 Attack	Reach it: +1 Attack
 run.mission_intro.go	Go!	Via!	Go!	Go!	Go!	Go!	Go!	Go!	Go!
 run.banner.mission_reached	MISSION COMPLETE! +{0} ATTACK	MISSIONE COMPIUTA! +{0} ATTACCO	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK
 run.banner.key_silver	SILVER KEY!	CHIAVE D'ARGENTO!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!

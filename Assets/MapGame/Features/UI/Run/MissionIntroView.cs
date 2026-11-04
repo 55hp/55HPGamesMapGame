@@ -129,7 +129,10 @@ namespace hp55games.MapGame.Features.UI.Run
             _mission.transform.localScale = Vector3.one;
             if (_reward != null)
             {
-                _reward.text = RunText.T("run.mission_intro.reward", RunText.Clue(drawn.Target), drawn.StartClues).Replace("\\n", "\n");
+                // D-053: in Nebbia la missione non dà indizi di partenza.
+                _reward.text = (_session.Engine.CluesActive
+                    ? RunText.T("run.mission_intro.reward", RunText.Clue(drawn.Target), drawn.StartClues)
+                    : RunText.T("run.mission_intro.reward_noclues")).Replace("\\n", "\n");
                 _reward.alpha = 0f;
             }
             _group.alpha = 1f;

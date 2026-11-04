@@ -781,5 +781,21 @@ namespace hp55games.MapGame.Rules.Tests
             e.Reveal(Find(e, ContentKind.Bush));
             Assert.AreEqual(1 + c.Content(ContentKind.Bush).Heal + c.HerbariumBonus, e.State.Hp);
         }
+
+        [Test]
+        public void D053_Fog_NoClues_ScoutsStay()
+        {
+            var c = Config(); c.Mode = GameMode.Fog;
+            var e = new RulesEngine(c, 1);
+            var evs = e.Start();
+            Assert.IsFalse(e.CluesActive);
+            Assert.IsNull(First(evs, RuleEventType.ClueReceived));
+            Assert.IsNotNull(First(evs, RuleEventType.ScoutReceived));
+            ResolveAll(e);
+            e.State.Coins = 100;
+            e.Reveal(Find(e, ContentKind.Inn));
+            Assert.IsFalse(e.CurrentDecision.Options.Any(o => o.Id.Contains("clue")));
+            Assert.IsTrue(e.CurrentDecision.Options.Any(o => o.Id.Contains("scout")));
+        }
 }
 }

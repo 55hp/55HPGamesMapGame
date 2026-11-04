@@ -143,7 +143,7 @@ namespace hp55games.MapGame.Rules
             // R-070 / D-026: missione a caso dal seed.
             var mission = _config.Missions[_rng.Range(0, _config.Missions.Count)];
             State.Mission = mission;
-            Emit(RuleEventType.MissionStarted, e => { e.ClueTarget = mission.Target; e.Amount = mission.StartClues; });
+            Emit(RuleEventType.MissionStarted, e => { e.ClueTarget = mission.Target; e.Amount = CluesActive ? mission.StartClues : 0; });
             for (int i = 0; i < mission.StartClues; i++) ReceiveClue(mission.Target);
             if (_config.Mode != GameMode.Open)
                 foreach (int radius in _config.FogStartScouts) ReceiveScout(radius); // D-043
@@ -285,6 +285,7 @@ namespace hp55games.MapGame.Rules
                 var mapFx = offer.Effect == NpcOfferEffect.GiveItem ? _config.Item(offer.ItemId)?.Effect : null;
                 if ((mapFx == ItemEffect.MapGold || mapFx == ItemEffect.MapSilver) && !State.HasItem(offer.ItemId)
                     && MapTarget(mapFx.Value) < 0) continue;
+                if (offer.Effect == NpcOfferEffect.Clues && !CluesActive) continue; // D-053
                 if (offer.Effect == NpcOfferEffect.Clues)
                 {
                     // D-038: un indizio su contenuti già tutti scoperti non esiste: l'offerta non compare.
@@ -575,8 +576,12 @@ namespace hp55games.MapGame.Rules
             Emit(RuleEventType.MissionReached, e => { e.TileIndex = index; e.Kind = def.Kind; e.Amount = amount; e.ClueTarget = def.ClueTarget.Value; });
         }
 
+        /// <summary>D-053: gli indizi esistono in questa modalità?</summary>
+        public bool CluesActive => _config.Mode != GameMode.Fog || _config.FogClues;
+
         private void ReceiveClue(ClueTarget target)
         {
+            if (!CluesActive) return; // D-053
             // D-038: chi conferisce un indizio su contenuti già tutti scoperti non lo conferisce.
             if (!HasCoveredTarget(target)) return;
             Emit(RuleEventType.ClueReceived, e => e.ClueTarget = target);

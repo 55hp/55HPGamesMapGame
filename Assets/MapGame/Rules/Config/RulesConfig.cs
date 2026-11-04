@@ -22,6 +22,8 @@ namespace hp55games.MapGame.Rules
         // Nebbia e Ricognizione (D-043)
         /// <summary>Nelle modalità con nebbia il bordo del Boss resta sempre visibile.</summary>
         public bool FogShowBoss { get; set; }
+        /// <summary>D-053: in Nebbia gli indizi di riga/colonna non esistono (false). Le Ricognizioni restano.</summary>
+        public bool FogClues { get; set; }
         /// <summary>In Nebbia il bordo si vede anche sulle tile adiacenti a una scoperta (comportamento D-040, ora spento di default).</summary>
         public bool FogRevealsAdjacent { get; set; }
         /// <summary>Ricognizioni di partenza nelle modalità con nebbia (forme ScoutShapes, in ordine).</summary>
