@@ -41,3 +41,20 @@ Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, s
 - L'esito resta a schermo finché il giocatore non tocca "Continua" (`ConfirmEnd`), poi la pagina risultati del template.
 - La UI di prototipo IMGUI resta in `RunSession` solo come ripiego e si spegne da sola quando `UIRunHUD` è attivo.
 - Lingua: il template parte in inglese (opzione salvata nel profilo); l'italiano si sceglie da Opzioni.
+
+### Athena — 2026-11-04 — commit b1f3f33
+- Verificato in Play (Unity 2022.3.62f3): menu, Opzioni, Crediti e Indietro; partita con indizi su riga/colonna, Mercante e Locanda con "Vai via", Strega con "Attacca", sconfitta, pannello esito, "Continua", pagina risultati, "Riprova" con mappa nuova.
+- Corretto: il pannello esito non compariva mai. `IsAwaitingEndConfirm` veniva impostato dopo l'aggiornamento della UI, ora prima.
+- Corretto: la mappa veniva generata due volte a ogni partita (avvio standalone + `GameStartedEvent`); con D-035 erano due mappe diverse. Il ripiego standalone ora parte solo se la FSM non ha uno stato attivo.
+- Corretto: HP mostrati negativi a fine partita (es. -1/5): a schermo minimo 0.
+- Mappa nuova a ogni partita: D-035 in `tech/08_decisioni-default.md`.
+
+#### Modifiche di Bezi al Core del template (commit eca848c, da valutare per il 55HP Template)
+- `UILocalizedText.cs`: i testi senza chiave non vengono sovrascritti; disiscrizione in `OnDestroy`.
+- `UICreditsPage.cs` nuovo (pagina Crediti, Indietro = pop della navigazione) + voce Addressables.
+- `Addr.cs`: rimosse le costanti `Popup_Encounter`, `Popup_Shop`, `Screens.GameplayHUD`.
+- Restano nel Core: `UIGameplayHUD.cs` (HUD del template, non usato da MapGame).
+
+#### Per Franci
+- Pulsante ESCI del menu: su iOS non fa nulla e Apple lo sconsiglia; da nascondere prima di una build iOS.
+- Gli sprite UI spostati da Bezi in `Assets/Art/_2D/UI/` sono esclusi da git (arte acquistata, repo pubblico): un clone pulito non li ha.
