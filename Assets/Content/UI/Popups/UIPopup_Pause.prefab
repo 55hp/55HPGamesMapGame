@@ -1730,7 +1730,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8622cc37909ec304bbcfa5020d5d81a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  localizationKey: ui.btn.continue
+  localizationKey: hud.resume
 --- !u!1 &3147237109714829845
 GameObject:
   m_ObjectHideFlags: 0
