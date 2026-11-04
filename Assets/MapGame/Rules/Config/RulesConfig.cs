@@ -26,6 +26,8 @@ namespace hp55games.MapGame.Rules
         public bool FogClues { get; set; }
         /// <summary>D-055: prezzo dell'indizio di posizione di un NPC (Locanda, solo Nebbia).</summary>
         public int LocateNpcPrice { get; set; } = 8;
+        /// <summary>Livello del bordo della Locanda (0 = lascia quello del censimento). Per le prove col bot.</summary>
+        public int InnMaskLevel { get; set; }
         /// <summary>In Nebbia il bordo si vede anche sulle tile adiacenti a una scoperta (comportamento D-040, ora spento di default).</summary>
         public bool FogRevealsAdjacent { get; set; }
         /// <summary>Ricognizioni di partenza nelle modalità con nebbia (forme ScoutShapes, in ordine).</summary>
@@ -130,6 +132,7 @@ namespace hp55games.MapGame.Rules
         public void RepriceOffers()
         {
             // D-047: la Difesa dei mini-boss segue MiniBossDefense.
+            if (InnMaskLevel > 0 && Contents.TryGetValue(ContentKind.Inn, out var inn)) inn.MaskLevel = InnMaskLevel;
             if (MiniBossDefense > 0)
                 foreach (var d in Contents.Values)
                     if (d.ClueTarget == ClueTarget.MiniBoss) d.Defense = MiniBossDefense;
