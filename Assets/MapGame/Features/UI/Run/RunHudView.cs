@@ -45,7 +45,7 @@ namespace hp55games.MapGame.Features.UI.Run
             if (!enabled) return;
             var s = e.State;
             var c = e.Config;
-            _hp.text = RunText.T("run.hud.hp", s.Hp, s.MaxHp);
+            _hp.text = RunText.T("run.hud.hp", Mathf.Max(0, s.Hp), s.MaxHp); // il motore può scendere sotto 0: a schermo minimo 0
             _attack.text = RunText.T("run.hud.attack", s.Attack);
             _coins.text = RunText.T("run.hud.coins", s.Coins);
             _level.text = RunText.T("run.hud.level", s.Level);

@@ -250,6 +250,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 }
             }
 
+            // Va impostato prima di notificare la UI: EndPanelView si mostra solo se IsAwaitingEndConfirm è già vero.
+            if (won || lost) IsAwaitingEndConfirm = true;
+
             SyncContext();
             ReachabilityChanged?.Invoke();
             RuleEventsRaised?.Invoke(events);
@@ -260,8 +263,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (won) _feedbackService?.Play("victory");
             else if (lost) _feedbackService?.Play("game_over");
             // L'esito resta a schermo finché la UI non chiama ConfirmEnd: GameplayState passa subito ai risultati
-            // appena riceve questi eventi.
-            if (won || lost) IsAwaitingEndConfirm = true;
+            // appena riceve PlayerVictoryEvent/PlayerDeathEvent, quindi non li pubblichiamo qui.
         }
 
         /// <summary>Partita finita, esito mostrato, in attesa di ConfirmEnd.</summary>
