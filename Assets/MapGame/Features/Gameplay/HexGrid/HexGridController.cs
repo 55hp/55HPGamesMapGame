@@ -251,6 +251,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (coins) _bus?.Publish(new ScoreChangedEvent());
             if (keys) _bus?.Publish(new KeysChangedEvent());
             if (won) _feedbackService?.Play("victory");
+            else if (lost) _feedbackService?.Play("game_over");
             // L'esito resta a schermo finché la UI non chiama ConfirmEnd: GameplayState passa subito ai risultati
             // appena riceve questi eventi.
             if (won || lost) IsAwaitingEndConfirm = true;

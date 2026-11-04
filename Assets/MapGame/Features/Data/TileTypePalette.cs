@@ -7,8 +7,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     /// Colore rappresentativo per TileType, unica fonte per qualunque UI (Editor o
     /// runtime) debba colorare una tile per tipo — nata come tavolozza inline di
     /// MapGenerationConfigEditor (Editor/MapGenerationConfigEditor.cs), estratta qui
-    /// perche' anche codice runtime (es. UIPopup_Encounter._background) ne ha bisogno e
-    /// l'Editor non e' referenziabile da un'assembly runtime.
+    /// in assembly runtime cosi' qualunque UI di gioco puo' riusarla (l'Editor non e'
+    /// referenziabile da un'assembly runtime). Oggi l'unico consumer e' l'Editor.
     ///
     /// Path/Shop sono alias [Obsolete] di Road/Trader sullo stesso int, quindi qui
     /// restano una voce sola a testa (una Dictionary&lt;TileType,Color&gt; non puo' avere
@@ -41,11 +41,14 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             { TileType.Witch,        new Color(0.549f, 0.314f, 0.847f) },  // #8c50d8
             { TileType.Farmer,       new Color(0.463f, 0.663f, 0.286f) },  // #76a949
             { TileType.Hunter,       new Color(0.494f, 0.400f, 0.267f) },  // #7e6644
-            { TileType.Npc,          new Color(0.314f, 0.694f, 0.847f) },  // #50b1d8 — legacy, vedi nota sopra
+            // Voci legacy volutamente referenziate per i dati serializzati vecchi (vedi nota sopra).
+#pragma warning disable CS0618
+            { TileType.Npc,          new Color(0.314f, 0.694f, 0.847f) },  // #50b1d8 — legacy
             { TileType.Goods,        new Color(0.537f, 0.600f, 0.329f) },  // #889954 — legacy
             { TileType.Chance,       new Color(0.369f, 0.251f, 0.639f) },  // #5e40a3 — legacy
             { TileType.Miniboss,     new Color(0.400f, 0.176f, 0.153f) },  // #662d27 — legacy, piu' scuro di Enemy
             { TileType.Boss,         new Color(0.086f, 0.086f, 0.086f) },  // #161616 — legacy
+#pragma warning restore CS0618
         };
 
         /// <summary>Color.white se il tipo non ha ancora una voce in tavolozza.</summary>

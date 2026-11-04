@@ -43,7 +43,7 @@ namespace hp55games.MapGame.Features.UI
 
             if (_hudPrefab == null)
             {
-                Debug.LogError("[MapGameGameplayHudService] UIGameHUD prefab non assegnato.");
+                Debug.LogError("[MapGameGameplayHudService] _hudPrefab (UIRunHUD) non assegnato.", this);
                 yield break;
             }
 

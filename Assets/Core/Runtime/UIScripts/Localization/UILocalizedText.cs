@@ -36,15 +36,20 @@ namespace hp55games.Mobile.UI
             Refresh();
         }
 
+        private void OnDestroy()
+        {
+            if (_loc != null)
+                _loc.LanguageChanged -= Refresh;
+        }
+
         public void Refresh()
         {
             if (_label == null || _loc == null)
                 return;
 
+            // Senza chiave il testo e' gestito da altri (es. caption di un TMP_Dropdown): non toccarlo.
             if (string.IsNullOrEmpty(localizationKey))
-            {
-                _label.text = prefix + suffix;
-            }
+                return;
 
             _label.text = prefix + _loc.Get(localizationKey) + suffix;
         }

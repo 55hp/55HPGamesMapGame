@@ -15,9 +15,8 @@ namespace hp55games.MapGame.Editor
         private const int CellGap =  1;
 
         // ── Color palette: one distinct color per TileType ───────────────────
-        // Estratta in TileTypePalette (Game.Features, runtime) perche' anche codice
-        // runtime (UIPopup_Encounter._background) ne ha bisogno — vedi doc di classe li'
-        // per il dettaglio di cosa contiene la tavolozza e perche'.
+        // Estratta in TileTypePalette (Game.Features, runtime) cosi' e' riusabile anche
+        // da UI runtime — vedi doc di classe li' per cosa contiene la tavolozza e perche'.
         //   Start marker: white inner square. End marker: black inner square.
 
         private static readonly IReadOnlyDictionary<TileType, Color> TileColors = TileTypePalette.Colors;

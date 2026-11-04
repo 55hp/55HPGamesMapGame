@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 1124266053}
   - component: {fileID: 1124266052}
   m_Layer: 0
-  m_Name: 'ConfigCatalogInstaller '
+  m_Name: ConfigCatalogInstaller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -222,7 +222,7 @@ GameObject:
   - component: {fileID: 2036469808}
   - component: {fileID: 2036469807}
   m_Layer: 0
-  m_Name: 'MapGenerationInstaller '
+  m_Name: MapGenerationInstaller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

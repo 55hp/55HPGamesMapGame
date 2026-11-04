@@ -9,9 +9,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
     ///
     /// Immediate — effetto applicato direttamente, nessun popup (Trap, Fountain, Tree,
     ///             Bush, BeeHive, TurnipSprout, MoneyBag, Key). Vedi HexGridController.ApplyImmediateElement.
-    /// Fight     — apre UIPopup_Encounter con scelta combatti/fuggi (Enemy, incluse le
-    ///             varianti Miniboss/Boss — Enemy con DifficultyLevel piu' alto).
-    /// Trade     — apre UIPopup_Shop con inventario (Trader).
+    /// Fight     — scontro con scelta combatti/fuggi (Enemy, incluse le varianti
+    ///             Miniboss/Boss — Enemy con DifficultyLevel piu' alto).
+    /// Trade     — scambio con inventario (Trader).
     /// Choice    — popup con testo + scelte a nodi, esito finale automatico. Copre sia
     ///             dialoghi lineari (un solo nodo/risposta) sia scelte mutualmente
     ///             esclusive a piu' opzioni — vedi Tile Types per gli archetipi NPC

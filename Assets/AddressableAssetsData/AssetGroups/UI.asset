@@ -32,6 +32,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9483f39d60b4d7e48b1ab4d7859a63d1
+    m_Address: content/ui/pages/credits
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b96116860b9edad4ba7d14ede14355d4
     m_Address: content/ui/pages/results
     m_ReadOnly: 0

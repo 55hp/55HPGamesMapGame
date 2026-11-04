@@ -9,6 +9,12 @@ ui.main.credits	Credits	Crediti	Créditos	Crédits	Kredite	クレジット	크�
 ui.main.exit	Exit	Esci	Salir	Quitter	Beenden	終了	종료	退出	Sair
 ui.main.privacy	Privacy Policy	Privacy	Privacidad	Confidentialité	Datenschutz	プライバシーポリシー	개인정보 보호정책	隐私政策	Política de Privacidade
 ui.main.support	Support	Supporto	Soporte	Support	Aus Support	サポート	고객지원	客服	Atendimento
+ui.credits.design	Game Design & Development	Game Design e Sviluppo	Diseño y Desarrollo	Conception et Développement	Spieldesign & Entwicklung	ゲームデザイン・開発	게임 디자인 및 개발	游戏设计与开发	Design e Desenvolvimento
+ui.credits.art	Art & UI	Grafica e UI	Arte e IU	Graphismes et IU	Grafik & UI	アート・UI	아트 및 UI	美术与界面	Arte e IU
+ui.credits.audio	Music & Sound	Musica e Suoni	Música y Sonido	Musique et Sons	Musik & Sound	音楽・サウンド	음악 및 사운드	音乐与音效	Música e Som
+ui.credits.fonts	Fonts	Font	Fuentes	Polices	Schriftarten	フォント	글꼴	字体	Fontes
+ui.credits.tech	Built With	Realizzato con	Hecho con	Réalisé avec	Erstellt mit	使用技術	사용 기술	技术支持	Feito com
+ui.credits.thanks	Thank you for playing!	Grazie per aver giocato!	¡Gracias por jugar!	Merci d'avoir joué !	Danke fürs Spielen!	プレイしていただきありがとうございます！	플레이해 주셔서 감사합니다!	感谢游玩！	Obrigado por jogar!
 ui.main.news	News	Notizie	Noticias	Nouvelles	Nachrichten	ニュース	뉴스	新闻	Notícias
 
 ui.btn.ok	OK	OK	OK	OK	OK	OK	확인	确定	OK
