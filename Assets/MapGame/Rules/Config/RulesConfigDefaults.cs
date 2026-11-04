@@ -23,6 +23,9 @@ namespace hp55games.MapGame.Rules
         public const string Compass = "compass";   // D-049
         public const string Purse = "purse";       // D-049
         public const string Amulet = "amulet";     // D-049
+        public const string Whetstone = "smith_whetstone"; // D-051: Cote del Fabbro (ex Potenziamento)
+        public const string MapGold = "map_gold";          // D-051
+        public const string MapSilver = "map_silver";      // D-051
 
         public static RulesConfig Level1()
         {
@@ -77,7 +80,7 @@ namespace hp55games.MapGame.Rules
             Item2(HunterBow, 5);
             Item2(SmithHammer, 5);
             Item2(WitchStaff, 5);
-            Item(MiniBossWeapon, ItemSlot.Weapon, 5);
+            Item2(MiniBossWeapon, 5); // D-051: Ascia del Campione a due mani
             Item2(Dragonslayer, 6);
             Item(Ring2, ItemSlot.Hand, 2);
             Item(HunterTools, ItemSlot.Trinket, 0, ItemEffect.DisarmTraps);
@@ -85,6 +88,9 @@ namespace hp55games.MapGame.Rules
             Item(Compass, ItemSlot.Hand, 0, ItemEffect.Compass);
             Item(Purse, ItemSlot.Trinket, 0, ItemEffect.Purse);
             Item(Amulet, ItemSlot.Hand, 1);
+            Item(Whetstone, ItemSlot.Trinket, 1);
+            Item(MapGold, ItemSlot.Trinket, 0, ItemEffect.MapGold);
+            Item(MapSilver, ItemSlot.Trinket, 0, ItemEffect.MapSilver);
 
             // Censimento (03 §1, data/tile_census.csv) e definizioni
             void Def(ContentKind k, int qty, ContentDef d) { d.Kind = k; c.Census[k] = qty; c.Contents[k] = d; }
@@ -139,7 +145,8 @@ namespace hp55games.MapGame.Rules
                 Kind = ContentKind.Smith, Fightable = true, KillItemId = SmithHammer,
                 Offers =
                 {
-                    new NpcOfferDef { Id = "smith_upgrade", Price = 5, Effect = NpcOfferEffect.SmithUpgrade, Amount = 1, OncePerRun = true },
+                    // D-051: il Potenziamento diventa un Trinket (+1 Attacco), quindi uno solo per partita.
+                    new NpcOfferDef { Id = "smith_upgrade", Price = 5, Effect = NpcOfferEffect.GiveItem, ItemId = Whetstone, FixedPrice = true },
                     Clue("smith_clue_1", ClueTarget.Inn, 1, 5),
                     Clue("smith_clue_2", ClueTarget.Inn, 2, 9),
                 },
@@ -182,7 +189,9 @@ namespace hp55games.MapGame.Rules
                     // D-049 (Franci, 04/11/2026): nuovi oggetti del Mercante.
                     new NpcOfferDef { Id = "trader_compass", Price = 6, Effect = NpcOfferEffect.GiveItem, ItemId = Compass },
                     new NpcOfferDef { Id = "trader_purse", Price = 6, Effect = NpcOfferEffect.GiveItem, ItemId = Purse },
-                    new NpcOfferDef { Id = "trader_map", Price = 4, Effect = NpcOfferEffect.TreasureMap },
+                    // D-051: due Mappe Trinket, una per il forziere d'oro e una per quello d'argento.
+                    new NpcOfferDef { Id = "trader_map_gold", Price = 4, Effect = NpcOfferEffect.GiveItem, ItemId = MapGold, FixedPrice = true },
+                    new NpcOfferDef { Id = "trader_map_silver", Price = 4, Effect = NpcOfferEffect.GiveItem, ItemId = MapSilver, FixedPrice = true },
                     new NpcOfferDef { Id = "trader_amulet", Price = 5, Effect = NpcOfferEffect.GiveItem, ItemId = Amulet },
                 },
             };

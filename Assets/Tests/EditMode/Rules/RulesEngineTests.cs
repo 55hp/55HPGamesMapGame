@@ -395,7 +395,7 @@ namespace hp55games.MapGame.Rules.Tests
             e.Reveal(Find(e, ContentKind.Smith));
             e.Submit("smith_upgrade");
             Assert.AreEqual(atk + 1, e.State.Attack);
-            Assert.IsTrue(e.State.SmithUpgradeBought);
+            Assert.IsTrue(e.State.HasItem(RulesConfigDefaults.Whetstone)); // D-051: Trinket
             // Un secondo Fabbro (ipotetico) mostrerebbe l'offerta disabilitata: verificato riaprendo la decisione.
             var c2 = Config(); c2.Census[ContentKind.Smith] = 2; c2.Census[ContentKind.Empty] -= 1;
             var e2 = Started(config: c2);
@@ -676,8 +676,8 @@ namespace hp55games.MapGame.Rules.Tests
             e.State.Coins = 100;
             int gold = Find(e, ContentKind.ChestGold);
             e.Reveal(Find(e, ContentKind.Trader));
-            Assert.AreEqual(c.TreasureMapPrice, e.CurrentDecision.Find("trader_map").Price);
-            e.Submit("trader_map");
+            Assert.AreEqual(c.TreasureMapPrice, e.CurrentDecision.Find("trader_map_gold").Price);
+            e.Submit("trader_map_gold");
             Assert.IsTrue(e.IsTypeShown(gold));
         }
 
@@ -734,6 +734,19 @@ namespace hp55games.MapGame.Rules.Tests
             var lantern = e.CurrentDecision.Find("witch_lantern");
             Assert.IsFalse(lantern.Enabled);
             Assert.AreEqual("ui.npc.reason.already_owned", lantern.DisabledReasonKey);
+        }
+
+        [Test]
+        public void D051_SilverMap_IsTrinket_ShowsSilverChest()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.State.Coins = 100;
+            int silver = Find(e, ContentKind.ChestSilver);
+            e.Reveal(Find(e, ContentKind.Trader));
+            e.Submit("trader_map_silver");
+            Assert.IsTrue(e.IsTypeShown(silver));
+            Assert.IsTrue(e.State.HasItem(RulesConfigDefaults.MapSilver));
+            Assert.IsTrue(c.Item(RulesConfigDefaults.MiniBossWeapon).TwoHanded);
         }
 }
 }

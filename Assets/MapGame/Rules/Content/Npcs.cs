@@ -28,6 +28,8 @@ namespace hp55games.MapGame.Rules
         public int RandomTargetMaskLevel { get; set; }
         /// <summary>Acquistabile una sola volta per run (Fabbro).</summary>
         public bool OncePerRun { get; set; }
+        /// <summary>D-051: prezzo proprio, non riallineato a TrinketPrice da RepriceOffers.</summary>
+        public bool FixedPrice { get; set; }
 
         public string NameKey => "offer." + Id;
     }

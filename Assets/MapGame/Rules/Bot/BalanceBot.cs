@@ -273,7 +273,6 @@ namespace hp55games.MapGame.Rules
             {
                 var want = WantedItem(e, npc, Pick);
                 if (want != null) return want;
-                foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.TreasureMap && Pick(o.Id) != null) return o.Id;
             }
 
             if (npc.Fightable && s.Attack >= cfg.NpcDefense)
@@ -287,8 +286,6 @@ namespace hp55games.MapGame.Rules
             var wanted = WantedItem(e, npc, Pick);
             if (wanted != null) return wanted;
             if (s.Hp < s.MaxHp && Pick("inn_rest") != null && s.Hp <= s.MaxHp - 3) return "inn_rest";
-            // D-049: Mappa del tesoro se avanzano monete.
-            foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.TreasureMap && Pick(o.Id) != null) return o.Id;
             // D-043: in nebbia la visione vale: Ricognizione grande se possibile, altrimenti piccola.
             foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.Scout && o.Amount == ScoutShapes.Cluster && Pick(o.Id) != null) return o.Id;
             foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.Scout && o.Amount == ScoutShapes.Single && Pick(o.Id) != null) return o.Id;

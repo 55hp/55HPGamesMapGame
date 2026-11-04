@@ -45,7 +45,11 @@ namespace hp55games.MapGame.Rules
         public MissionDef Mission { get; internal set; }
 
         /// <summary>R-023 / D-050: base + mani + Fabbro + level up + missione.</summary>
-        public int Attack => BaseAttack + HandsAttackOf(MainHand, OffHand, OffHandWeaponBonus, OffHandWeaponMinBonus) + SmithBonus + LevelAttackBonus + MissionBonus;
+        public int Attack => BaseAttack + HandsAttackOf(MainHand, OffHand, OffHandWeaponBonus, OffHandWeaponMinBonus) + TrinketsAttack
+            + SmithBonus + LevelAttackBonus + MissionBonus;
+
+        /// <summary>D-051: Attacco dei Trinket (Cote del Fabbro).</summary>
+        public int TrinketsAttack { get { int a = 0; foreach (var t in _trinkets) a += t.AttackBonus; return a; } }
 
         /// <summary>
         /// D-050: l'arma migliore dà il suo bonus pieno, un'altra arma dà solo offHandWeaponBonus,

@@ -281,7 +281,10 @@ namespace hp55games.MapGame.Rules
                 if (offer.Effect == NpcOfferEffect.Scout && (_config.Mode == GameMode.Open || !AnyHidden())) continue;
                 // D-049: la Bussola serve solo in Nebbia; la Mappa solo se resta un forziere d'oro o d'argento da trovare.
                 if (offer.Effect == NpcOfferEffect.GiveItem && _config.Item(offer.ItemId)?.Effect == ItemEffect.Compass && _config.Mode != GameMode.Fog) continue;
-                if (offer.Effect == NpcOfferEffect.TreasureMap && TreasureMapTarget() < 0) continue;
+                // D-051: una Mappa compare solo se il suo forziere è ancora da trovare.
+                var mapFx = offer.Effect == NpcOfferEffect.GiveItem ? _config.Item(offer.ItemId)?.Effect : null;
+                if ((mapFx == ItemEffect.MapGold || mapFx == ItemEffect.MapSilver) && !State.HasItem(offer.ItemId)
+                    && MapTarget(mapFx.Value) < 0) continue;
                 if (offer.Effect == NpcOfferEffect.Clues)
                 {
                     // D-038: un indizio su contenuti già tutti scoperti non esiste: l'offerta non compare.
@@ -355,9 +358,7 @@ namespace hp55games.MapGame.Rules
                 case NpcOfferEffect.Scout:
                     ReceiveScout(offer.Amount);
                     break;
-                case NpcOfferEffect.TreasureMap:
-                    ShowType(TreasureMapTarget());
-                    break;
+                case NpcOfferEffect.TreasureMap: break; // D-051: sostituita dalle Mappe Trinket
             }
         }
 
@@ -438,6 +439,7 @@ namespace hp55games.MapGame.Rules
                 if (State.HasItem(item.Id)) { Emit(RuleEventType.ItemDiscarded, e => e.ItemId = item.Id); return; }
                 State._trinkets.Add(item);
                 Emit(RuleEventType.ItemEquipped, e => e.ItemId = item.Id);
+                if (item.Effect == ItemEffect.MapGold || item.Effect == ItemEffect.MapSilver) ShowType(MapTarget(item.Effect)); // D-051
                 return;
             }
             if (State.FreeHands >= item.HandsNeeded) { Place(item); return; }
@@ -648,12 +650,12 @@ namespace hp55games.MapGame.Rules
             ShowType(candidates[_rng.Range(0, candidates.Count)]);
         }
 
-        /// <summary>D-049: forziere d'oro coperto e non ancora mostrato, altrimenti d'argento; -1 se non ce ne sono.</summary>
-        private int TreasureMapTarget()
+        /// <summary>D-051: forziere della Mappa (oro o argento) coperto e non ancora mostrato; -1 se non c'è.</summary>
+        private int MapTarget(ItemEffect fx)
         {
-            foreach (var kind in new[] { ContentKind.ChestGold, ContentKind.ChestSilver })
-                for (int i = 0; i < _revealed.Length; i++)
-                    if (Layout.Tiles[i] == kind && !_revealed[i] && !_typeShown[i]) return i;
+            var kind = fx == ItemEffect.MapGold ? ContentKind.ChestGold : ContentKind.ChestSilver;
+            for (int i = 0; i < _revealed.Length; i++)
+                if (Layout.Tiles[i] == kind && !_revealed[i] && !_typeShown[i]) return i;
             return -1;
         }
 

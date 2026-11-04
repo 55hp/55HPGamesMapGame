@@ -6,7 +6,7 @@ namespace hp55games.MapGame.Rules
     public enum ItemSlot { Weapon = 0, Hand = 1, Trinket = 2 }
 
     /// <summary>Effetto passivo di un oggetto (03 §6).</summary>
-    public enum ItemEffect { None = 0, DisarmTraps = 1, Lantern = 2, Compass = 3, Purse = 4 } // D-049: Bussola, Borsa
+    public enum ItemEffect { None = 0, DisarmTraps = 1, Lantern = 2, Compass = 3, Purse = 4, MapGold = 5, MapSilver = 6 } // D-049 Bussola, Borsa; D-051 Mappe
 
     /// <summary>Oggetto equipaggiabile. Il bonus Attacco di un'arma è il suo livello.</summary>
     public sealed class ItemDef

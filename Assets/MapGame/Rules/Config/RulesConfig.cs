@@ -117,10 +117,11 @@ namespace hp55games.MapGame.Rules
             foreach (var npc in Npcs.Values)
             {
                 npc.Offers.RemoveAll(o => (!OfferCompass && o.ItemId == "compass") || (!OfferPurse && o.ItemId == "purse")
-                    || (!OfferTreasureMap && o.Effect == NpcOfferEffect.TreasureMap) || (!OfferAmulet && o.ItemId == "amulet"));
+                    || (!OfferTreasureMap && (o.ItemId == "map_gold" || o.ItemId == "map_silver")) || (!OfferAmulet && o.ItemId == "amulet"));
                 foreach (var o in npc.Offers)
                 {
-                    if (o.Effect == NpcOfferEffect.TreasureMap) { o.Price = TreasureMapPrice; continue; }
+                    if (o.ItemId == "map_gold" || o.ItemId == "map_silver") { o.Price = TreasureMapPrice; continue; }
+                    if (o.FixedPrice) continue;
                     if (o.ItemId == "amulet") { o.Price = AmuletPrice; continue; }
                     if (o.Effect == NpcOfferEffect.Clues) o.Price = o.Amount >= 2 ? CluePrice2 : CluePrice1;
                     else if (o.Effect == NpcOfferEffect.GiveItem && TrinketPrice > 0 && Item(o.ItemId)?.Slot == ItemSlot.Trinket) o.Price = TrinketPrice;
