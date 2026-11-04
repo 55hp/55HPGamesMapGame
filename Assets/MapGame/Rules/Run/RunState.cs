@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace hp55games.MapGame.Rules
 {
     public enum RunStatus { Playing = 0, Won = 1, Lost = 2 }
@@ -24,9 +26,16 @@ namespace hp55games.MapGame.Rules
         public bool SmithUpgradeBought { get; internal set; }
         public int BaseAttack { get; internal set; }
 
-        public ItemDef Weapon { get; internal set; }
-        public ItemDef Ring { get; internal set; }
-        public ItemDef Trinket { get; internal set; }
+        /// <summary>D-050: mano 1 (un'arma a due mani sta qui e lascia vuota la mano 2).</summary>
+        public ItemDef MainHand { get; internal set; }
+        /// <summary>D-050: mano 2: un'arma a una mano o un oggetto da mano (Anello, Amuleto, Bussola).</summary>
+        public ItemDef OffHand { get; internal set; }
+        /// <summary>D-050: Trinket cumulabili, uno per tipo.</summary>
+        public IReadOnlyList<ItemDef> Trinkets => _trinkets;
+        internal readonly List<ItemDef> _trinkets = new List<ItemDef>();
+        /// <summary>D-050: Attacco di un'arma in più oltre la migliore (dalla config).</summary>
+        public int OffHandWeaponBonus { get; internal set; }
+        public int OffHandWeaponMinBonus { get; internal set; }
 
         public bool HasSilverKey { get; internal set; }
         public bool HasGoldKey { get; internal set; }
@@ -35,10 +44,28 @@ namespace hp55games.MapGame.Rules
         public LossReason LossReason { get; internal set; }
         public MissionDef Mission { get; internal set; }
 
-        /// <summary>R-023: base + Arma + Anello + Trinket + Fabbro + level up.</summary>
-        public int Attack =>
-            BaseAttack + (Weapon?.AttackBonus ?? 0) + (Ring?.AttackBonus ?? 0) + (Trinket?.AttackBonus ?? 0)
-            + SmithBonus + LevelAttackBonus + MissionBonus;
+        /// <summary>R-023 / D-050: base + mani + Fabbro + level up + missione.</summary>
+        public int Attack => BaseAttack + HandsAttackOf(MainHand, OffHand, OffHandWeaponBonus, OffHandWeaponMinBonus) + SmithBonus + LevelAttackBonus + MissionBonus;
+
+        /// <summary>
+        /// D-050: l'arma migliore dà il suo bonus pieno, un'altra arma dà solo offHandWeaponBonus,
+        /// un oggetto da mano dà il suo bonus. Pubblico per bot e UI (anteprime).
+        /// </summary>
+        public static int HandsAttackOf(ItemDef a, ItemDef b, int offHandWeaponBonus, int offHandWeaponMinBonus = 0)
+        {
+            int total = 0;
+            ItemDef best = null, other = null;
+            foreach (var it in new[] { a, b })
+            {
+                if (it == null) continue;
+                if (it.Slot != ItemSlot.Weapon) { total += it.AttackBonus; continue; }
+                if (best == null || it.AttackBonus > best.AttackBonus) { other = best; best = it; }
+                else other = it;
+            }
+            if (best != null) total += best.AttackBonus;
+            if (other != null && other.AttackBonus >= offHandWeaponMinBonus) total += offHandWeaponBonus;
+            return total;
+        }
 
         /// <summary>D-046: bonus di Attacco per aver raggiunto il bersaglio della missione.</summary>
         public int MissionBonus { get; internal set; }
@@ -47,16 +74,32 @@ namespace hp55games.MapGame.Rules
         public bool HasKey(KeyKind key) =>
             key == KeyKind.None || (key == KeyKind.Silver && HasSilverKey) || (key == KeyKind.Gold && HasGoldKey);
 
-        public ItemDef Equipped(ItemSlot slot) =>
-            slot == ItemSlot.Weapon ? Weapon : slot == ItemSlot.Ring ? Ring : Trinket;
+        /// <summary>D-050: mani libere (un'arma a due mani le occupa entrambe).</summary>
+        public int FreeHands =>
+            MainHand != null && MainHand.TwoHanded ? 0 : (MainHand == null ? 1 : 0) + (OffHand == null ? 1 : 0);
 
-        public bool HasEffect(ItemEffect fx) => Trinket != null && Trinket.Effect == fx;
-
-        internal void SetEquipped(ItemSlot slot, ItemDef item)
+        public bool HasItem(string id)
         {
-            if (slot == ItemSlot.Weapon) Weapon = item;
-            else if (slot == ItemSlot.Ring) Ring = item;
-            else Trinket = item;
+            if (MainHand?.Id == id || OffHand?.Id == id) return true;
+            foreach (var t in _trinkets) if (t.Id == id) return true;
+            return false;
+        }
+
+        public bool HasEffect(ItemEffect fx)
+        {
+            if (fx == ItemEffect.None) return false;
+            if (MainHand?.Effect == fx || OffHand?.Effect == fx) return true;
+            foreach (var t in _trinkets) if (t.Effect == fx) return true;
+            return false;
+        }
+
+        /// <summary>Per test e strumenti: mette un oggetto nel primo posto libero (o lo aggiunge ai Trinket).</summary>
+        internal void Give(ItemDef item)
+        {
+            if (item.Slot == ItemSlot.Trinket) { if (!HasItem(item.Id)) _trinkets.Add(item); return; }
+            if (item.TwoHanded) { MainHand = item; OffHand = null; }
+            else if (MainHand == null) MainHand = item;
+            else OffHand = item;
         }
     }
 }

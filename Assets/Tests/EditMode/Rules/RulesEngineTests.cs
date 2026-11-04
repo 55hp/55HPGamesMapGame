@@ -15,7 +15,7 @@ namespace hp55games.MapGame.Rules.Tests
             var e = Started();
             Assert.AreEqual(c.StartHp, e.State.Hp);
             Assert.AreEqual(c.StartMaxHp, e.State.MaxHp);
-            Assert.AreEqual(c.StartWeaponId, e.State.Weapon.Id);
+            Assert.AreEqual(c.StartWeaponId, e.State.MainHand.Id);
             Assert.AreEqual(c.BaseAttack + c.Item(c.StartWeaponId).AttackBonus, e.State.Attack);
             Assert.AreEqual(RunStatus.Playing, e.State.Status);
         }
@@ -168,7 +168,7 @@ namespace hp55games.MapGame.Rules.Tests
             e.Reveal(Find(e, ContentKind.Trap2));
             Assert.AreEqual(hp - c.Content(ContentKind.Trap2).TrapDamage, e.State.Hp);
 
-            e.State.Trinket = c.Item(RulesConfigDefaults.HunterTools);
+            e.State.Give(c.Item(RulesConfigDefaults.HunterTools));
             hp = e.State.Hp;
             var evs = e.Reveal(Find(e, ContentKind.Trap1));
             Assert.IsNotNull(First(evs, RuleEventType.TrapDisarmed));
@@ -213,7 +213,7 @@ namespace hp55games.MapGame.Rules.Tests
             int idx = Find(e, ContentKind.ChestSilver);
             var evs = e.Reveal(idx);
             Assert.IsNotNull(First(evs, RuleEventType.ChestVanished));
-            Assert.AreEqual(Config().StartWeaponId, e.State.Weapon.Id);
+            Assert.AreEqual(Config().StartWeaponId, e.State.MainHand.Id);
             Assert.IsTrue(e.IsRevealed(idx));
         }
 
@@ -225,11 +225,13 @@ namespace hp55games.MapGame.Rules.Tests
             e.Reveal(Find(e, ContentKind.MiniBossSilverKey));
             ResolveAll(e);
             Assert.IsTrue(e.State.HasSilverKey);
+            e.State.OffHand = c.Item(RulesConfigDefaults.WeaponL2); // D-050: mani piene, serve la decisione
             e.Reveal(Find(e, ContentKind.ChestSilver));
             Assert.AreEqual(DecisionKind.Item, e.CurrentDecision.Kind);
             Assert.AreEqual(RulesConfigDefaults.WeaponL4, e.CurrentDecision.NewItemId);
-            e.Submit(OptionIds.Equip);
-            Assert.AreEqual(RulesConfigDefaults.WeaponL4, e.State.Weapon.Id);
+            e.Submit(OptionIds.EquipReplacing(RulesConfigDefaults.Knife));
+            Assert.IsTrue(e.State.HasItem(RulesConfigDefaults.WeaponL4));
+            Assert.IsFalse(e.State.HasItem(RulesConfigDefaults.Knife));
         }
 
         // ------------------------------------------------ equipaggiamento
@@ -237,11 +239,13 @@ namespace hp55games.MapGame.Rules.Tests
         [Test]
         public void R025_FoundItem_Discard_KeepsOld()
         {
-            var e = Started();
+            var c = Config(); var e = Started(config: c);
+            e.State.OffHand = c.Item(RulesConfigDefaults.WeaponL3); // D-050: mani piene
             e.Reveal(Find(e, ContentKind.ChestSimpleWeapon));
             Assert.AreEqual(DecisionKind.Item, e.CurrentDecision.Kind);
             var evs = e.Submit(OptionIds.Discard);
-            Assert.AreEqual(RulesConfigDefaults.Knife, e.State.Weapon.Id);
+            Assert.AreEqual(RulesConfigDefaults.Knife, e.State.MainHand.Id);
+            Assert.AreEqual(RulesConfigDefaults.WeaponL3, e.State.OffHand.Id);
             Assert.AreEqual(RulesConfigDefaults.WeaponL2, First(evs, RuleEventType.ItemDiscarded).ItemId);
         }
 
@@ -249,8 +253,8 @@ namespace hp55games.MapGame.Rules.Tests
         public void R023_AttackSumsAllBonuses()
         {
             var c = Config(); var e = Started(config: c);
-            e.State.Weapon = c.Item(RulesConfigDefaults.WeaponL3);
-            e.State.Ring = c.Item(RulesConfigDefaults.Ring2);
+            e.State.MainHand = c.Item(RulesConfigDefaults.WeaponL3);
+            e.State.OffHand = c.Item(RulesConfigDefaults.Ring2);
             e.State.SmithBonus = 1;
             e.State.LevelAttackBonus = 2;
             Assert.AreEqual(c.BaseAttack + 3 + 2 + 1 + 2, e.State.Attack);
@@ -365,7 +369,7 @@ namespace hp55games.MapGame.Rules.Tests
             var evs = e.Submit(OptionIds.Attack);
             Assert.IsNotNull(First(evs, RuleEventType.NpcFled));
             Assert.AreEqual(hp - 2, e.State.Hp);
-            Assert.IsNull(e.State.Trinket);
+            Assert.AreEqual(0, e.State.Trinkets.Count);
         }
 
         [Test]
@@ -407,10 +411,12 @@ namespace hp55games.MapGame.Rules.Tests
             var c = Config(); var e = Started(config: c);
             e.State.Coins = 100;
             e.Reveal(Find(e, ContentKind.Trader));
-            var evs = e.Submit("trader_weapon");
-            Assert.AreEqual(RulesConfigDefaults.WeaponL3, e.State.Weapon.Id);
+            e.State.OffHand = c.Item(RulesConfigDefaults.WeaponL2); // D-050: mani piene
+            e.Submit("trader_weapon");
+            var evs = e.Submit(OptionIds.EquipReplacing(RulesConfigDefaults.Knife));
+            Assert.IsTrue(e.State.HasItem(RulesConfigDefaults.WeaponL3));
             Assert.AreEqual(RulesConfigDefaults.Knife, First(evs, RuleEventType.ItemDiscarded).ItemId);
-            Assert.AreEqual(100 - 10, e.State.Coins);
+            Assert.AreEqual(100 - c.Npcs[ContentKind.Trader].Offers.First(o => o.Id == "trader_weapon").Price, e.State.Coins);
         }
 
         // ------------------------------------------------ indizi
@@ -453,7 +459,7 @@ namespace hp55games.MapGame.Rules.Tests
         public void D015_Lantern_ShowsOneAdjacentType()
         {
             var c = Config(); var e = Started(config: c);
-            e.State.Trinket = c.Item(RulesConfigDefaults.Lantern);
+            e.State.Give(c.Item(RulesConfigDefaults.Lantern));
             var evs = e.Reveal(Find(e, ContentKind.Bush));
             var shown = First(evs, RuleEventType.TileTypeShown);
             if (shown != null)
@@ -648,7 +654,7 @@ namespace hp55games.MapGame.Rules.Tests
             int start = e.Layout.StartIndex;
             var nbs = HexGridMath.Neighbors(start, c.Width, c.Height).Where(n => !e.IsRevealed(n)).ToList();
             Assert.IsTrue(nbs.Any(n => !e.IsMaskVisible(n)));
-            e.State.SetEquipped(ItemSlot.Trinket, c.Item(RulesConfigDefaults.Compass));
+            e.State.Give(c.Item(RulesConfigDefaults.Compass));
             foreach (int n in nbs) Assert.IsTrue(e.IsMaskVisible(n), $"tile {n}");
         }
 
@@ -656,7 +662,7 @@ namespace hp55games.MapGame.Rules.Tests
         public void D049_Purse_AddsCoinsPerGain()
         {
             var c = Config(); var e = Started(config: c);
-            e.State.SetEquipped(ItemSlot.Trinket, c.Item(RulesConfigDefaults.Purse));
+            e.State.Give(c.Item(RulesConfigDefaults.Purse));
             int before = e.State.Coins;
             e.Reveal(Find(e, ContentKind.ChestSimpleCoins));
             ResolveAll(e);
@@ -673,6 +679,61 @@ namespace hp55games.MapGame.Rules.Tests
             Assert.AreEqual(c.TreasureMapPrice, e.CurrentDecision.Find("trader_map").Price);
             e.Submit("trader_map");
             Assert.IsTrue(e.IsTypeShown(gold));
+        }
+
+        [Test]
+        public void D050_TwoOneHandedWeapons_BestPlusOffHandBonus()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.State.MainHand = c.Item(RulesConfigDefaults.WeaponL3);
+            int before = e.State.Attack;
+            e.Reveal(Find(e, ContentKind.ChestSimpleWeapon)); // mano 2 libera: si equipaggia da sola
+            Assert.IsNull(e.CurrentDecision);
+            Assert.AreEqual(RulesConfigDefaults.WeaponL2, e.State.OffHand.Id);
+            Assert.AreEqual(before + c.OffHandWeaponBonus, e.State.Attack);
+        }
+
+        [Test]
+        public void D050_KnifeInOffHand_DoesNotCount()
+        {
+            var c = Config(); var e = Started(config: c);
+            Assert.Less(c.Item(RulesConfigDefaults.Knife).AttackBonus, c.OffHandWeaponMinBonus);
+            e.State.MainHand = c.Item(RulesConfigDefaults.WeaponL3);
+            e.State.OffHand = c.Item(RulesConfigDefaults.Knife);
+            Assert.AreEqual(c.BaseAttack + c.Item(RulesConfigDefaults.WeaponL3).AttackBonus, e.State.Attack);
+        }
+
+        [Test]
+        public void D050_TwoHandedWeapon_ReplacesBothHands()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.State.OffHand = c.Item(RulesConfigDefaults.Ring2);
+            e.State.Coins = 100;
+            e.State.LevelAttackBonus = 10;
+            e.Reveal(Find(e, ContentKind.Hunter));
+            e.Submit(OptionIds.Attack); // l'Arco a due mani
+            var d = e.CurrentDecision;
+            Assert.AreEqual(DecisionKind.Item, d.Kind);
+            Assert.IsNotNull(d.Find(OptionIds.EquipAll));
+            e.Submit(OptionIds.EquipAll);
+            Assert.AreEqual(RulesConfigDefaults.HunterBow, e.State.MainHand.Id);
+            Assert.IsNull(e.State.OffHand);
+            Assert.AreEqual(0, e.State.FreeHands);
+        }
+
+        [Test]
+        public void D050_Trinkets_Stack_OwnedOfferDisabled()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.State.Give(c.Item(RulesConfigDefaults.Lantern));
+            e.State.Give(c.Item(RulesConfigDefaults.HunterTools));
+            Assert.IsTrue(e.State.HasEffect(ItemEffect.Lantern));
+            Assert.IsTrue(e.State.HasEffect(ItemEffect.DisarmTraps));
+            e.State.Coins = 100;
+            e.Reveal(Find(e, ContentKind.Witch));
+            var lantern = e.CurrentDecision.Find("witch_lantern");
+            Assert.IsFalse(lantern.Enabled);
+            Assert.AreEqual("ui.npc.reason.already_owned", lantern.DisabledReasonKey);
         }
 }
 }

@@ -82,6 +82,10 @@ namespace hp55games.MapGame.Rules
         /// <summary>D-049: oggetti del Mercante attivi (spegnerli serve a misurarli uno per volta col bot).</summary>
         public bool OfferCompass { get; set; } = true;
         public int PurseBonus { get; set; } = 1;
+        /// <summary>D-050: Attacco di una seconda arma a una mano.</summary>
+        public int OffHandWeaponBonus { get; set; } = 1;
+        /// <summary>D-050: una seconda arma dà OffHandWeaponBonus solo se il suo bonus è almeno questo (2 = il Coltello non conta).</summary>
+        public int OffHandWeaponMinBonus { get; set; } = 0;
         public bool OfferPurse { get; set; } = true;
         public bool OfferTreasureMap { get; set; } = true;
         public bool OfferAmulet { get; set; } = true;

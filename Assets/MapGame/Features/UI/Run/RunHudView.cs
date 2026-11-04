@@ -60,9 +60,10 @@ namespace hp55games.MapGame.Features.UI.Run
                 _coinBonus.gameObject.SetActive(s.CoinBonusPerGain > 0);
                 _coinBonus.text = RunText.T("run.hud.coin_bonus", s.CoinBonusPerGain);
             }
-            _weapon.text = RunText.Item(s.Weapon?.Id);
-            _ring.text = RunText.Item(s.Ring?.Id);
-            _trinket.text = RunText.Item(s.Trinket?.Id);
+            // D-050: _weapon = mano 1, _ring = mano 2, _trinket = elenco dei Trinket.
+            _weapon.text = RunText.Item(s.MainHand?.Id);
+            _ring.text = s.MainHand != null && s.MainHand.TwoHanded ? RunText.T("run.item.two_handed") : RunText.Item(s.OffHand?.Id);
+            _trinket.text = RunText.Trinkets(s);
         }
     }
 }

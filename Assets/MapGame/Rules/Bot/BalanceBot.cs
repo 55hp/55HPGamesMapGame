@@ -172,7 +172,7 @@ namespace hp55games.MapGame.Rules
             }
         }
 
-        private static string WantedItem(NpcDef npc, RunState s, RulesConfig cfg, Func<string, string> pick)
+        private static string WantedItem(RulesEngine e, NpcDef npc, Func<string, string> pick)
         {
             foreach (var o in npc.Offers)
             {
@@ -180,12 +180,65 @@ namespace hp55games.MapGame.Rules
                 if (o.Effect == NpcOfferEffect.SmithUpgrade) return o.Id;
                 if (o.Effect == NpcOfferEffect.GiveItem)
                 {
-                    var it = cfg.Item(o.ItemId);
-                    var cur = s.Equipped(it.Slot);
-                    if (cur == null || it.AttackBonus > cur.AttackBonus) return o.Id;
+                    var it = e.Config.Item(o.ItemId);
+                    if (it.Slot == ItemSlot.Trinket) return o.Id; // D-050: cumulabili
+                    if (BestHandScoreWith(e, it) > CurrentHandScore(e)) return o.Id;
                 }
             }
             return null;
+        }
+
+        // ------------------------------------------------ D-050: mani
+
+        /// <summary>Valore delle mani per il bot: Attacco, +1 per la Bussola in Nebbia.</summary>
+        internal static int HandScore(RulesEngine e, ItemDef a, ItemDef b)
+        {
+            int v = RunState.HandsAttackOf(a, b, e.State.OffHandWeaponBonus, e.State.OffHandWeaponMinBonus);
+            if (e.Config.Mode == GameMode.Fog && (a?.Effect == ItemEffect.Compass || b?.Effect == ItemEffect.Compass)) v += 1;
+            return v;
+        }
+
+        internal static int CurrentHandScore(RulesEngine e) => HandScore(e, e.State.MainHand, e.State.OffHand);
+
+        /// <summary>Mani dopo aver preso item lasciando drop ("all", un id, o null se c'è posto), come fa il motore.</summary>
+        internal static void HandsAfter(RulesEngine e, ItemDef item, string drop, out ItemDef main, out ItemDef off)
+        {
+            main = e.State.MainHand; off = e.State.OffHand;
+            if (drop == "all") { main = null; off = null; }
+            else if (drop != null)
+            {
+                if (main != null && main.Id == drop) { main = off; off = null; }
+                else if (off != null && off.Id == drop) off = null;
+            }
+            if (item.TwoHanded || main == null) { if (item.TwoHanded) off = null; main = item; }
+            else off = item;
+        }
+
+        internal static int BestHandScoreWith(RulesEngine e, ItemDef item)
+        {
+            var s = e.State;
+            var drops = new List<string>();
+            if (s.FreeHands >= item.HandsNeeded) drops.Add(null);
+            else if (item.TwoHanded) drops.Add("all");
+            else if (s.MainHand != null && s.MainHand.TwoHanded) drops.Add(s.MainHand.Id);
+            else { if (s.MainHand != null) drops.Add(s.MainHand.Id); if (s.OffHand != null) drops.Add(s.OffHand.Id); }
+            int best = int.MinValue;
+            foreach (var dr in drops) { HandsAfter(e, item, dr, out var a, out var b); best = Math.Max(best, HandScore(e, a, b)); }
+            return best;
+        }
+
+        private static string ChooseItem(RulesEngine e, Decision d)
+        {
+            var item = e.Config.Item(d.NewItemId);
+            string best = OptionIds.Discard; int bestScore = CurrentHandScore(e);
+            foreach (var o in d.Options)
+            {
+                if (!OptionIds.IsEquip(o.Id)) continue;
+                HandsAfter(e, item, o.Id == OptionIds.EquipAll ? "all" : o.ItemId, out var a, out var b);
+                int sc = HandScore(e, a, b);
+                if (sc > bestScore) { bestScore = sc; best = o.Id; }
+            }
+            return best;
         }
 
         public string ChooseOption(RulesEngine e, Decision d)
@@ -199,8 +252,7 @@ namespace hp55games.MapGame.Rules
                     if (_levelUp == "attack") return OptionIds.LevelAttack;
                     return s.Hp <= 2 ? OptionIds.LevelMaxHp : OptionIds.LevelAttack;
                 case DecisionKind.Item:
-                    var ni = cfg.Item(d.NewItemId); var ci = cfg.Item(d.CurrentItemId);
-                    return ni.AttackBonus >= ci.AttackBonus ? OptionIds.Equip : OptionIds.Discard;
+                    return ChooseItem(e, d);
                 case DecisionKind.ClueLine:
                     return d.Options[_rng.Range(0, d.Options.Count)].Id;
                 case DecisionKind.Scout:
@@ -219,7 +271,7 @@ namespace hp55games.MapGame.Rules
             string Pick(string id) { var o = d.Find(id); return o != null && o.Enabled ? id : null; }
             if (shopFirst)
             {
-                var want = WantedItem(npc, s, cfg, Pick);
+                var want = WantedItem(e, npc, Pick);
                 if (want != null) return want;
                 foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.TreasureMap && Pick(o.Id) != null) return o.Id;
             }
@@ -227,12 +279,12 @@ namespace hp55games.MapGame.Rules
             if (npc.Fightable && s.Attack >= cfg.NpcDefense)
             {
                 var kill = cfg.Item(npc.KillItemId);
-                if (kill == null || kill.AttackBonus > (s.Weapon?.AttackBonus ?? 0)) return OptionIds.Attack;
+                if (kill == null || BestHandScoreWith(e, kill) > CurrentHandScore(e)) return OptionIds.Attack;
             }
             if (s.Hp <= 2)
                 foreach (var id in new[] { "inn_rest", "hunter_game", "farmer_food" })
                     if (Pick(id) != null) return id;
-            var wanted = WantedItem(npc, s, cfg, Pick);
+            var wanted = WantedItem(e, npc, Pick);
             if (wanted != null) return wanted;
             if (s.Hp < s.MaxHp && Pick("inn_rest") != null && s.Hp <= s.MaxHp - 3) return "inn_rest";
             // D-049: Mappa del tesoro se avanzano monete.

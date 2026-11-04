@@ -76,6 +76,11 @@ namespace hp55games.MapGame.Rules
         public const string LevelMaxHp = "lvl_maxhp";
         public const string Equip = "equip";
         public const string Discard = "discard";
+        /// <summary>D-050: equipaggia l'oggetto nuovo lasciando tutto ciò che hai in mano (arma a due mani).</summary>
+        public const string EquipAll = "equip:all";
+        /// <summary>D-050: equipaggia l'oggetto nuovo lasciando quello indicato.</summary>
+        public static string EquipReplacing(string heldItemId) => "equip:" + heldItemId;
+        public static bool IsEquip(string id) => id != null && id.StartsWith("equip");
 
         public static string Line(LineRef l) => (l.IsRow ? "row:" : "col:") + l.Index;
         public static string Tile(int index) => "tile:" + index;

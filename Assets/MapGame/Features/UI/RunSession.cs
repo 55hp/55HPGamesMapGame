@@ -199,7 +199,7 @@ namespace hp55games.MapGame.Features.UI
             sb.Append($"HP {s.Hp}/{s.MaxHp}   Att {s.Attack}   Monete {s.Coins}   Liv {s.Level} (XP {s.Xp}/{s.Level * e.Config.XpPerLevel})");
             if (s.HasSilverKey || s.HasGoldKey) sb.Append("   Chiavi: ").Append(s.HasSilverKey ? "argento " : "").Append(s.HasGoldKey ? "oro" : "");
             if (s.CoinBonusPerGain > 0) sb.Append($"   +{s.CoinBonusPerGain} monete/guadagno");
-            sb.Append($"\nArma {Txt.Item(s.Weapon?.Id)} · Anello {Txt.Item(s.Ring?.Id)} · Trinket {Txt.Item(s.Trinket?.Id)}");
+            sb.Append($"\nMani {Txt.Item(s.MainHand?.Id)} + {Txt.Item(s.OffHand?.Id)} · Trinket {s.Trinkets.Count}");
             sb.Append($"\nObiettivo: Boss (bordo viola, Difesa {e.Config.Content(ContentKind.Boss).Defense}).");
             if (e.ClueResults.Count > 0)
             {
@@ -286,9 +286,10 @@ namespace hp55games.MapGame.Features.UI
                 case OptionIds.LevelAttack: return $"+{e.Config.LevelUpAttack} Attacco";
                 case OptionIds.LevelCoins: return $"+{e.Config.LevelUpCoinBonus} moneta a ogni guadagno";
                 case OptionIds.LevelMaxHp: return $"+{e.Config.LevelUpMaxHp} HP massimo";
-                case OptionIds.Equip: return $"Equipaggia (perdi {Txt.Item(d.CurrentItemId)})";
-                case OptionIds.Discard: return $"Lascialo (tieni {Txt.Item(d.CurrentItemId)})";
+                case OptionIds.EquipAll: return "Equipaggia (lasci tutto ciò che hai in mano)";
+                case OptionIds.Discard: return "Lascialo";
             }
+            if (OptionIds.IsEquip(o.Id)) return $"Equipaggia (lasci {Txt.Item(o.ItemId)})";
             string reason = o.Enabled ? "" : o.DisabledReasonKey == "ui.npc.reason.already_bought" ? "  [già comprato]" : "  [monete insufficienti]";
             return $"{Txt.Offer(o.Id)} — {o.Price} monete{reason}";
         }

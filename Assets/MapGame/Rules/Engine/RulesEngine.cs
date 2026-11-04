@@ -124,7 +124,9 @@ namespace hp55games.MapGame.Rules
             State.MaxHp = _config.StartMaxHp;
             State.Coins = _config.StartCoins;
             State.BaseAttack = _config.BaseAttack;
-            State.Weapon = _config.Item(_config.StartWeaponId);
+            State.MainHand = _config.Item(_config.StartWeaponId);
+            State.OffHandWeaponBonus = _config.OffHandWeaponBonus;
+            State.OffHandWeaponMinBonus = _config.OffHandWeaponMinBonus;
             State.Status = RunStatus.Playing;
 
             for (int i = 0; i < _revealed.Length; i++)
@@ -296,6 +298,8 @@ namespace hp55games.MapGame.Rules
                 }
                 if (offer.OncePerRun && offer.Effect == NpcOfferEffect.SmithUpgrade && State.SmithUpgradeBought)
                 { o.Enabled = false; o.DisabledReasonKey = "ui.npc.reason.already_bought"; }
+                else if (offer.Effect == NpcOfferEffect.GiveItem && State.HasItem(offer.ItemId))
+                { o.Enabled = false; o.DisabledReasonKey = "ui.npc.reason.already_owned"; } // D-050
                 else if (State.Coins < offer.Price)
                 { o.Enabled = false; o.DisabledReasonKey = "ui.npc.reason.no_coins"; }
                 d.Options.Add(o);
@@ -340,7 +344,7 @@ namespace hp55games.MapGame.Rules
             {
                 case NpcOfferEffect.Heal: Heal(offer.Amount); break;
                 case NpcOfferEffect.FullHeal: Heal(State.MaxHp); break;
-                case NpcOfferEffect.GiveItem: Equip(_config.Item(offer.ItemId)); break; // acquisto = scelta esplicita
+                case NpcOfferEffect.GiveItem: FindItem(offer.ItemId); break; // D-050: con le mani piene si sceglie cosa lasciare
                 case NpcOfferEffect.SmithUpgrade:
                     State.SmithBonus += offer.Amount;
                     State.SmithUpgradeBought = true;
@@ -422,31 +426,63 @@ namespace hp55games.MapGame.Rules
         // ---------------------------------------------------------------- oggetti
 
         /// <summary>
-        /// Oggetto trovato (forziere, uccisione). Slot vuoto: si equipaggia da solo (R-024/025).
-        /// Slot occupato: decisione Equipaggia/Lascia (D-030, Athena, da rivedere).
+        /// D-050: oggetto trovato o comprato. Trinket: si aggiunge (uno per tipo). Mani: se ci sono abbastanza
+        /// mani libere si equipaggia da solo; altrimenti decisione su cosa lasciare (un'opzione per oggetto in mano,
+        /// "tutto" per un'arma a due mani) oppure lasciare l'oggetto nuovo.
         /// </summary>
         private void FindItem(string itemId)
         {
             var item = _config.Item(itemId);
-            var current = State.Equipped(item.Slot);
-            if (current == null) { Equip(item); return; }
-            var d = new Decision { Kind = DecisionKind.Item, NewItemId = item.Id, CurrentItemId = current.Id };
-            d.Options.Add(new DecisionOption { Id = OptionIds.Equip, LabelKey = "ui.item.equip", ItemId = item.Id });
+            if (item.Slot == ItemSlot.Trinket)
+            {
+                if (State.HasItem(item.Id)) { Emit(RuleEventType.ItemDiscarded, e => e.ItemId = item.Id); return; }
+                State._trinkets.Add(item);
+                Emit(RuleEventType.ItemEquipped, e => e.ItemId = item.Id);
+                return;
+            }
+            if (State.FreeHands >= item.HandsNeeded) { Place(item); return; }
+
+            var d = new Decision { Kind = DecisionKind.Item, NewItemId = item.Id, CurrentItemId = State.MainHand?.Id };
+            if (item.TwoHanded || State.MainHand != null && State.MainHand.TwoHanded)
+            {
+                // Un'arma a due mani entra solo lasciando tutto; con un'arma a due mani in mano si lascia quella.
+                if (item.TwoHanded) d.Options.Add(new DecisionOption { Id = OptionIds.EquipAll, LabelKey = "ui.item.equip", ItemId = null });
+                else d.Options.Add(new DecisionOption { Id = OptionIds.EquipReplacing(State.MainHand.Id), LabelKey = "ui.item.equip", ItemId = State.MainHand.Id });
+            }
+            else
+            {
+                foreach (var held in new[] { State.MainHand, State.OffHand })
+                    if (held != null) d.Options.Add(new DecisionOption { Id = OptionIds.EquipReplacing(held.Id), LabelKey = "ui.item.equip", ItemId = held.Id });
+            }
             d.Options.Add(new DecisionOption { Id = OptionIds.Discard, LabelKey = "ui.item.discard", ItemId = item.Id });
             Push(d);
         }
 
         private void SubmitItem(Decision d, DecisionOption opt)
         {
-            if (opt.Id == OptionIds.Equip) Equip(_config.Item(d.NewItemId));
-            else Emit(RuleEventType.ItemDiscarded, e => e.ItemId = d.NewItemId);
+            var item = _config.Item(d.NewItemId);
+            if (opt.Id == OptionIds.Discard) { Emit(RuleEventType.ItemDiscarded, e => e.ItemId = d.NewItemId); return; }
+            if (opt.Id == OptionIds.EquipAll) { DropHand(State.OffHand); DropHand(State.MainHand); }
+            else DropHand(opt.ItemId == State.MainHand?.Id ? State.MainHand : State.OffHand);
+            Place(item);
         }
 
-        private void Equip(ItemDef item)
+        private void DropHand(ItemDef held)
         {
-            var old = State.Equipped(item.Slot);
-            if (old != null) Emit(RuleEventType.ItemDiscarded, e => e.ItemId = old.Id); // R-025
-            State.SetEquipped(item.Slot, item);
+            if (held == null) return;
+            if (State.MainHand == held) { State.MainHand = State.OffHand; State.OffHand = null; }
+            else if (State.OffHand == held) State.OffHand = null;
+            Emit(RuleEventType.ItemDiscarded, e => e.ItemId = held.Id); // R-025
+        }
+
+        private void Place(ItemDef item)
+        {
+            if (item.TwoHanded || State.MainHand == null)
+            {
+                if (item.TwoHanded) State.OffHand = null;
+                State.MainHand = item;
+            }
+            else State.OffHand = item;
             Emit(RuleEventType.ItemEquipped, e => e.ItemId = item.Id);
         }
 

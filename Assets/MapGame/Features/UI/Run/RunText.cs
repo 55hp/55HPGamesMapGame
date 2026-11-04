@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using hp55games.MapGame.Rules;
 using hp55games.Mobile.Core.Architecture;
 using hp55games.Mobile.Core.Localization;
@@ -18,6 +19,23 @@ namespace hp55games.MapGame.Features.UI.Run
 
         public static string Content(ContentKind k) => T("run.content." + Snake(k.ToString()));
         public static string Item(string id) => id == null ? T("run.item.none") : T("run.item." + id);
+
+        /// <summary>D-050: Trinket posseduti, separati da virgola.</summary>
+        public static string Trinkets(RunState s)
+        {
+            if (s.Trinkets.Count == 0) return T("run.item.none");
+            var names = new List<string>();
+            foreach (var t in s.Trinkets) names.Add(Item(t.Id));
+            return string.Join(", ", names);
+        }
+
+        /// <summary>D-050: cosa hai in mano ora.</summary>
+        public static string Hands(RunState s)
+        {
+            if (s.MainHand == null && s.OffHand == null) return T("run.item.none");
+            if (s.OffHand == null) return Item(s.MainHand?.Id);
+            return Item(s.MainHand?.Id) + " + " + Item(s.OffHand.Id);
+        }
         public static string Offer(string id) => T("run.offer." + id);
         public static string Clue(ClueTarget t) => T("run.clue." + Snake(t.ToString()));
         public static string ClueShort(ClueTarget t) => T("run.clue_short." + Snake(t.ToString()));
@@ -83,7 +101,7 @@ namespace hp55games.MapGame.Features.UI.Run
                 case DecisionKind.LevelUp: return T("run.levelup.body");
                 case DecisionKind.ClueLine: return T("run.clue.body");
                 case DecisionKind.Scout: return T(ScoutKey(d.ScoutShape, "body"));
-                case DecisionKind.Item: return T("run.item.body", Item(d.CurrentItemId));
+                case DecisionKind.Item: return T("run.item.body", Hands(e.State));
                 default: return "";
             }
         }
@@ -98,9 +116,9 @@ namespace hp55games.MapGame.Features.UI.Run
                 case OptionIds.LevelAttack: return T("run.levelup.attack", c.LevelUpAttack);
                 case OptionIds.LevelCoins: return T("run.levelup.coins", c.LevelUpCoinBonus);
                 case OptionIds.LevelMaxHp: return T("run.levelup.maxhp", c.LevelUpMaxHp);
-                case OptionIds.Equip: return T("run.item.equip");
                 case OptionIds.Discard: return T("run.item.discard");
             }
+            if (OptionIds.IsEquip(o.Id)) return T("run.item.equip");
             // Le offerte di indizi ricevono il bersaglio effettivo (D-038: per il Mercante è estratto all'apertura).
             return T("run.offer." + o.Id, Clue(o.ClueTarget));
         }
@@ -117,11 +135,14 @@ namespace hp55games.MapGame.Features.UI.Run
                 string reward = npc.KillItemId != null ? Item(npc.KillItemId) : T("run.npc.reward_coins", npc.KillCoins);
                 return T("run.npc.attack_win", reward);
             }
-            if (o.Id == OptionIds.Equip) return T("run.item.equip_detail", Item(d.CurrentItemId));
+            if (o.Id == OptionIds.EquipAll) return T("run.item.equip_detail", Hands(e.State));
+            if (OptionIds.IsEquip(o.Id)) return T("run.item.equip_detail", Item(o.ItemId));
             if (o.Price <= 0) return "";
             string price = T("run.npc.price", o.Price);
             if (o.Enabled) return price;
-            return price + " · " + T(o.DisabledReasonKey == "ui.npc.reason.already_bought" ? "run.npc.reason_bought" : "run.npc.reason_coins");
+            string reason = o.DisabledReasonKey == "ui.npc.reason.already_bought" ? "run.npc.reason_bought"
+                : o.DisabledReasonKey == "ui.npc.reason.already_owned" ? "run.npc.reason_owned" : "run.npc.reason_coins";
+            return price + " · " + T(reason);
         }
 
         private static string Snake(string pascal)

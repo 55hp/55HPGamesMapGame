@@ -169,21 +169,22 @@ run.content.trader	Merchant	Mercante	Merchant	Merchant	Merchant	Merchant	Merchan
 run.content.farmer	Farmer	Contadino	Farmer	Farmer	Farmer	Farmer	Farmer	Farmer	Farmer
 run.content.villagers	Villagers	Paesani	Villagers	Villagers	Villagers	Villagers	Villagers	Villagers	Villagers
 run.item.none	—	—	—	—	—	—	—	—	—
+run.item.two_handed	(two hands)	(due mani)	(two hands)	(two hands)	(two hands)	(two hands)	(two hands)	(two hands)	(two hands)
 run.item.knife	Knife (+1)	Coltello (+1)	Knife (+1)	Knife (+1)	Knife (+1)	Knife (+1)	Knife (+1)	Knife (+1)	Knife (+1)
 run.item.weapon_l2	Short sword (+2)	Spada corta (+2)	Short sword (+2)	Short sword (+2)	Short sword (+2)	Short sword (+2)	Short sword (+2)	Short sword (+2)	Short sword (+2)
 run.item.weapon_l3	Sword (+3)	Spada (+3)	Sword (+3)	Sword (+3)	Sword (+3)	Sword (+3)	Sword (+3)	Sword (+3)	Sword (+3)
 run.item.weapon_l4	Silver sword (+4)	Spada d'argento (+4)	Silver sword (+4)	Silver sword (+4)	Silver sword (+4)	Silver sword (+4)	Silver sword (+4)	Silver sword (+4)	Silver sword (+4)
-run.item.hunter_bow	Hunter's bow (+5)	Arco del Cacciatore (+5)	Hunter's bow (+5)	Hunter's bow (+5)	Hunter's bow (+5)	Hunter's bow (+5)	Hunter's bow (+5)	Hunter's bow (+5)	Hunter's bow (+5)
-run.item.smith_hammer	Smith's hammer (+5)	Martello del Fabbro (+5)	Smith's hammer (+5)	Smith's hammer (+5)	Smith's hammer (+5)	Smith's hammer (+5)	Smith's hammer (+5)	Smith's hammer (+5)	Smith's hammer (+5)
-run.item.witch_staff	Witch's staff (+5)	Bastone della Strega (+5)	Witch's staff (+5)	Witch's staff (+5)	Witch's staff (+5)	Witch's staff (+5)	Witch's staff (+5)	Witch's staff (+5)	Witch's staff (+5)
+run.item.hunter_bow	Hunter's bow (+5, two hands)	Arco del Cacciatore (+5, due mani)	Hunter's bow (+5, two hands)	Hunter's bow (+5, two hands)	Hunter's bow (+5, two hands)	Hunter's bow (+5, two hands)	Hunter's bow (+5, two hands)	Hunter's bow (+5, two hands)	Hunter's bow (+5, two hands)
+run.item.smith_hammer	Smith's hammer (+5, two hands)	Martello del Fabbro (+5, due mani)	Smith's hammer (+5, two hands)	Smith's hammer (+5, two hands)	Smith's hammer (+5, two hands)	Smith's hammer (+5, two hands)	Smith's hammer (+5, two hands)	Smith's hammer (+5, two hands)	Smith's hammer (+5, two hands)
+run.item.witch_staff	Witch's staff (+5, two hands)	Bastone della Strega (+5, due mani)	Witch's staff (+5, two hands)	Witch's staff (+5, two hands)	Witch's staff (+5, two hands)	Witch's staff (+5, two hands)	Witch's staff (+5, two hands)	Witch's staff (+5, two hands)	Witch's staff (+5, two hands)
 run.item.miniboss_weapon	Champion's axe (+5)	Ascia del Campione (+5)	Champion's axe (+5)	Champion's axe (+5)	Champion's axe (+5)	Champion's axe (+5)	Champion's axe (+5)	Champion's axe (+5)	Champion's axe (+5)
-run.item.dragonslayer	Dragonslayer (+6)	Ammazzadraghi (+6)	Dragonslayer (+6)	Dragonslayer (+6)	Dragonslayer (+6)	Dragonslayer (+6)	Dragonslayer (+6)	Dragonslayer (+6)	Dragonslayer (+6)
+run.item.dragonslayer	Dragonslayer (+6, two hands)	Ammazzadraghi (+6, due mani)	Dragonslayer (+6, two hands)	Dragonslayer (+6, two hands)	Dragonslayer (+6, two hands)	Dragonslayer (+6, two hands)	Dragonslayer (+6, two hands)	Dragonslayer (+6, two hands)	Dragonslayer (+6, two hands)
 run.item.ring_2	Ring (+2)	Anello (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)
 run.item.hunter_tools	Hunter's tools	Attrezzi del Cacciatore	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools
 run.item.lantern	Lantern	Lanterna	Lantern	Lantern	Lantern	Lantern	Lantern	Lantern	Lantern
 run.item.compass	Compass	Bussola	Compass	Compass	Compass	Compass	Compass	Compass	Compass
 run.item.purse	Purse	Borsa	Purse	Purse	Purse	Purse	Purse	Purse	Purse
-run.item.amulet	Amulet	Amuleto	Amulet	Amulet	Amulet	Amulet	Amulet	Amulet	Amulet
+run.item.amulet	Amulet (+1)	Amuleto (+1)	Amulet (+1)	Amulet (+1)	Amulet (+1)	Amulet (+1)	Amulet (+1)	Amulet (+1)	Amulet (+1)
 run.offer.hunter_game	Game meat (+3 HP)	Cacciagione (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)
 run.offer.hunter_tools	Hunter's tools (traps don't trigger)	Attrezzi del Cacciatore (le trappole non scattano)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)
 run.offer.hunter_clue_1	1 clue: Mini-boss	1 indizio: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss
@@ -311,9 +312,9 @@ run.hud.level	Lv {0}	Liv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}
 run.hud.xp	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}
 run.hud.coin_bonus	+{0} coins per gain	+{0} monete per guadagno	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain
 run.hud.goal	Goal: defeat the Boss (Defense {0})	Obiettivo: sconfiggi il Boss (Difesa {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})	Goal: defeat the Boss (Defense {0})
-run.hud.weapon	Weapon	Arma	Weapon	Weapon	Weapon	Weapon	Weapon	Weapon	Weapon
-run.hud.ring	Ring	Anello	Ring	Ring	Ring	Ring	Ring	Ring	Ring
-run.hud.trinket	Trinket	Trinket	Trinket	Trinket	Trinket	Trinket	Trinket	Trinket	Trinket
+run.hud.weapon	Hand 1	Mano 1	Hand 1	Hand 1	Hand 1	Hand 1	Hand 1	Hand 1	Hand 1
+run.hud.ring	Hand 2	Mano 2	Hand 2	Hand 2	Hand 2	Hand 2	Hand 2	Hand 2	Hand 2
+run.hud.trinket	Trinkets	Trinket	Trinkets	Trinkets	Trinkets	Trinkets	Trinkets	Trinkets	Trinkets
 run.npc.body	One choice only, then they leave.	Una sola scelta, poi se ne va.	One choice only, then they leave.	One choice only, then they leave.	One choice only, then they leave.	One choice only, then they leave.	One choice only, then they leave.	One choice only, then they leave.	One choice only, then they leave.
 run.npc.attack	Attack	Attacca	Attack	Attack	Attack	Attack	Attack	Attack	Attack
 run.npc.attack_detail	Defense {0} · your Attack {1}	Difesa {0} · il tuo Attacco {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}	Defense {0} · your Attack {1}
@@ -324,6 +325,7 @@ run.npc.close	Leave	Vai via	Leave	Leave	Leave	Leave	Leave	Leave	Leave
 run.npc.price	{0} coins	{0} monete	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins	{0} coins
 run.npc.reason_coins	not enough coins	monete insufficienti	not enough coins	not enough coins	not enough coins	not enough coins	not enough coins	not enough coins	not enough coins
 run.npc.reason_bought	already bought	già comprato	already bought	already bought	already bought	already bought	already bought	already bought	already bought
+run.npc.reason_owned	already owned	già posseduto	already owned	already owned	already owned	already owned	already owned	already owned	already owned
 run.levelup.title	Level {0}!	Livello {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!	Level {0}!
 run.levelup.body	Choose one upgrade.	Scegli un potenziamento.	Choose one upgrade.	Choose one upgrade.	Choose one upgrade.	Choose one upgrade.	Choose one upgrade.	Choose one upgrade.	Choose one upgrade.
 run.levelup.attack	+{0} Attack	+{0} Attacco	+{0} Attack	+{0} Attack	+{0} Attack	+{0} Attack	+{0} Attack	+{0} Attack	+{0} Attack

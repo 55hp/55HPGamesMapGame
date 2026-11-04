@@ -65,21 +65,26 @@ namespace hp55games.MapGame.Rules
 
             // Oggetti (03 §6, data/items.csv)
             void Item(string id, ItemSlot slot, int bonus, ItemEffect fx = ItemEffect.None) => c.Items[id] = new ItemDef(id, slot, bonus, fx);
+            // D-050 (Franci, 04/11/2026): due mani + Trinket cumulabili. A due mani: Arco, Martello, Bastone, Ammazzadraghi.
+            // Il Coltello in mano 2 non conta (OffHandWeaponMinBonus 2): con +1 anche dal Coltello Classica sale al 94,6%.
+            c.OffHandWeaponBonus = 1;
+            c.OffHandWeaponMinBonus = 2;
+            void Item2(string id, int bonus) => c.Items[id] = new ItemDef(id, ItemSlot.Weapon, bonus, ItemEffect.None, twoHanded: true);
             Item(Knife, ItemSlot.Weapon, 1);
             Item(WeaponL2, ItemSlot.Weapon, 2);
             Item(WeaponL3, ItemSlot.Weapon, 3);
             Item(WeaponL4, ItemSlot.Weapon, 4);
-            Item(HunterBow, ItemSlot.Weapon, 5);
-            Item(SmithHammer, ItemSlot.Weapon, 5);
-            Item(WitchStaff, ItemSlot.Weapon, 5);
+            Item2(HunterBow, 5);
+            Item2(SmithHammer, 5);
+            Item2(WitchStaff, 5);
             Item(MiniBossWeapon, ItemSlot.Weapon, 5);
-            Item(Dragonslayer, ItemSlot.Weapon, 6);
-            Item(Ring2, ItemSlot.Ring, 2);
+            Item2(Dragonslayer, 6);
+            Item(Ring2, ItemSlot.Hand, 2);
             Item(HunterTools, ItemSlot.Trinket, 0, ItemEffect.DisarmTraps);
             Item(Lantern, ItemSlot.Trinket, 0, ItemEffect.Lantern);
-            Item(Compass, ItemSlot.Trinket, 0, ItemEffect.Compass);
+            Item(Compass, ItemSlot.Hand, 0, ItemEffect.Compass);
             Item(Purse, ItemSlot.Trinket, 0, ItemEffect.Purse);
-            Item(Amulet, ItemSlot.Ring, 1);
+            Item(Amulet, ItemSlot.Hand, 1);
 
             // Censimento (03 §1, data/tile_census.csv) e definizioni
             void Def(ContentKind k, int qty, ContentDef d) { d.Kind = k; c.Census[k] = qty; c.Contents[k] = d; }
