@@ -96,8 +96,9 @@ namespace hp55games.MapGame.Rules
             // La Lanterna svela il tipo: il bot lo usa come farebbe un giocatore.
             if (e.IsTypeShown(i)) return ScoreKnown(def, s, cfg);
             int atk = s.Attack, hp = s.Hp;
-            // D-040: senza bordo visibile il bot non sa nulla della tile (nebbia).
-            if (!e.IsMaskVisible(i)) return 15;
+            // D-040/D-043: senza bordo visibile il bot non sa nulla della tile; preferisce le vicine alla partenza
+            // (il Boss è sempre lontano dalla partenza, 4–8 esagoni) e quelle al confine dello scoperto.
+            if (!e.IsMaskVisible(i)) return BlindScore(e, i);
             switch (mask)
             {
                 case 1: return hp >= 3 || atk >= 2 ? 50 : 30;
@@ -109,6 +110,35 @@ namespace hp55games.MapGame.Rules
                 case 0: return 25; // Vuota (D-041): nessun rischio, avanza le linee
                 default: return 0;
             }
+        }
+
+        public static int BlindScore(RulesEngine e, int i)
+        {
+            int w = e.Config.Width;
+            int d = HexGridMath.Distance(i, e.Layout.StartIndex, w);
+            int score = d <= e.Config.StartMinBorderDistance ? 20 : 14 - d;
+            if (e.IsAdjacentToRevealed(i)) score += 3;
+            return score;
+        }
+
+        /// <summary>D-043: centro della Ricognizione con più tile nascoste nell'area, vicino alla partenza a parità.</summary>
+        public static string ChooseScout(RulesEngine e, Decision d, IRandomSource rng)
+        {
+            int w = e.Config.Width, h = e.Config.Height;
+            int bestScore = int.MinValue;
+            var best = new List<string>();
+            foreach (var o in d.Options)
+            {
+                int hidden = 0;
+                var area = new List<int> { o.TileIndex };
+                if (d.ScoutRadius >= 1) area.AddRange(HexGridMath.Neighbors(o.TileIndex, w, h));
+                foreach (int idx in area) if (!e.IsRevealed(idx) && !e.IsMaskVisible(idx)) hidden++;
+                int score = hidden * 10 - HexGridMath.Distance(o.TileIndex, e.Layout.StartIndex, w) * 2
+                    + (e.IsAdjacentToRevealed(o.TileIndex) ? 5 : 0);
+                if (score > bestScore) { bestScore = score; best.Clear(); }
+                if (score == bestScore) best.Add(o.Id);
+            }
+            return best[rng.Range(0, best.Count)];
         }
 
         private static int ScoreKnown(ContentDef def, RunState s, RulesConfig cfg)
@@ -138,6 +168,8 @@ namespace hp55games.MapGame.Rules
                     return ni.AttackBonus >= ci.AttackBonus ? OptionIds.Equip : OptionIds.Discard;
                 case DecisionKind.ClueLine:
                     return d.Options[_rng.Range(0, d.Options.Count)].Id;
+                case DecisionKind.Scout:
+                    return ChooseScout(e, d, _rng);
                 case DecisionKind.Npc:
                     return ChooseNpc(e, d);
             }
@@ -171,6 +203,9 @@ namespace hp55games.MapGame.Rules
                 }
             }
             if (s.Hp < s.MaxHp && Pick("inn_rest") != null && s.Hp <= s.MaxHp - 3) return "inn_rest";
+            // D-043: in nebbia la visione vale: Ricognizione grande se possibile, altrimenti piccola.
+            foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.Scout && o.Amount >= 1 && Pick(o.Id) != null) return o.Id;
+            foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.Scout && o.Amount == 0 && Pick(o.Id) != null) return o.Id;
             return OptionIds.Close;
         }
     }

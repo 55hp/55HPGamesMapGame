@@ -552,17 +552,45 @@ namespace hp55games.MapGame.Rules.Tests
         }
 
         [Test]
-        public void D040_Fog_MaskVisibleOnlyNextToRevealed_ClickFree()
+        public void D043_Fog_NoBordersExceptScouted_ClickFree()
         {
-            var c = Config(); c.Mode = GameMode.Fog; var e = Started(config: c);
-            int far = -1;
+            var c = Config(); c.Mode = GameMode.Fog; c.FogStartScoutRadii.Clear();
+            var e = Started(config: c);
             for (int i = 0; i < e.Layout.Tiles.Length; i++)
-                if (!e.IsRevealed(i) && !e.IsAdjacentToRevealed(i)) { far = i; break; }
-            Assert.GreaterOrEqual(far, 0);
-            Assert.IsFalse(e.IsMaskVisible(far));
-            Assert.IsTrue(e.IsRevealable(far));
-            foreach (int nb in HexGridMath.Neighbors(e.Layout.StartIndex, c.Width, c.Height))
+                if (!e.IsRevealed(i)) { Assert.IsFalse(e.IsMaskVisible(i), $"tile {i}"); Assert.IsTrue(e.IsRevealable(i)); }
+        }
+
+        [Test]
+        public void D043_FogShowBoss_BossBorderVisible()
+        {
+            var c = Config(); c.Mode = GameMode.Fog; c.FogShowBoss = true; c.FogStartScoutRadii.Clear();
+            var e = Started(config: c);
+            Assert.IsTrue(e.IsMaskVisible(e.Layout.BossIndex));
+        }
+
+        [Test]
+        public void D043_Scout_Radius1_ShowsCenterAndNeighbors()
+        {
+            var c = Config(); c.Mode = GameMode.Fog; c.FogStartScoutRadii = new System.Collections.Generic.List<int> { 1 };
+            var e = new RulesEngine(c, 1);
+            e.Start();
+            while (e.CurrentDecision != null && e.CurrentDecision.Kind != DecisionKind.Scout)
+                e.Submit(e.CurrentDecision.Options.First(o => o.Enabled).Id);
+            Assert.IsNotNull(e.CurrentDecision);
+            int center = 55;
+            var evs = e.Submit(OptionIds.Tile(center));
+            Assert.IsTrue(evs.Any(x => x.Type == RuleEventType.ScoutUsed));
+            if (!e.IsRevealed(center)) Assert.IsTrue(e.IsMaskVisible(center));
+            foreach (int nb in HexGridMath.Neighbors(center, c.Width, c.Height))
                 if (!e.IsRevealed(nb)) Assert.IsTrue(e.IsMaskVisible(nb));
+        }
+
+        [Test]
+        public void D043_ScoutOffers_AbsentInOpenMode()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.Reveal(Find(e, ContentKind.Inn));
+            Assert.IsFalse(e.CurrentDecision.Options.Any(o => o.Id.Contains("scout")));
         }
 
         [Test]

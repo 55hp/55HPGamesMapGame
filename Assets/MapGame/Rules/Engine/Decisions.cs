@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace hp55games.MapGame.Rules
 {
-    public enum DecisionKind { Npc = 0, LevelUp = 1, ClueLine = 2, Item = 3 }
+    public enum DecisionKind { Npc = 0, LevelUp = 1, ClueLine = 2, Item = 3, Scout = 4 }
 
     /// <summary>Opzione legale di una decisione (regola d'oro 4).</summary>
     public sealed class DecisionOption
@@ -22,6 +22,8 @@ namespace hp55games.MapGame.Rules
         /// <summary>Offerta di indizi: bersaglio effettivo (fisso o estratto, D-038).</summary>
         public ClueTarget ClueTarget { get; internal set; }
         public int PredictedDamage { get; internal set; }
+        /// <summary>Decisione Scout: tile centrale della Ricognizione.</summary>
+        public int TileIndex { get; internal set; } = -1;
     }
 
     /// <summary>Decisione pendente: il motore resta in attesa di Submit con un'opzione abilitata.</summary>
@@ -36,6 +38,9 @@ namespace hp55games.MapGame.Rules
 
         /// <summary>ClueLine: bersaglio dell'indizio da posare.</summary>
         public ClueTarget ClueTarget { get; internal set; }
+
+        /// <summary>Scout (D-043): raggio della Ricognizione (0 = una tile, 1 = tile + 6 vicine).</summary>
+        public int ScoutRadius { get; internal set; }
 
         /// <summary>Item: oggetto trovato e oggetto attuale nello slot.</summary>
         public string NewItemId { get; internal set; }
@@ -63,5 +68,6 @@ namespace hp55games.MapGame.Rules
         public const string Discard = "discard";
 
         public static string Line(LineRef l) => (l.IsRow ? "row:" : "col:") + l.Index;
+        public static string Tile(int index) => "tile:" + index;
     }
 }

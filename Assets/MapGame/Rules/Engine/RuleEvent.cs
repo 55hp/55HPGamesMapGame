@@ -30,6 +30,9 @@ namespace hp55games.MapGame.Rules
         ClueUsed,
         ClueLost,           // R-096
         TileTypeShown,      // Lanterna
+        ScoutReceived,      // D-043: Ricognizione ottenuta (Amount = raggio)
+        ScoutUsed,          // D-043: Ricognizione posata (TileIndex = centro, Amount = raggio)
+        ScoutLost,          // D-043: nessuna tile da ricognire
         GameWon,
         GameLost,
     }

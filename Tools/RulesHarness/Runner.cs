@@ -72,7 +72,11 @@ namespace hp55games.MapGame.RulesHarness
             {
                 var kv = args[a].Split('=');
                 var prop = typeof(hp55games.MapGame.Rules.RulesConfig).GetProperty(kv[0]);
-                object value = prop.PropertyType.IsEnum ? Enum.Parse(prop.PropertyType, kv[1]) : (object)int.Parse(kv[1]);
+                object value = prop.PropertyType.IsEnum ? Enum.Parse(prop.PropertyType, kv[1])
+                        : prop.PropertyType == typeof(bool) ? (object)bool.Parse(kv[1])
+                        : prop.PropertyType == typeof(System.Collections.Generic.List<int>)
+                            ? (object)new System.Collections.Generic.List<int>(Array.ConvertAll(kv[1].Length == 0 ? new string[0] : kv[1].Split(','), int.Parse))
+                        : (object)int.Parse(kv[1]);
                 prop.SetValue(config, value);
                 Console.WriteLine("override " + args[a]);
             }
@@ -115,7 +119,9 @@ namespace hp55games.MapGame.RulesHarness
             var overrides = new System.Collections.Generic.List<string>();
             for (int a = 4; a < args.Length; a++) overrides.Add(args[a]);
 
-            var modes = new[] { hp55games.MapGame.Rules.GameMode.Open, hp55games.MapGame.Rules.GameMode.Fog, hp55games.MapGame.Rules.GameMode.FogAdjacent };
+            var modes = new System.Collections.Generic.List<hp55games.MapGame.Rules.GameMode> { hp55games.MapGame.Rules.GameMode.Open, hp55games.MapGame.Rules.GameMode.Fog, hp55games.MapGame.Rules.GameMode.FogAdjacent };
+            var modeOv = overrides.Find(x => x.StartsWith("Mode="));
+            if (modeOv != null) { overrides.Remove(modeOv); modes.Clear(); modes.Add((hp55games.MapGame.Rules.GameMode)Enum.Parse(typeof(hp55games.MapGame.Rules.GameMode), modeOv.Substring(5))); }
             var policies = new[] { "random", "greedy", "clue" };
             var sb = new System.Text.StringBuilder();
             sb.AppendLine($"| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |");
@@ -129,9 +135,14 @@ namespace hp55games.MapGame.RulesHarness
                 {
                     var kv = ov.Split('=');
                     var prop = typeof(hp55games.MapGame.Rules.RulesConfig).GetProperty(kv[0]);
-                    object value = prop.PropertyType.IsEnum ? Enum.Parse(prop.PropertyType, kv[1]) : (object)int.Parse(kv[1]);
+                    object value = prop.PropertyType.IsEnum ? Enum.Parse(prop.PropertyType, kv[1])
+                        : prop.PropertyType == typeof(bool) ? (object)bool.Parse(kv[1])
+                        : prop.PropertyType == typeof(System.Collections.Generic.List<int>)
+                            ? (object)new System.Collections.Generic.List<int>(Array.ConvertAll(kv[1].Length == 0 ? new string[0] : kv[1].Split(','), int.Parse))
+                        : (object)int.Parse(kv[1]);
                     prop.SetValue(config, value);
                 }
+                config.RepriceOffers();
                 int won = 0, death = 0, fled = 0;
                 double lvl = 0, atk = 0, hpWin = 0, dmg = 0, rev = 0, blind = 0, legal = 0, safe = 0, kills = 0, mb = 0, npc = 0, buy = 0, cr = 0, cu = 0, cl = 0;
                 for (int i = 0; i < games; i++)

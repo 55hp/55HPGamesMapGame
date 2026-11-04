@@ -25,6 +25,7 @@ namespace hp55games.MapGame.Rules
         private List<RuleEvent> _events;
         private List<Decision> _newDecisions;
         private bool _started;
+        private readonly bool[] _scouted;
 
         public RulesConfig Config => _config;
         public MapLayout Layout { get; }
@@ -40,6 +41,7 @@ namespace hp55games.MapGame.Rules
             _rng = new SplitMix64Random(seed ^ EngineSalt);
             _revealed = new bool[config.Width * config.Height];
             _typeShown = new bool[_revealed.Length];
+            _scouted = new bool[_revealed.Length];
         }
 
         // ---------------------------------------------------------------- lettura
@@ -58,9 +60,27 @@ namespace hp55games.MapGame.Rules
         /// D-040: il giocatore vede il livello di mascheramento (bordo) di questa tile coperta?
         /// Open: sempre. Fog e FogAdjacent: solo se adiacente a una tile scoperta.
         /// </summary>
-        public bool IsMaskVisible(int index) =>
-            index >= 0 && index < _revealed.Length && !_revealed[index]
-            && (_config.Mode == GameMode.Open || IsAdjacentToRevealed(index));
+        public bool IsMaskVisible(int index)
+        {
+            if (index < 0 || index >= _revealed.Length || _revealed[index]) return false;
+            if (_config.Mode == GameMode.Open || _scouted[index]) return true;
+            if (_config.FogShowBoss && index == Layout.BossIndex) return true; // D-043, sottomodalità
+            // D-043: in Nebbia i bordi adiacenti non si vedono più (salvo FogRevealsAdjacent); in Esplorazione sì.
+            bool adjacentRule = _config.Mode == GameMode.FogAdjacent || _config.FogRevealsAdjacent;
+            return adjacentRule && IsAdjacentToRevealed(index);
+        }
+
+        public bool IsScouted(int index) => _scouted[index];
+
+        /// <summary>D-043: tile coperte di cui il giocatore non vede il bordo.</summary>
+        private bool IsHidden(int index) => !_revealed[index] && !IsMaskVisible(index);
+
+        private IEnumerable<int> ScoutArea(int center, int radius)
+        {
+            yield return center;
+            if (radius >= 1)
+                foreach (int nb in HexGridMath.Neighbors(center, _config.Width, _config.Height)) yield return nb;
+        }
 
         public bool IsAdjacentToRevealed(int index)
         {
@@ -112,6 +132,8 @@ namespace hp55games.MapGame.Rules
             State.Mission = mission;
             Emit(RuleEventType.MissionStarted, e => { e.ClueTarget = mission.Target; e.Amount = mission.StartClues; });
             for (int i = 0; i < mission.StartClues; i++) ReceiveClue(mission.Target);
+            if (_config.Mode != GameMode.Open)
+                foreach (int radius in _config.FogStartScoutRadii) ReceiveScout(radius); // D-043
 
             // Linee già complete per le Vuote (R-041 conta solo linee completate da una mossa: qui no XP).
             for (int i = 0; i < _revealed.Length; i++) if (_revealed[i]) MarkCompletedLinesSilently(i);
@@ -165,6 +187,7 @@ namespace hp55games.MapGame.Rules
                 case DecisionKind.LevelUp: SubmitLevelUp(opt); break;
                 case DecisionKind.ClueLine: SubmitClueLine(d, opt); break;
                 case DecisionKind.Item: SubmitItem(d, opt); break;
+                case DecisionKind.Scout: SubmitScout(d, opt); break;
             }
             return End();
         }
@@ -240,6 +263,8 @@ namespace hp55games.MapGame.Rules
             foreach (var offer in npc.Offers)
             {
                 var o = new DecisionOption { Id = offer.Id, LabelKey = offer.NameKey, Price = offer.Price };
+                // D-043: la Ricognizione esiste solo con la nebbia e se resta qualcosa da vedere (R-067).
+                if (offer.Effect == NpcOfferEffect.Scout && (_config.Mode == GameMode.Open || !AnyHidden())) continue;
                 if (offer.Effect == NpcOfferEffect.Clues)
                 {
                     // D-038: un indizio su contenuti già tutti scoperti non esiste: l'offerta non compare.
@@ -306,6 +331,9 @@ namespace hp55games.MapGame.Rules
                     break;
                 case NpcOfferEffect.Clues:
                     for (int i = 0; i < offer.Amount; i++) ReceiveClue(opt.ClueTarget);
+                    break;
+                case NpcOfferEffect.Scout:
+                    ReceiveScout(offer.Amount);
                     break;
             }
         }
@@ -419,6 +447,8 @@ namespace hp55games.MapGame.Rules
             GainXp(completed * _config.LineCompleteXp); // R-041
             if (State.Mission != null) // D-039
                 for (int i = 0; i < completed * _config.LineCompleteClues; i++) ReceiveClue(State.Mission.Target);
+            if (_config.Mode != GameMode.Open && _config.FogLineCompleteScoutRadius >= 0) // D-043
+                for (int i = 0; i < completed; i++) ReceiveScout(_config.FogLineCompleteScoutRadius);
         }
 
         private void MarkCompletedLinesSilently(int index)
@@ -480,13 +510,45 @@ namespace hp55games.MapGame.Rules
             Emit(RuleEventType.ClueUsed, e => { e.Line = line; e.ClueTarget = d.ClueTarget; e.Amount = count; });
         }
 
-        /// <summary>Ricalcola le linee libere di una decisione indizio; se non ce ne sono l'indizio è perso (R-096).</summary>
+        private bool AnyHidden()
+        {
+            for (int i = 0; i < _revealed.Length; i++) if (IsHidden(i)) return true;
+            return false;
+        }
+
+        private void ReceiveScout(int radius)
+        {
+            if (!AnyHidden()) return; // niente da vedere: non viene conferita (R-067)
+            Emit(RuleEventType.ScoutReceived, e => e.Amount = radius);
+            Push(new Decision { Kind = DecisionKind.Scout, ScoutRadius = radius });
+        }
+
+        private void SubmitScout(Decision d, DecisionOption opt)
+        {
+            foreach (int idx in ScoutArea(opt.TileIndex, d.ScoutRadius)) _scouted[idx] = true;
+            Emit(RuleEventType.ScoutUsed, e => { e.TileIndex = opt.TileIndex; e.Amount = d.ScoutRadius; });
+        }
+
+        /// <summary>Ricalcola le opzioni delle decisioni di linea e di Ricognizione in testa; senza opzioni sono perse (R-096).</summary>
         private void NormalizePending()
         {
-            while (_pending.Count > 0 && _pending[0].Kind == DecisionKind.ClueLine)
+            while (_pending.Count > 0 && (_pending[0].Kind == DecisionKind.ClueLine || _pending[0].Kind == DecisionKind.Scout))
             {
                 var d = _pending[0];
                 d.Options.Clear();
+                if (d.Kind == DecisionKind.Scout)
+                {
+                    for (int i = 0; i < _revealed.Length; i++)
+                    {
+                        bool useful = false;
+                        foreach (int idx in ScoutArea(i, d.ScoutRadius)) if (IsHidden(idx)) { useful = true; break; }
+                        if (useful) d.Options.Add(new DecisionOption { Id = OptionIds.Tile(i), LabelKey = "ui.scout.tile", TileIndex = i });
+                    }
+                    if (d.Options.Count > 0) return;
+                    _pending.RemoveAt(0);
+                    Emit(RuleEventType.ScoutLost, e => e.Amount = d.ScoutRadius);
+                    continue;
+                }
                 foreach (var line in AllLines())
                     if (IsLineFree(line))
                         d.Options.Add(new DecisionOption { Id = OptionIds.Line(line), LabelKey = "ui.clue.line", Line = line });

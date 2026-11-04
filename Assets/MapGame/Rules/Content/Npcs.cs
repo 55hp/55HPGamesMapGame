@@ -9,6 +9,7 @@ namespace hp55games.MapGame.Rules
         GiveItem = 2,      // ItemId
         SmithUpgrade = 3,  // +Amount Attacco permanente, una volta per run
         Clues = 4,         // Amount indizi su ClueTarget
+        Scout = 5,         // D-043: una Ricognizione di raggio Amount (0 = 1 tile, 1 = 7 tile); solo nelle modalità con nebbia
     }
 
     public sealed class NpcOfferDef

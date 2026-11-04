@@ -69,7 +69,7 @@ namespace hp55games.MapGame.Rules
             var cfg = e.Config;
             var def = e.ContentAt(i);
             if (e.IsTypeShown(i)) return KnownScore(def, s, cfg);
-            if (!e.IsMaskVisible(i)) return 15;
+            if (!e.IsMaskVisible(i)) return GreedyPolicy.BlindScore(e, i);
 
             int atk = s.Attack, hp = s.Hp;
             switch (def.MaskLevel)
@@ -189,6 +189,16 @@ namespace hp55games.MapGame.Rules
 
         public string ChooseOption(RulesEngine e, Decision d)
         {
+            if (d.Kind == DecisionKind.Npc)
+            {
+                // Compra indizi sui pericoli (mini-boss, mostri) se l'Attacco non basta ancora: valgono di più.
+                var s = e.State;
+                if (s.Attack < e.Config.NpcDefense && s.Hp > 2)
+                    foreach (var o in d.Options)
+                        if (o.Enabled && o.Price > 0 && o.Id.Contains("clue")
+                            && (o.ClueTarget == ClueTarget.MiniBoss || o.ClueTarget == ClueTarget.MonstersNormal)) return o.Id;
+                return _fallback.ChooseOption(e, d);
+            }
             if (d.Kind != DecisionKind.ClueLine) return _fallback.ChooseOption(e, d);
             PrepareContext(e);
             // Linea con più tile coperte candidate per il bersaglio: massima informazione.

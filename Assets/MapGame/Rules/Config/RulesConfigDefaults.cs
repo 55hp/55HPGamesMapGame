@@ -108,6 +108,9 @@ namespace hp55games.MapGame.Rules
             // NPC (03 §3, data/npc_offers.csv). Prezzi indizi: 1 per 5, 2 per 9 (D-027).
             NpcOfferDef Clue(string id, ClueTarget t, int n, int price) =>
                 new NpcOfferDef { Id = id, Effect = NpcOfferEffect.Clues, ClueTarget = t, Amount = n, Price = price };
+            // D-043: Ricognizione (solo nelle modalità con nebbia). Prezzo da RepriceOffers.
+            NpcOfferDef Scout(string id, int radius) =>
+                new NpcOfferDef { Id = id, Effect = NpcOfferEffect.Scout, Amount = radius };
 
             c.Npcs[ContentKind.Hunter] = new NpcDef
             {
@@ -151,6 +154,7 @@ namespace hp55games.MapGame.Rules
                     Clue("inn_clue_trader_2", ClueTarget.Trader, 2, 9),
                     Clue("inn_clue_monsters_1", ClueTarget.MonstersNormal, 1, 5),
                     Clue("inn_clue_monsters_2", ClueTarget.MonstersNormal, 2, 9),
+                    Scout("inn_scout_0", 0), Scout("inn_scout_1", 1),
                 },
             };
             c.Npcs[ContentKind.Trader] = new NpcDef
@@ -183,6 +187,7 @@ namespace hp55games.MapGame.Rules
                     Clue("villagers_clue_fountain", ClueTarget.Fountain, 1, 5),
                     Clue("villagers_clue_smith", ClueTarget.Smith, 1, 5),
                     Clue("villagers_clue_bush", ClueTarget.Bush, 1, 5),
+                    Scout("villagers_scout_0", 0), Scout("villagers_scout_1", 1),
                 },
             };
 
@@ -195,6 +200,14 @@ namespace hp55games.MapGame.Rules
             Mission("hunt_trader", ClueTarget.Trader);
             Mission("hunt_miniboss", ClueTarget.MiniBoss);
 
+            // D-043 (Franci, 04/11/2026; valori iterati da Athena col bot, vedi data/balance/confronti.md):
+            // in nebbia si parte con due Ricognizioni da 7 tile e una da 1; ogni linea completata ne dà una da 7.
+            c.FogStartScoutRadii = new List<int> { 1, 1, 0 };
+            c.FogLineCompleteScoutRadius = 1;
+            // D-044: indizi -20/-22% (4/7, proporzione 1,75 vs 1,8); Ricognizione 1 (una tile) e 5 (sette tile).
+            c.CluePrice1 = 4; c.CluePrice2 = 7;
+            c.ScoutPriceRadius0 = 1; c.ScoutPriceRadius1 = 5;
+            c.RepriceOffers();
             return c;
         }
     }

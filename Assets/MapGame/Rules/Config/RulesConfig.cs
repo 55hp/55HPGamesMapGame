@@ -19,6 +19,22 @@ namespace hp55games.MapGame.Rules
         /// <summary>Modalità della partita (D-040). Va impostata prima di creare il motore.</summary>
         public GameMode Mode { get; set; } = GameMode.Open;
 
+        // Nebbia e Ricognizione (D-043)
+        /// <summary>Nelle modalità con nebbia il bordo del Boss resta sempre visibile.</summary>
+        public bool FogShowBoss { get; set; }
+        /// <summary>In Nebbia il bordo si vede anche sulle tile adiacenti a una scoperta (comportamento D-040, ora spento di default).</summary>
+        public bool FogRevealsAdjacent { get; set; }
+        /// <summary>Ricognizioni di partenza nelle modalità con nebbia (raggi, in ordine).</summary>
+        public List<int> FogStartScoutRadii { get; set; } = new List<int>();
+        /// <summary>Raggio della Ricognizione data da ogni linea completata in nebbia; -1 = nessuna.</summary>
+        public int FogLineCompleteScoutRadius { get; set; } = -1;
+
+        // Prezzi (D-044): applicati alle offerte da RepriceOffers.
+        public int CluePrice1 { get; set; }
+        public int CluePrice2 { get; set; }
+        public int ScoutPriceRadius0 { get; set; }
+        public int ScoutPriceRadius1 { get; set; }
+
         // Plancia (R-001, R-008)
         public int Width { get; set; }
         public int Height { get; set; }
@@ -65,6 +81,20 @@ namespace hp55games.MapGame.Rules
         public List<MissionDef> Missions { get; set; } = new List<MissionDef>();
 
         public ContentDef Content(ContentKind kind) => Contents[kind];
+
+        /// <summary>
+        /// D-044: riallinea i prezzi delle offerte di indizi e Ricognizione ai campi di prezzo (indizi singoli/doppi,
+        /// Ricognizione per raggio). Da chiamare dopo aver cambiato i prezzi.
+        /// </summary>
+        public void RepriceOffers()
+        {
+            foreach (var npc in Npcs.Values)
+                foreach (var o in npc.Offers)
+                {
+                    if (o.Effect == NpcOfferEffect.Clues) o.Price = o.Amount >= 2 ? CluePrice2 : CluePrice1;
+                    else if (o.Effect == NpcOfferEffect.Scout) o.Price = o.Amount >= 1 ? ScoutPriceRadius1 : ScoutPriceRadius0;
+                }
+        }
 
         public ItemDef Item(string id) => id != null && Items.TryGetValue(id, out var it) ? it : null;
 
