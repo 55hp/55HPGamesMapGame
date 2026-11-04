@@ -235,6 +235,10 @@ run.mission.hunt_miniboss	Hunt: the Boss's lieutenants	Caccia: i luogotenenti de
 run.hud.hp	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}	{0}/{1}
 run.hud.attack	ATK {0}	ATT {0}	ATK {0}	ATK {0}	ATK {0}	ATK {0}	ATK {0}	ATK {0}	ATK {0}
 run.hud.coins	{0}	{0}	{0}	{0}	{0}	{0}	{0}	{0}	{0}
+run.float.damage	-{0} HP	-{0} HP	-{0} HP	-{0} HP	-{0} HP	-{0} HP	-{0} HP	-{0} HP	-{0} HP
+run.float.heal	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP
+run.float.coins	+{0} coins	+{0} monete	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins
+run.float.xp	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP
 run.hud.level	Lv {0}	Liv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}
 run.hud.xp	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}
 run.hud.coin_bonus	+{0} coins per gain	+{0} monete per guadagno	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain

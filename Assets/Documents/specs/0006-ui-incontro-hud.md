@@ -77,3 +77,10 @@ Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, s
 
 #### Per Bezi
 - In `UIRunHUD.prefab`: pulsante pausa nella barra superiore con `PauseButtonView` (`_button` assegnato).
+
+### Athena — 2026-11-04 (quinta parte) — numeri fluttuanti
+- `FloatingTextView` + `FloatingTextItem` (Features/UI/Run): danno, cura, monete e XP compaiono sopra la casella risolta, salgono e svaniscono (si fermano in pausa). Casella di riferimento: l'ultimo evento del lotto con `TileIndex`. Testi `run.float.*`.
+
+#### Per Bezi
+- Prefab `FloatingText.prefab` (TMP grande con contorno + `CanvasGroup` + `FloatingTextItem`, `_text`/`_group` assegnati).
+- In `UIRunHUD.prefab`: contenitore a tutto schermo sopra il tabellone e sotto barre/foglio scelte, con `FloatingTextView` (`_container`, `_itemPrefab`); raycast disattivati.
