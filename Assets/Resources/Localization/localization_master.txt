@@ -239,6 +239,9 @@ run.float.damage	-{0} HP	-{0} HP	-{0} HP	-{0} HP	-{0} HP	-{0} HP	-{0} HP	-{0} HP
 run.float.heal	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP
 run.float.coins	+{0} coins	+{0} monete	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins
 run.float.xp	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP
+run.banner.level_up	LEVEL {0}!	LIVELLO {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!
+run.banner.key_silver	SILVER KEY!	CHIAVE D'ARGENTO!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!
+run.banner.key_gold	GOLD KEY!	CHIAVE D'ORO!	GOLD KEY!	GOLD KEY!	GOLD KEY!	GOLD KEY!	GOLD KEY!	GOLD KEY!	GOLD KEY!
 run.hud.level	Lv {0}	Liv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}	Lv {0}
 run.hud.xp	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}	XP {0}/{1}
 run.hud.coin_bonus	+{0} coins per gain	+{0} monete per guadagno	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain	+{0} coins per gain

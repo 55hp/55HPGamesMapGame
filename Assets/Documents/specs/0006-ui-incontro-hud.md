@@ -84,3 +84,9 @@ Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, s
 #### Per Bezi
 - Prefab `FloatingText.prefab` (TMP grande con contorno + `CanvasGroup` + `FloatingTextItem`, `_text`/`_group` assegnati).
 - In `UIRunHUD.prefab`: contenitore a tutto schermo sopra il tabellone e sotto barre/foglio scelte, con `FloatingTextView` (`_container`, `_itemPrefab`); raycast disattivati.
+
+### Athena — 2026-11-04 (sesta parte) — banner
+- `RunBannerView` (Features/UI/Run): banner breve per nuovo livello e chiave ottenuta (`run.banner.*`), con comparsa a scatto e dissolvenza; più banner nello stesso lotto si accodano.
+
+#### Per Bezi
+- In `UIRunHUD.prefab`: banner a nastro centrato nella metà alta del tabellone con `CanvasGroup` + TMP grande, componente `RunBannerView` (`_group`, `_text`); sopra i numeri fluttuanti, sotto il foglio scelte; GameObject sempre attivo (la visibilità è l'alpha), raycast disattivati.
