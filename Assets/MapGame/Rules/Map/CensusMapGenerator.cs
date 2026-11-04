@@ -52,6 +52,8 @@ namespace hp55games.MapGame.Rules
                 tiles[i] = bag[k++];
             }
 
+            MakeStartSafe(config, tiles, start, boss, rng);
+
             layout.Tiles = tiles;
             layout.StartIndex = start;
             layout.BossIndex = boss;
@@ -75,6 +77,54 @@ namespace hp55games.MapGame.Rules
 
             layout.Success = true;
             return layout;
+        }
+
+        /// <summary>
+        /// D-036: dopo il mescolamento, sposta lontano dalla partenza i contenuti vietati nelle tile adiacenti
+        /// e, se manca, porta una fonte di monete entro StartCoinSourceMaxDistance. Solo scambi tra tile:
+        /// il censimento resta identico (R-009) e il risultato resta deterministico.
+        /// </summary>
+        private static void MakeStartSafe(RulesConfig config, ContentKind[] tiles, int start, int boss, IRandomSource rng)
+        {
+            int w = config.Width, h = config.Height, n = w * h;
+            var neighbors = HexGridMath.Neighbors(start, w, h);
+            bool Forbidden(ContentKind k) =>
+                config.Contents.TryGetValue(k, out var d) && config.StartNeighborForbiddenMaskLevels.Contains(d.MaskLevel);
+            bool Movable(int i) => i != start && i != boss;
+
+            if (config.StartNeighborForbiddenMaskLevels.Count > 0)
+            {
+                foreach (int nb in neighbors)
+                {
+                    if (!Movable(nb) || !Forbidden(tiles[nb])) continue;
+                    var swaps = new List<int>();
+                    for (int i = 0; i < n; i++)
+                        if (Movable(i) && !neighbors.Contains(i) && !Forbidden(tiles[i])) swaps.Add(i);
+                    if (swaps.Count == 0) break;
+                    int j = swaps[rng.Range(0, swaps.Count)];
+                    var tmp = tiles[nb]; tiles[nb] = tiles[j]; tiles[j] = tmp;
+                }
+            }
+
+            int maxD = config.StartCoinSourceMaxDistance;
+            if (maxD <= 0 || config.StartCoinSourceKinds.Count == 0) return;
+            bool Near(int i) => HexGridMath.Distance(i, start, w) <= maxD;
+            for (int i = 0; i < n; i++)
+                if (Near(i) && config.StartCoinSourceKinds.Contains(tiles[i])) return;
+
+            var sources = new List<int>();
+            var targets = new List<int>();
+            for (int i = 0; i < n; i++)
+            {
+                if (!Movable(i)) continue;
+                if (!Near(i) && config.StartCoinSourceKinds.Contains(tiles[i])) sources.Add(i);
+                // La fonte di monete (livello 1) può stare anche tra i vicini; le Vuote restano dove sono.
+                if (Near(i) && tiles[i] != ContentKind.Empty) targets.Add(i);
+            }
+            if (sources.Count == 0 || targets.Count == 0) return;
+            int s = sources[rng.Range(0, sources.Count)];
+            int t = targets[rng.Range(0, targets.Count)];
+            var tmp2 = tiles[s]; tiles[s] = tiles[t]; tiles[t] = tmp2;
         }
 
         public static bool Matches(RulesConfig config, ContentKind kind, ClueTarget target) =>

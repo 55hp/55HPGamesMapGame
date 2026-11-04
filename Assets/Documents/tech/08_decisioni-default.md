@@ -35,9 +35,11 @@ Ultima revisione di Franci: 13/10/2026.
 | D-026 | Scelta della missione | a caso dal seed a ogni nuova partita | confermata |
 | D-027 | Prezzi NPC e bonus monete | prezzi come da pagina NPC; **due indizi insieme = 9 per tutti**; bonus monete per evento di guadagno | confermata |
 
-| D-033 | Boss e mascheramento | Boss al **livello 5**, non più unico al 6 | Franci 03/11/2026; bot Greedy 48% → 38,5% (il bot non usa gli indizi) |
+| D-033 | Boss e mascheramento (annullata da D-037) | Boss al **livello 5**, non più unico al 6 | Franci 03/11/2026; bot Greedy 48% → 38,5% (il bot non usa gli indizi) |
 | D-034 | Orientamento e UI definitiva | **portrait**; HUD, scelte, etichette di bordo ed esito nel prefab `UIRunHUD` istanziato da `MapGameGameplayHudService` sotto `UIRoot.hud`; niente pop-up Addressables per la partita v2 | Franci 03/11/2026 (portrait); struttura scelta da Athena |
 
+| D-036 | Monete iniziali e partenza sicura | 5 monete; niente livelli 2/5/6 adiacenti alla partenza; Piccolo 1 o forziere di monete entro 3 | Franci 04/11/2026 |
+| D-037 | Boss e mascheramento | Boss di nuovo **unico al livello 6** (annulla D-033) | Franci 04/11/2026; bot Greedy 38,5% → 49% |
 | D-035 | Seed della partita | casuale a ogni partita; `MapGenerationConfig.UseFixedSeed` per riprodurre una mappa; `CurrentRunSeed` ≠ 0 vince sempre | prima ogni partita aveva la stessa mappa (Seed 12345 fisso), modifica di D-024 decisa da Athena |
 
 ## Aperte (Athena, sessione delegata 03/11/2026: implementate, da rivedere da Franci)

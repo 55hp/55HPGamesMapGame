@@ -22,12 +22,13 @@ Il vecchio GDD (Notion, congelato all'08/08/2026) non è più una fonte: dove co
 - **R-005** Le tile **Vuote** sono scoperte fin dall'inizio e non sono cliccabili.
 - **R-006** Le Strade (Road) non esistono più nel livello 1. Cascate, cluster, PathCluster ed EventCluster non si usano.
 - **R-007** Il posizionamento è sparso e pseudocasuale con seed (stesso seed = stessa mappa): vedi `04_mappa.md`. Niente cluster.
+- **R-008b** Partenza sicura **[D-036]**: nessuna tile di livello 2, 5 o 6 adiacente alla partenza e almeno un Piccolo 1 o un Forziere di monete entro 3 esagoni. Il generatore ottiene il vincolo scambiando tile (il censimento non cambia).
 - **R-008** Il punto di partenza è la prima tile esplorata (n = 1 più le Vuote). Piazzamento **come nel codice attuale** (`MapClusterGenerator.PlaceStart/PlaceEnd`, da portare in Rules senza cambiarne il comportamento): la partenza cade a caso tra le tile ad almeno `StartMinBorderDistance` (3) dal bordo; il Boss va a una tile (a caso tra le più vicine, **[DEFAULT D-029]**) alla distanza (in esagoni) estratta con i pesi `EndDistanceWeights` (4,5,6,7,8 con pesi 1,2,3,2,1). Il Boss è **nascosto** come ogni altra tile coperta (decisione di Franci, D-025: diverso dal codice attuale, dove il Boss parte Spotted; `RevealInitialTiles` non lo deve più rivelare).
 - **R-009** Il numero di tile per tipo è fisso e uguale a ogni partita (censimento in `03_contenuti.md`): niente casualità sulla composizione, solo sulla posizione.
 
 ## 3. Il giocatore
 
-- **R-020** HP iniziali 5, massimo 5 (alzabile col level up, R-042).
+- **R-020** HP iniziali 5, massimo 5 (alzabile col level up, R-042). Monete iniziali **5** (prezzo di un indizio o del Fabbro) **[D-036]**.
 - **R-021** Sconfitta (unica per morte): HP < 1.
 - **R-022** Il giocatore ha **un solo parametro di combattimento, l'Attacco**. Non esiste una Difesa del giocatore. Il bersaglio ha solo Difesa.
 - **R-023** Attacco = Attacco base (**1** **[DEFAULT D-031]**) + bonus Arma + bonus Anello + bonus Trinket + potenziamento del Fabbro + level up spesi sull'Attacco. Tutti i bonus sono cumulabili, senza tetto.
@@ -104,11 +105,11 @@ Il vecchio GDD (Notion, congelato all'08/08/2026) non è più una fonte: dove co
 | 2 | Piccolo 2, Trappola livello 2 |
 | 3 | Forziere d'argento, Paesani, Contadino |
 | 4 | Fontana (unica tile di livello 4, per ora) |
-| 5 | Strega, Cacciatore, Fabbro, Locanda, Mercante, Mini-boss, Forziere d'oro, **Boss** **[D-033]** |
-| 6 | (vuoto nel livello 1) |
+| 5 | Strega, Cacciatore, Fabbro, Locanda, Mercante, Mini-boss, Forziere d'oro |
+| 6 | **Boss** (unico, riconoscibile dal bordo) **[D-037]** |
 
 - **R-082** Le Vuote e la partenza non hanno bordo (sono già scoperte).
-- **R-083** Il livello 2 contiene solo contenuti negativi; il livello 3 solo positivi; il livello 4 solo la Fontana. Accettato da Franci. **Attenzione:** il livello 4 è occupato dalla sola Fontana, quindi il bordo la identifica. Il Boss sta al livello 5 insieme a NPC, mini-boss e forziere d'oro (D-033, Franci 03/11/2026): non è riconoscibile dal bordo; cliccare una tile di livello 5 con Attacco < 8 può far fuggire il Boss e perdere la partita.
+- **R-083** Il livello 2 contiene solo contenuti negativi; il livello 3 solo positivi; il livello 4 solo la Fontana. Accettato da Franci. **Attenzione:** il livello 4 è occupato dalla sola Fontana, quindi il bordo la identifica. Il Boss è di nuovo l'unico contenuto di livello 6 (D-037, Franci 04/11/2026, annulla D-033): il bordo lo identifica fin dall'inizio.
 
 ## 10. Indizi
 

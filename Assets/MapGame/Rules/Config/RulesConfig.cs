@@ -15,9 +15,18 @@ namespace hp55games.MapGame.Rules
         public int StartMinBorderDistance { get; set; }
         public List<DistanceWeight> EndDistanceWeights { get; set; } = new List<DistanceWeight>();
 
+        // Partenza sicura (D-036)
+        /// <summary>Livelli di mascheramento vietati nelle tile adiacenti alla partenza.</summary>
+        public List<int> StartNeighborForbiddenMaskLevels { get; set; } = new List<int>();
+        /// <summary>Contenuti che contano come "fonte di monete raggiungibile presto".</summary>
+        public List<ContentKind> StartCoinSourceKinds { get; set; } = new List<ContentKind>();
+        /// <summary>Distanza massima (esagoni) dalla partenza entro cui deve esserci almeno una fonte di monete; 0 = nessun vincolo.</summary>
+        public int StartCoinSourceMaxDistance { get; set; }
+
         // Giocatore (R-020..R-029)
         public int StartHp { get; set; }
         public int StartMaxHp { get; set; }
+        public int StartCoins { get; set; }
         public int BaseAttack { get; set; }
         public string StartWeaponId { get; set; }
 
@@ -74,6 +83,7 @@ namespace hp55games.MapGame.Rules
             if (XpPerLevel <= 0) errors.Add("XpPerLevel deve essere > 0");
             if (EndDistanceWeights.Count == 0) errors.Add("EndDistanceWeights vuoto");
             if (Missions.Count == 0) errors.Add("Nessuna missione");
+            if (StartCoins < 0) errors.Add("StartCoins negativo");
             return errors;
         }
     }

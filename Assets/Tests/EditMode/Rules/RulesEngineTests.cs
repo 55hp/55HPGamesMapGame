@@ -91,7 +91,7 @@ namespace hp55games.MapGame.Rules.Tests
             var evs = e.Reveal(Find(e, ContentKind.Monster1));
             Assert.IsNotNull(First(evs, RuleEventType.EncounterWon));
             Assert.AreEqual(hp, e.State.Hp);
-            Assert.AreEqual(def.Coins, e.State.Coins);
+            Assert.AreEqual(c.StartCoins + def.Coins, e.State.Coins);
             Assert.AreEqual(def.Xp, e.State.Xp);
         }
 
@@ -117,7 +117,7 @@ namespace hp55games.MapGame.Rules.Tests
             var lost = First(evs, RuleEventType.EncounterLost);
             Assert.AreEqual(def.Defense - (def.Defense - 1), lost.Amount);
             Assert.AreEqual(hp - lost.Amount, e.State.Hp);
-            Assert.AreEqual(0, e.State.Coins);
+            Assert.AreEqual(c.StartCoins, e.State.Coins);
             Assert.AreEqual(0, e.State.Xp);
             Assert.IsTrue(e.IsRevealed(idx));
         }
@@ -200,7 +200,7 @@ namespace hp55games.MapGame.Rules.Tests
         {
             var c = Config(); var e = Started(config: c);
             e.Reveal(Find(e, ContentKind.ChestSimpleCoins));
-            Assert.AreEqual(c.Content(ContentKind.ChestSimpleCoins).Coins, e.State.Coins);
+            Assert.AreEqual(c.StartCoins + c.Content(ContentKind.ChestSimpleCoins).Coins, e.State.Coins);
             e.State.Hp = 1;
             e.Reveal(Find(e, ContentKind.ChestSimpleBerries));
             Assert.AreEqual(1 + c.Content(ContentKind.ChestSimpleBerries).Heal, e.State.Hp);
@@ -294,7 +294,7 @@ namespace hp55games.MapGame.Rules.Tests
             e.State.CoinBonusPerGain = 2;
             SetAttack(e, 10);
             e.Reveal(Find(e, ContentKind.Monster1));
-            Assert.AreEqual(c.Content(ContentKind.Monster1).Coins + 2, e.State.Coins);
+            Assert.AreEqual(c.StartCoins + c.Content(ContentKind.Monster1).Coins + 2, e.State.Coins);
         }
 
         [Test]
@@ -339,7 +339,9 @@ namespace hp55games.MapGame.Rules.Tests
         {
             var e = Started();
             e.Reveal(Find(e, ContentKind.Witch));
-            Assert.IsTrue(e.CurrentDecision.Options.Where(o => o.Price > 0).All(o => !o.Enabled));
+            // Abilitate solo le offerte che le monete attuali coprono (con StartCoins > 0 alcune lo sono).
+            Assert.IsTrue(e.CurrentDecision.Options.Where(o => o.Price > 0).All(o => o.Enabled == (o.Price <= e.State.Coins)));
+            Assume.That(e.State.Coins < 8, "il test presuppone l'anello della Strega non acquistabile");
             CollectionAssert.IsEmpty(e.Submit("witch_ring"));
         }
 
@@ -350,7 +352,7 @@ namespace hp55games.MapGame.Rules.Tests
             SetAttack(e, c.NpcDefense);
             e.Reveal(Find(e, ContentKind.Trader));
             e.Submit(OptionIds.Attack);
-            Assert.AreEqual(c.Npcs[ContentKind.Trader].KillCoins, e.State.Coins);
+            Assert.AreEqual(c.StartCoins + c.Npcs[ContentKind.Trader].KillCoins, e.State.Coins);
         }
 
         [Test]
@@ -484,6 +486,23 @@ namespace hp55games.MapGame.Rules.Tests
             }
             Assert.AreEqual(Play(11), Play(11));
             Assert.AreNotEqual(Play(11), Play(12));
+        }
+    
+        [Test]
+        public void D036_StartCoins_FromConfig()
+        {
+            var c = Config(); var e = Started(config: c);
+            Assert.AreEqual(c.StartCoins, e.State.Coins);
+        }
+
+        [Test]
+        public void D037_Boss_IsOnlyMaskLevel6()
+        {
+            var c = Config();
+            int boss = c.Content(ContentKind.Boss).MaskLevel;
+            foreach (var kv in c.Contents)
+                if (kv.Key != ContentKind.Boss && c.Census.TryGetValue(kv.Key, out int q) && q > 0)
+                    Assert.AreNotEqual(boss, kv.Value.MaskLevel, kv.Key.ToString());
         }
     }
 }

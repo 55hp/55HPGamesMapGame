@@ -35,6 +35,13 @@ namespace hp55games.MapGame.Rules
                 },
                 StartHp = 5,
                 StartMaxHp = 5,
+                // D-036 (Franci, 04/11/2026): 5 monete iniziali = prezzo di 1 indizio o del Fabbro.
+                StartCoins = 5,
+                // D-036: partenza sicura. Niente livelli 2, 5, 6 adiacenti alla partenza; almeno un
+                // Piccolo 1 o un forziere di monete entro 3 esagoni.
+                StartNeighborForbiddenMaskLevels = new List<int> { 2, 5, 6 },
+                StartCoinSourceKinds = new List<ContentKind> { ContentKind.Monster1, ContentKind.ChestSimpleCoins },
+                StartCoinSourceMaxDistance = 3,
                 // D-031 (Athena, 03/11/2026, da rivedere): Attacco base 1 invece di 0 (R-023).
                 // Con 0 il Coltello (+1) non batte il Piccolo 1 (Difesa 2) e la progressione non parte:
                 // bot Greedy 2% di vittorie. Con 1: 48% (Random 0%). Vedi report spec 0012.
@@ -67,8 +74,8 @@ namespace hp55games.MapGame.Rules
             void Def(ContentKind k, int qty, ContentDef d) { d.Kind = k; c.Census[k] = qty; c.Contents[k] = d; }
             Def(ContentKind.Start, 1, new ContentDef { Category = ContentCategory.None });
             Def(ContentKind.Empty, 14, new ContentDef { Category = ContentCategory.None });
-            // D-033 (Franci, 03/11/2026): Boss nascosto al livello 5, non più identificabile dal bordo.
-            Def(ContentKind.Boss, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 8, IsObjective = true, ClueTarget = ClueTarget.Boss });
+            // D-037 (Franci, 04/11/2026): Boss di nuovo al livello 6, unico e riconoscibile dal bordo (annulla D-033).
+            Def(ContentKind.Boss, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 6, Defense = 8, IsObjective = true, ClueTarget = ClueTarget.Boss });
             Def(ContentKind.MiniBossWeapon, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, ItemId = MiniBossWeapon, ClueTarget = ClueTarget.MiniBoss });
             Def(ContentKind.MiniBossSilverKey, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, GivesKey = KeyKind.Silver, ClueTarget = ClueTarget.MiniBoss });
             Def(ContentKind.MiniBossGoldKey, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, GivesKey = KeyKind.Gold, ClueTarget = ClueTarget.MiniBoss });

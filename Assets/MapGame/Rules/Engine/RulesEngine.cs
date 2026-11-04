@@ -75,6 +75,7 @@ namespace hp55games.MapGame.Rules
 
             State.Hp = _config.StartHp;
             State.MaxHp = _config.StartMaxHp;
+            State.Coins = _config.StartCoins;
             State.BaseAttack = _config.BaseAttack;
             State.Weapon = _config.Item(_config.StartWeaponId);
             State.Status = RunStatus.Playing;

@@ -99,5 +99,24 @@ namespace hp55games.MapGame.Rules.Tests
             Assert.IsFalse(m.Success);
             StringAssert.Contains("Censimento", m.FailureReason);
         }
+    
+        [Test]
+        public void D036_SafeStart_Over1000Seeds()
+        {
+            var c = Config();
+            for (ulong seed = 0; seed < 1000; seed++)
+            {
+                var m = CensusMapGenerator.Generate(c, seed);
+                foreach (int nb in HexGridMath.Neighbors(m.StartIndex, c.Width, c.Height))
+                {
+                    int lvl = c.Content(m.Tiles[nb]).MaskLevel;
+                    Assert.IsFalse(c.StartNeighborForbiddenMaskLevels.Contains(lvl), $"seed {seed}: {m.Tiles[nb]} accanto alla partenza");
+                }
+                bool coin = false;
+                for (int i = 0; i < m.Tiles.Length; i++)
+                    if (c.StartCoinSourceKinds.Contains(m.Tiles[i]) && HexGridMath.Distance(i, m.StartIndex, c.Width) <= c.StartCoinSourceMaxDistance) coin = true;
+                Assert.IsTrue(coin, $"seed {seed}: nessuna fonte di monete vicina");
+            }
+        }
     }
 }
