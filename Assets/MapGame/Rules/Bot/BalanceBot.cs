@@ -73,7 +73,10 @@ namespace hp55games.MapGame.Rules
         private readonly IRandomSource _rng;
         private readonly string _levelUp;
         /// <param name="levelUp">"default" (Attacco, HP max se HP ≤ 2), "attack", "coins": per misurare le opzioni del level up.</param>
-        public GreedyPolicy(ulong seed, string levelUp = "default") { _rng = new SplitMix64Random(seed); _levelUp = levelUp ?? "default"; }
+        public GreedyPolicy(ulong seed, string levelUp = "default", bool shopFirst = false) { _rng = new SplitMix64Random(seed); _levelUp = levelUp ?? "default"; _shopFirst = shopFirst; }
+
+        /// <summary>D-049: se vero, a un NPC compra gli oggetti che vuole prima di attaccarlo (misura dei negozi).</summary>
+        private readonly bool _shopFirst;
 
         public int ChooseTile(RulesEngine e)
         {
@@ -169,6 +172,22 @@ namespace hp55games.MapGame.Rules
             }
         }
 
+        private static string WantedItem(NpcDef npc, RunState s, RulesConfig cfg, Func<string, string> pick)
+        {
+            foreach (var o in npc.Offers)
+            {
+                if (pick(o.Id) == null) continue;
+                if (o.Effect == NpcOfferEffect.SmithUpgrade) return o.Id;
+                if (o.Effect == NpcOfferEffect.GiveItem)
+                {
+                    var it = cfg.Item(o.ItemId);
+                    var cur = s.Equipped(it.Slot);
+                    if (cur == null || it.AttackBonus > cur.AttackBonus) return o.Id;
+                }
+            }
+            return null;
+        }
+
         public string ChooseOption(RulesEngine e, Decision d)
         {
             var s = e.State;
@@ -187,17 +206,23 @@ namespace hp55games.MapGame.Rules
                 case DecisionKind.Scout:
                     return ChooseScout(e, d, _rng);
                 case DecisionKind.Npc:
-                    return ChooseNpc(e, d);
+                    return ChooseNpc(e, d, _shopFirst);
             }
             return d.Options.Find(o => o.Enabled).Id;
         }
 
-        private static string ChooseNpc(RulesEngine e, Decision d)
+        private static string ChooseNpc(RulesEngine e, Decision d, bool shopFirst)
         {
             var s = e.State;
             var cfg = e.Config;
             var npc = cfg.Npcs[d.Npc];
             string Pick(string id) { var o = d.Find(id); return o != null && o.Enabled ? id : null; }
+            if (shopFirst)
+            {
+                var want = WantedItem(npc, s, cfg, Pick);
+                if (want != null) return want;
+                foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.TreasureMap && Pick(o.Id) != null) return o.Id;
+            }
 
             if (npc.Fightable && s.Attack >= cfg.NpcDefense)
             {
@@ -207,18 +232,11 @@ namespace hp55games.MapGame.Rules
             if (s.Hp <= 2)
                 foreach (var id in new[] { "inn_rest", "hunter_game", "farmer_food" })
                     if (Pick(id) != null) return id;
-            foreach (var o in npc.Offers)
-            {
-                if (Pick(o.Id) == null) continue;
-                if (o.Effect == NpcOfferEffect.SmithUpgrade) return o.Id;
-                if (o.Effect == NpcOfferEffect.GiveItem)
-                {
-                    var it = cfg.Item(o.ItemId);
-                    var cur = s.Equipped(it.Slot);
-                    if (cur == null || it.AttackBonus > cur.AttackBonus) return o.Id;
-                }
-            }
+            var wanted = WantedItem(npc, s, cfg, Pick);
+            if (wanted != null) return wanted;
             if (s.Hp < s.MaxHp && Pick("inn_rest") != null && s.Hp <= s.MaxHp - 3) return "inn_rest";
+            // D-049: Mappa del tesoro se avanzano monete.
+            foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.TreasureMap && Pick(o.Id) != null) return o.Id;
             // D-043: in nebbia la visione vale: Ricognizione grande se possibile, altrimenti piccola.
             foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.Scout && o.Amount == ScoutShapes.Cluster && Pick(o.Id) != null) return o.Id;
             foreach (var o in npc.Offers) if (o.Effect == NpcOfferEffect.Scout && o.Amount == ScoutShapes.Single && Pick(o.Id) != null) return o.Id;

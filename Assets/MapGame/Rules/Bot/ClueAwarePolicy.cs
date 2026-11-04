@@ -15,10 +15,10 @@ namespace hp55games.MapGame.Rules
         private readonly IRandomSource _rng;
         private readonly GreedyPolicy _fallback;
 
-        public ClueAwarePolicy(ulong seed, string levelUp = "default")
+        public ClueAwarePolicy(ulong seed, string levelUp = "default", bool shopFirst = false)
         {
             _rng = new SplitMix64Random(seed);
-            _fallback = new GreedyPolicy(seed ^ 0x5EEDUL, levelUp);
+            _fallback = new GreedyPolicy(seed ^ 0x5EEDUL, levelUp, shopFirst);
         }
 
         // ------------------------------------------------------------ tile

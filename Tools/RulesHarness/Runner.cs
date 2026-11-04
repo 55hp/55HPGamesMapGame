@@ -15,6 +15,7 @@ namespace hp55games.MapGame.RulesHarness
         {
             if (args.Length > 0 && args[0] == "--sim") return Simulate(args);
             if (args.Length > 0 && args[0] == "--compare") return Compare(args);
+            if (args.Length > 0 && args[0] == "--npcdiag") return NpcDiag(args);
             string filter = args.Length > 0 ? args[0] : null;
             int passed = 0, failed = 0;
             var fixtures = typeof(Runner).Assembly.GetTypes()
@@ -111,6 +112,48 @@ namespace hp55games.MapGame.RulesHarness
         /// Confronto modalità × politiche: --compare [partite] [file.md] [etichetta] [Nome=valore ...].
         /// Stampa e (se indicato) scrive una tabella markdown di metriche da confrontare tra versioni.
         /// </summary>
+        /// <summary>Diagnostica: cosa fa il bot greedy a ogni NPC (tipo, monete, Attacco, scelta).</summary>
+        private sealed class DiagPolicy : hp55games.MapGame.Rules.IPlayerPolicy
+        {
+            private readonly hp55games.MapGame.Rules.IPlayerPolicy _inner;
+            public readonly System.Collections.Generic.Dictionary<string, int> Counts = new System.Collections.Generic.Dictionary<string, int>();
+            public double Coins; public int N;
+            public DiagPolicy(hp55games.MapGame.Rules.IPlayerPolicy inner) { _inner = inner; }
+            public int ChooseTile(hp55games.MapGame.Rules.RulesEngine e) => _inner.ChooseTile(e);
+            public string ChooseOption(hp55games.MapGame.Rules.RulesEngine e, hp55games.MapGame.Rules.Decision d)
+            {
+                var c = _inner.ChooseOption(e, d);
+                if (d.Kind == hp55games.MapGame.Rules.DecisionKind.Npc)
+                {
+                    string k = d.Npc + " -> " + c;
+                    Counts[k] = Counts.TryGetValue(k, out var v) ? v + 1 : 1;
+                    Coins += e.State.Coins; N++;
+                }
+                return c;
+            }
+        }
+
+        private static int NpcDiag(string[] args)
+        {
+            int games = int.Parse(args[1]);
+            var config = hp55games.MapGame.Rules.RulesConfigDefaults.Level1();
+            config.Mode = (hp55games.MapGame.Rules.GameMode)Enum.Parse(typeof(hp55games.MapGame.Rules.GameMode), args[2]);
+            var diag = new DiagPolicy(null);
+            var all = new System.Collections.Generic.Dictionary<string, int>();
+            double coins = 0; int n = 0;
+            for (int i = 0; i < games; i++)
+            {
+                var p = new DiagPolicy(new hp55games.MapGame.Rules.GreedyPolicy((ulong)i + 99, "default"));
+                hp55games.MapGame.Rules.BalanceSimulator.Play(config, (ulong)i, p);
+                foreach (var kv in p.Counts) all[kv.Key] = (all.TryGetValue(kv.Key, out var v) ? v : 0) + kv.Value;
+                coins += p.Coins; n += p.N;
+            }
+            Console.WriteLine($"Monete medie all'apertura di un NPC: {coins / Math.Max(1, n):F1}");
+            var keys = new System.Collections.Generic.List<string>(all.Keys); keys.Sort();
+            foreach (var k in keys) Console.WriteLine($"{k}: {all[k] / (double)games:F2} a partita");
+            return 0;
+        }
+
         private static int Compare(string[] args)
         {
             int games = args.Length > 1 ? int.Parse(args[1]) : 5000;
@@ -123,6 +166,9 @@ namespace hp55games.MapGame.RulesHarness
             var botOv = overrides.Find(x => x.StartsWith("BotLevelUp="));
             string botLevelUp = "default";
             if (botOv != null) { overrides.Remove(botOv); botLevelUp = botOv.Substring("BotLevelUp=".Length); }
+            var shopOv = overrides.Find(x => x.StartsWith("BotShop="));
+            bool shop = false;
+            if (shopOv != null) { overrides.Remove(shopOv); shop = bool.Parse(shopOv.Substring("BotShop=".Length)); }
             var modeOv = overrides.Find(x => x.StartsWith("Mode="));
             if (modeOv != null) { overrides.Remove(modeOv); modes.Clear(); modes.Add((hp55games.MapGame.Rules.GameMode)Enum.Parse(typeof(hp55games.MapGame.Rules.GameMode), modeOv.Substring(5))); }
             var policies = new[] { "random", "greedy", "clue" };
@@ -153,8 +199,8 @@ namespace hp55games.MapGame.RulesHarness
                     ulong seed = (ulong)i;
                     hp55games.MapGame.Rules.IPlayerPolicy p =
                         name == "random" ? new hp55games.MapGame.Rules.RandomPolicy(seed + 99)
-                        : name == "greedy" ? (hp55games.MapGame.Rules.IPlayerPolicy)new hp55games.MapGame.Rules.GreedyPolicy(seed + 99, botLevelUp)
-                        : new hp55games.MapGame.Rules.ClueAwarePolicy(seed + 99, botLevelUp);
+                        : name == "greedy" ? (hp55games.MapGame.Rules.IPlayerPolicy)new hp55games.MapGame.Rules.GreedyPolicy(seed + 99, botLevelUp, shop)
+                        : new hp55games.MapGame.Rules.ClueAwarePolicy(seed + 99, botLevelUp, shop);
                     var r = hp55games.MapGame.Rules.BalanceSimulator.Play(config, seed, p);
                     if (r.Status == hp55games.MapGame.Rules.RunStatus.Won) { won++; hpWin += r.HpAtEnd; }
                     else if (r.Loss == hp55games.MapGame.Rules.LossReason.Death) death++;
@@ -175,7 +221,7 @@ namespace hp55games.MapGame.RulesHarness
             }
             if (md != null)
             {
-                var header = $"## {DateTime.UtcNow:yyyy-MM-dd} — {label}\n\nPartite per riga: {games} (seed 0..{games - 1}). Override: {(overrides.Count == 0 ? "nessuno" : string.Join(", ", overrides))}. Bot level up: {botLevelUp}.\n\n";
+                var header = $"## {DateTime.UtcNow:yyyy-MM-dd} — {label}\n\nPartite per riga: {games} (seed 0..{games - 1}). Override: {(overrides.Count == 0 ? "nessuno" : string.Join(", ", overrides))}. Bot level up: {botLevelUp}. Bot compra prima di attaccare: {(shop ? "sì" : "no")}.\n\n";
                 System.IO.File.AppendAllText(md, header + sb + "\n");
             }
             return 0;

@@ -51,6 +51,7 @@ Ultima revisione di Franci: 13/10/2026.
 | D-046 | Ricompensa della missione | raggiungere il bersaglio (aprire quell'NPC o uccidere un mini-boss) dà +1 Attacco permanente, una volta | Franci 04/11/2026; Nebbia 20,8% → 26,4%, Classica ed Esplorazione invariate |
 | D-047 | Difesa dei mini-boss | resta 5 | provata 4: Classica 94,6%, Esplorazione 90,3% (con Attacco 4 tutto il livello 5 diventa sicuro) |
 | D-048 | Prezzo dei Trinket | 6 monete (Lanterna, Attrezzi del Cacciatore) | Franci 04/11/2026; effetto piccolo |
+| D-049 | Nuovi oggetti del Mercante | Bussola (Trinket, 6, solo in Nebbia: bordi delle tile accanto a quelle scoperte), Borsa (Trinket, 6, +1 moneta a ogni guadagno), Mappa del tesoro (4, mostra il tipo di un forziere d'oro coperto, altrimenti d'argento), Amuleto (Anello +1 Attacco, 5) | Franci 04/11/2026; Amuleto a 5 e non 8 perché l'Anello della Strega dà +2 a 8. Bot che compra, Nebbia: 28,7% → 31,5% con tutti e quattro (quasi tutto dalla Bussola); Classica ed Esplorazione invariate, il bot quasi non incontra il Mercante |
 | D-035 | Seed della partita | casuale a ogni partita; `MapGenerationConfig.UseFixedSeed` per riprodurre una mappa; `CurrentRunSeed` ≠ 0 vince sempre | prima ogni partita aveva la stessa mappa (Seed 12345 fisso), modifica di D-024 decisa da Athena |
 
 ## Aperte (Athena, sessione delegata 03/11/2026: implementate, da rivedere da Franci)

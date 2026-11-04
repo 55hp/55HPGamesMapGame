@@ -181,6 +181,9 @@ run.item.dragonslayer	Dragonslayer (+6)	Ammazzadraghi (+6)	Dragonslayer (+6)	Dra
 run.item.ring_2	Ring (+2)	Anello (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)	Ring (+2)
 run.item.hunter_tools	Hunter's tools	Attrezzi del Cacciatore	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools	Hunter's tools
 run.item.lantern	Lantern	Lanterna	Lantern	Lantern	Lantern	Lantern	Lantern	Lantern	Lantern
+run.item.compass	Compass	Bussola	Compass	Compass	Compass	Compass	Compass	Compass	Compass
+run.item.purse	Purse	Borsa	Purse	Purse	Purse	Purse	Purse	Purse	Purse
+run.item.amulet	Amulet	Amuleto	Amulet	Amulet	Amulet	Amulet	Amulet	Amulet	Amulet
 run.offer.hunter_game	Game meat (+3 HP)	Cacciagione (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)	Game meat (+3 HP)
 run.offer.hunter_tools	Hunter's tools (traps don't trigger)	Attrezzi del Cacciatore (le trappole non scattano)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)	Hunter's tools (traps don't trigger)
 run.offer.hunter_clue_1	1 clue: Mini-boss	1 indizio: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss	1 clue: Mini-boss
@@ -198,6 +201,10 @@ run.offer.inn_clue_trader_2	2 clues: Merchant	2 indizi: Mercante	2 clues: Mercha
 run.offer.inn_clue_monsters_1	1 clue: Monsters	1 indizio: Mostri	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters	1 clue: Monsters
 run.offer.inn_clue_monsters_2	2 clues: Monsters	2 indizi: Mostri	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters	2 clues: Monsters
 run.offer.trader_weapon	Sword (+3 Attack)	Spada (+3 Attacco)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)	Sword (+3 Attack)
+run.offer.trader_compass	Compass (see the borders around you)	Bussola (vedi i bordi intorno a te)	Compass (see the borders around you)	Compass (see the borders around you)	Compass (see the borders around you)	Compass (see the borders around you)	Compass (see the borders around you)	Compass (see the borders around you)	Compass (see the borders around you)
+run.offer.trader_purse	Purse (+1 coin on every gain)	Borsa (+1 moneta a ogni guadagno)	Purse (+1 coin on every gain)	Purse (+1 coin on every gain)	Purse (+1 coin on every gain)	Purse (+1 coin on every gain)	Purse (+1 coin on every gain)	Purse (+1 coin on every gain)	Purse (+1 coin on every gain)
+run.offer.trader_map	Treasure map (shows a chest)	Mappa del tesoro (mostra un forziere)	Treasure map (shows a chest)	Treasure map (shows a chest)	Treasure map (shows a chest)	Treasure map (shows a chest)	Treasure map (shows a chest)	Treasure map (shows a chest)	Treasure map (shows a chest)
+run.offer.trader_amulet	Amulet (+1 Attack)	Amuleto (+1 Attacco)	Amulet (+1 Attack)	Amulet (+1 Attack)	Amulet (+1 Attack)	Amulet (+1 Attack)	Amulet (+1 Attack)	Amulet (+1 Attack)	Amulet (+1 Attack)
 run.offer.trader_clue_1	1 clue: {0}	1 indizio: {0}	1 clue: {0}	1 clue: {0}	1 clue: {0}	1 clue: {0}	1 clue: {0}	1 clue: {0}	1 clue: {0}
 run.offer.trader_clue_2	2 clues: {0}	2 indizi: {0}	2 clues: {0}	2 clues: {0}	2 clues: {0}	2 clues: {0}	2 clues: {0}	2 clues: {0}	2 clues: {0}
 run.offer.farmer_food	Food (+1 HP)	Cibo (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)	Food (+1 HP)

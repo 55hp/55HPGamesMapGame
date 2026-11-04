@@ -628,5 +628,51 @@ namespace hp55games.MapGame.Rules.Tests
             var row = e.CurrentDecision.Options.First(o => o.Id == "inn_scout_row");
             Assert.AreEqual(c.ScoutPriceLine, row.Price);
         }
-    }
+    
+        [Test]
+        public void D049_Compass_OfferedOnlyInFog()
+        {
+            foreach (var mode in new[] { GameMode.Open, GameMode.Fog }) // in Esplorazione il Mercante non è raggiungibile al primo tocco
+            {
+                var c = Config(); c.Mode = mode; var e = Started(config: c);
+                e.State.Coins = 100;
+                e.Reveal(Find(e, ContentKind.Trader));
+                Assert.AreEqual(mode == GameMode.Fog, e.CurrentDecision.Options.Any(o => o.Id == "trader_compass"), mode.ToString());
+            }
+        }
+
+        [Test]
+        public void D049_Compass_ShowsAdjacentBordersInFog()
+        {
+            var c = Config(); c.Mode = GameMode.Fog; c.FogStartScouts = new System.Collections.Generic.List<int>(); var e = Started(config: c);
+            int start = e.Layout.StartIndex;
+            var nbs = HexGridMath.Neighbors(start, c.Width, c.Height).Where(n => !e.IsRevealed(n)).ToList();
+            Assert.IsTrue(nbs.Any(n => !e.IsMaskVisible(n)));
+            e.State.SetEquipped(ItemSlot.Trinket, c.Item(RulesConfigDefaults.Compass));
+            foreach (int n in nbs) Assert.IsTrue(e.IsMaskVisible(n), $"tile {n}");
+        }
+
+        [Test]
+        public void D049_Purse_AddsCoinsPerGain()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.State.SetEquipped(ItemSlot.Trinket, c.Item(RulesConfigDefaults.Purse));
+            int before = e.State.Coins;
+            e.Reveal(Find(e, ContentKind.ChestSimpleCoins));
+            ResolveAll(e);
+            Assert.AreEqual(before + c.Content(ContentKind.ChestSimpleCoins).Coins + c.PurseBonus, e.State.Coins);
+        }
+
+        [Test]
+        public void D049_TreasureMap_ShowsGoldChest()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.State.Coins = 100;
+            int gold = Find(e, ContentKind.ChestGold);
+            e.Reveal(Find(e, ContentKind.Trader));
+            Assert.AreEqual(c.TreasureMapPrice, e.CurrentDecision.Find("trader_map").Price);
+            e.Submit("trader_map");
+            Assert.IsTrue(e.IsTypeShown(gold));
+        }
+}
 }

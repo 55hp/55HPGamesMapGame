@@ -79,6 +79,15 @@ namespace hp55games.MapGame.Rules
         /// <summary>D-048: prezzo degli oggetti Trinket venduti dagli NPC (applicato da RepriceOffers).</summary>
         public int TrinketPrice { get; set; }
 
+        /// <summary>D-049: oggetti del Mercante attivi (spegnerli serve a misurarli uno per volta col bot).</summary>
+        public bool OfferCompass { get; set; } = true;
+        public int PurseBonus { get; set; } = 1;
+        public bool OfferPurse { get; set; } = true;
+        public bool OfferTreasureMap { get; set; } = true;
+        public bool OfferAmulet { get; set; } = true;
+        public int TreasureMapPrice { get; set; } = 4;
+        public int AmuletPrice { get; set; } = 5;
+
         // NPC (R-061)
         public int NpcDefense { get; set; }
 
@@ -102,12 +111,18 @@ namespace hp55games.MapGame.Rules
                 foreach (var d in Contents.Values)
                     if (d.ClueTarget == ClueTarget.MiniBoss) d.Defense = MiniBossDefense;
             foreach (var npc in Npcs.Values)
+            {
+                npc.Offers.RemoveAll(o => (!OfferCompass && o.ItemId == "compass") || (!OfferPurse && o.ItemId == "purse")
+                    || (!OfferTreasureMap && o.Effect == NpcOfferEffect.TreasureMap) || (!OfferAmulet && o.ItemId == "amulet"));
                 foreach (var o in npc.Offers)
                 {
+                    if (o.Effect == NpcOfferEffect.TreasureMap) { o.Price = TreasureMapPrice; continue; }
+                    if (o.ItemId == "amulet") { o.Price = AmuletPrice; continue; }
                     if (o.Effect == NpcOfferEffect.Clues) o.Price = o.Amount >= 2 ? CluePrice2 : CluePrice1;
                     else if (o.Effect == NpcOfferEffect.GiveItem && TrinketPrice > 0 && Item(o.ItemId)?.Slot == ItemSlot.Trinket) o.Price = TrinketPrice;
                     else if (o.Effect == NpcOfferEffect.Scout) o.Price = ScoutShapes.IsLine(o.Amount) ? ScoutPriceLine : o.Amount == ScoutShapes.Cluster ? ScoutPriceCluster : ScoutPriceSingle;
                 }
+            }
         }
 
         public ItemDef Item(string id) => id != null && Items.TryGetValue(id, out var it) ? it : null;

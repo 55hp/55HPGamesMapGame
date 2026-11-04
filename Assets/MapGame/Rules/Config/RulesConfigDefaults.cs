@@ -20,6 +20,9 @@ namespace hp55games.MapGame.Rules
         public const string Ring2 = "ring_2";
         public const string HunterTools = "hunter_tools";
         public const string Lantern = "lantern";
+        public const string Compass = "compass";   // D-049
+        public const string Purse = "purse";       // D-049
+        public const string Amulet = "amulet";     // D-049
 
         public static RulesConfig Level1()
         {
@@ -74,6 +77,9 @@ namespace hp55games.MapGame.Rules
             Item(Ring2, ItemSlot.Ring, 2);
             Item(HunterTools, ItemSlot.Trinket, 0, ItemEffect.DisarmTraps);
             Item(Lantern, ItemSlot.Trinket, 0, ItemEffect.Lantern);
+            Item(Compass, ItemSlot.Trinket, 0, ItemEffect.Compass);
+            Item(Purse, ItemSlot.Trinket, 0, ItemEffect.Purse);
+            Item(Amulet, ItemSlot.Ring, 1);
 
             // Censimento (03 §1, data/tile_census.csv) e definizioni
             void Def(ContentKind k, int qty, ContentDef d) { d.Kind = k; c.Census[k] = qty; c.Contents[k] = d; }
@@ -168,6 +174,11 @@ namespace hp55games.MapGame.Rules
                     // vanno su un bersaglio di livello 5 estratto tra quelli ancora coperti (annulla D-028).
                     new NpcOfferDef { Id = "trader_clue_1", Effect = NpcOfferEffect.Clues, RandomTargetMaskLevel = 5, Amount = 1, Price = 5 },
                     new NpcOfferDef { Id = "trader_clue_2", Effect = NpcOfferEffect.Clues, RandomTargetMaskLevel = 5, Amount = 2, Price = 9 },
+                    // D-049 (Franci, 04/11/2026): nuovi oggetti del Mercante.
+                    new NpcOfferDef { Id = "trader_compass", Price = 6, Effect = NpcOfferEffect.GiveItem, ItemId = Compass },
+                    new NpcOfferDef { Id = "trader_purse", Price = 6, Effect = NpcOfferEffect.GiveItem, ItemId = Purse },
+                    new NpcOfferDef { Id = "trader_map", Price = 4, Effect = NpcOfferEffect.TreasureMap },
+                    new NpcOfferDef { Id = "trader_amulet", Price = 5, Effect = NpcOfferEffect.GiveItem, ItemId = Amulet },
                 },
             };
             c.Npcs[ContentKind.Farmer] = new NpcDef

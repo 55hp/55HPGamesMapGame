@@ -66,7 +66,8 @@ namespace hp55games.MapGame.Rules
             if (_config.Mode == GameMode.Open || _scouted[index]) return true;
             if (_config.FogShowBoss && index == Layout.BossIndex) return true; // D-043, sottomodalità
             // D-043: in Nebbia i bordi adiacenti non si vedono più (salvo FogRevealsAdjacent); in Esplorazione sì.
-            bool adjacentRule = _config.Mode == GameMode.FogAdjacent || _config.FogRevealsAdjacent;
+            bool adjacentRule = _config.Mode == GameMode.FogAdjacent || _config.FogRevealsAdjacent
+                || State.HasEffect(ItemEffect.Compass); // D-049: la Bussola dà in Nebbia la vista dell'Esplorazione
             return adjacentRule && IsAdjacentToRevealed(index);
         }
 
@@ -276,6 +277,9 @@ namespace hp55games.MapGame.Rules
                 var o = new DecisionOption { Id = offer.Id, LabelKey = offer.NameKey, Price = offer.Price };
                 // D-043: la Ricognizione esiste solo con la nebbia e se resta qualcosa da vedere (R-067).
                 if (offer.Effect == NpcOfferEffect.Scout && (_config.Mode == GameMode.Open || !AnyHidden())) continue;
+                // D-049: la Bussola serve solo in Nebbia; la Mappa solo se resta un forziere d'oro o d'argento da trovare.
+                if (offer.Effect == NpcOfferEffect.GiveItem && _config.Item(offer.ItemId)?.Effect == ItemEffect.Compass && _config.Mode != GameMode.Fog) continue;
+                if (offer.Effect == NpcOfferEffect.TreasureMap && TreasureMapTarget() < 0) continue;
                 if (offer.Effect == NpcOfferEffect.Clues)
                 {
                     // D-038: un indizio su contenuti già tutti scoperti non esiste: l'offerta non compare.
@@ -347,6 +351,9 @@ namespace hp55games.MapGame.Rules
                 case NpcOfferEffect.Scout:
                     ReceiveScout(offer.Amount);
                     break;
+                case NpcOfferEffect.TreasureMap:
+                    ShowType(TreasureMapTarget());
+                    break;
             }
         }
 
@@ -371,7 +378,8 @@ namespace hp55games.MapGame.Rules
         private void GainCoins(int amount)
         {
             if (amount <= 0) return;
-            int total = amount + State.CoinBonusPerGain; // R-038, per evento
+            int total = amount + State.CoinBonusPerGain // R-038, per evento
+                + (State.HasEffect(ItemEffect.Purse) ? _config.PurseBonus : 0); // D-049
             State.Coins += total;
             Emit(RuleEventType.CoinsGained, e => e.Amount = total);
         }
@@ -601,7 +609,21 @@ namespace hp55games.MapGame.Rules
             foreach (int nb in HexGridMath.Neighbors(index, _config.Width, _config.Height))
                 if (!_revealed[nb] && !_typeShown[nb]) candidates.Add(nb);
             if (candidates.Count == 0) return;
-            int pick = candidates[_rng.Range(0, candidates.Count)];
+            ShowType(candidates[_rng.Range(0, candidates.Count)]);
+        }
+
+        /// <summary>D-049: forziere d'oro coperto e non ancora mostrato, altrimenti d'argento; -1 se non ce ne sono.</summary>
+        private int TreasureMapTarget()
+        {
+            foreach (var kind in new[] { ContentKind.ChestGold, ContentKind.ChestSilver })
+                for (int i = 0; i < _revealed.Length; i++)
+                    if (Layout.Tiles[i] == kind && !_revealed[i] && !_typeShown[i]) return i;
+            return -1;
+        }
+
+        private void ShowType(int pick)
+        {
+            if (pick < 0) return;
             _typeShown[pick] = true;
             var kind = Layout.Tiles[pick];
             Emit(RuleEventType.TileTypeShown, e => { e.TileIndex = pick; e.Kind = kind; });

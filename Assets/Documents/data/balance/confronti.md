@@ -160,3 +160,195 @@ Partite per riga: 2000 (seed 0..1999). Override: nessuno. Bot level up: coins.
 | Esplorazione | greedy | 0.9% | 99.1% | 0.1% | 2.83 | 3.04 | 4.12 | 14.61 | 60.09 | 0.00 | 29.25 | 99.8% | 18.23 | 0.02 | 5.63 | 2.78 | 2.96 | 4.96 | 0.00 |
 | Esplorazione | clue | 4.0% | 96.0% | 0.0% | 2.83 | 3.26 | 4.28 | 14.52 | 60.23 | 0.00 | 29.26 | 99.8% | 18.33 | 0.07 | 5.79 | 2.89 | 3.06 | 5.06 | 0.00 |
 
+## 2026-11-04 — D-049 base: nessun oggetto nuovo del Mercante
+
+Partite per riga: 2000 (seed 0..1999). Override: OfferCompass=false, OfferPurse=false, OfferTreasureMap=false, OfferAmulet=false. Bot level up: default.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.6% | 97.6% | 1.9% | 1.12 | 2.35 | 4.00 | 8.28 | 16.20 | 0.00 | 91.40 | 100.0% | 2.91 | 0.03 | 2.15 | 1.12 | 1.46 | 3.45 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.74 | 5.73 | 3.88 | 12.85 | 61.08 | 0.00 | 68.96 | 100.0% | 18.82 | 0.41 | 6.59 | 0.00 | 0.14 | 2.14 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.74 | 6.05 | 4.10 | 12.73 | 60.96 | 0.00 | 69.02 | 100.0% | 18.87 | 0.39 | 6.71 | 0.01 | 0.45 | 2.45 | 0.00 |
+| Nebbia | random | 0.3% | 98.7% | 1.1% | 1.09 | 2.33 | 3.67 | 7.97 | 15.11 | 13.01 | 91.94 | 100.0% | 2.67 | 0.03 | 1.97 | 1.12 | 1.08 | 3.08 | 0.00 |
+| Nebbia | greedy | 26.4% | 73.4% | 0.3% | 2.05 | 5.37 | 4.55 | 9.57 | 40.61 | 16.23 | 79.20 | 58.8% | 10.99 | 0.82 | 4.71 | 2.63 | 2.83 | 4.83 | 0.00 |
+| Nebbia | clue | 23.3% | 76.5% | 0.3% | 1.91 | 5.01 | 4.27 | 9.69 | 37.84 | 13.90 | 80.58 | 61.2% | 10.14 | 0.72 | 4.33 | 2.44 | 2.72 | 4.72 | 0.00 |
+| Esplorazione | random | 0.6% | 98.3% | 1.2% | 1.17 | 2.43 | 4.64 | 8.51 | 20.21 | 0.00 | 16.86 | 100.0% | 3.83 | 0.05 | 2.50 | 1.50 | 1.59 | 3.59 | 0.01 |
+| Esplorazione | greedy | 43.1% | 56.9% | 0.0% | 2.76 | 5.93 | 4.04 | 12.49 | 58.04 | 0.00 | 29.16 | 100.0% | 18.31 | 0.54 | 6.26 | 2.91 | 2.50 | 4.50 | 0.00 |
+| Esplorazione | clue | 47.4% | 52.6% | 0.0% | 2.75 | 6.27 | 4.20 | 12.24 | 58.03 | 0.00 | 29.13 | 100.0% | 18.37 | 0.60 | 6.46 | 3.00 | 2.40 | 4.40 | 0.00 |
+
+## 2026-11-04 — D-049 solo Bussola (Trinket 6, solo Nebbia)
+
+Partite per riga: 2000 (seed 0..1999). Override: OfferPurse=false, OfferTreasureMap=false, OfferAmulet=false. Bot level up: default.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.6% | 97.6% | 1.9% | 1.12 | 2.35 | 4.00 | 8.28 | 16.20 | 0.00 | 91.40 | 100.0% | 2.91 | 0.03 | 2.15 | 1.12 | 1.46 | 3.45 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.74 | 5.73 | 3.88 | 12.85 | 61.08 | 0.00 | 68.96 | 100.0% | 18.82 | 0.41 | 6.59 | 0.00 | 0.14 | 2.14 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.74 | 6.05 | 4.10 | 12.73 | 60.96 | 0.00 | 69.02 | 100.0% | 18.87 | 0.39 | 6.71 | 0.01 | 0.45 | 2.45 | 0.00 |
+| Nebbia | random | 0.3% | 98.5% | 1.3% | 1.09 | 2.32 | 3.80 | 8.02 | 15.25 | 12.93 | 91.87 | 100.0% | 2.70 | 0.03 | 1.98 | 1.13 | 1.09 | 3.09 | 0.00 |
+| Nebbia | greedy | 27.8% | 72.0% | 0.3% | 2.08 | 5.41 | 4.51 | 9.68 | 41.62 | 15.55 | 78.69 | 60.7% | 11.33 | 0.81 | 4.81 | 2.69 | 2.75 | 4.75 | 0.00 |
+| Nebbia | clue | 25.1% | 74.7% | 0.3% | 1.94 | 5.09 | 4.28 | 9.75 | 38.74 | 13.29 | 80.13 | 62.9% | 10.44 | 0.71 | 4.43 | 2.50 | 2.63 | 4.63 | 0.00 |
+| Esplorazione | random | 0.6% | 98.3% | 1.2% | 1.17 | 2.43 | 4.64 | 8.51 | 20.21 | 0.00 | 16.86 | 100.0% | 3.83 | 0.05 | 2.50 | 1.50 | 1.59 | 3.59 | 0.01 |
+| Esplorazione | greedy | 43.1% | 56.9% | 0.0% | 2.76 | 5.93 | 4.04 | 12.49 | 58.04 | 0.00 | 29.16 | 100.0% | 18.31 | 0.54 | 6.26 | 2.91 | 2.50 | 4.50 | 0.00 |
+| Esplorazione | clue | 47.4% | 52.6% | 0.0% | 2.75 | 6.27 | 4.20 | 12.24 | 58.03 | 0.00 | 29.13 | 100.0% | 18.37 | 0.60 | 6.46 | 3.00 | 2.40 | 4.40 | 0.00 |
+
+## 2026-11-04 — D-049 solo Borsa (Trinket 6, +1 moneta a guadagno)
+
+Partite per riga: 2000 (seed 0..1999). Override: OfferCompass=false, OfferTreasureMap=false, OfferAmulet=false. Bot level up: default.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.5% | 97.8% | 1.7% | 1.12 | 2.36 | 3.60 | 8.28 | 16.22 | 0.00 | 91.39 | 100.0% | 2.91 | 0.03 | 2.15 | 1.14 | 1.45 | 3.44 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.74 | 5.73 | 3.88 | 12.85 | 61.08 | 0.00 | 68.96 | 100.0% | 18.82 | 0.41 | 6.59 | 0.00 | 0.14 | 2.14 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.74 | 6.05 | 4.10 | 12.73 | 60.96 | 0.00 | 69.02 | 100.0% | 18.87 | 0.39 | 6.71 | 0.01 | 0.45 | 2.45 | 0.00 |
+| Nebbia | random | 0.3% | 98.5% | 1.3% | 1.09 | 2.32 | 3.80 | 8.02 | 15.23 | 13.12 | 91.89 | 100.0% | 2.69 | 0.02 | 1.98 | 1.13 | 1.09 | 3.09 | 0.00 |
+| Nebbia | greedy | 25.8% | 74.0% | 0.3% | 2.03 | 5.31 | 4.53 | 9.57 | 40.36 | 16.15 | 79.32 | 58.8% | 10.88 | 0.80 | 4.69 | 2.66 | 2.79 | 4.79 | 0.00 |
+| Nebbia | clue | 22.8% | 77.0% | 0.3% | 1.90 | 4.98 | 4.26 | 9.69 | 37.69 | 13.89 | 80.65 | 61.1% | 10.07 | 0.71 | 4.31 | 2.47 | 2.69 | 4.69 | 0.00 |
+| Esplorazione | random | 0.6% | 98.0% | 1.5% | 1.17 | 2.45 | 4.17 | 8.57 | 20.41 | 0.00 | 16.92 | 100.0% | 3.89 | 0.05 | 2.52 | 1.54 | 1.59 | 3.58 | 0.01 |
+| Esplorazione | greedy | 43.1% | 56.9% | 0.0% | 2.76 | 5.93 | 4.04 | 12.49 | 58.04 | 0.00 | 29.16 | 100.0% | 18.31 | 0.54 | 6.26 | 2.91 | 2.50 | 4.50 | 0.00 |
+| Esplorazione | clue | 47.4% | 52.6% | 0.0% | 2.75 | 6.27 | 4.20 | 12.24 | 58.03 | 0.00 | 29.13 | 100.0% | 18.37 | 0.60 | 6.46 | 3.00 | 2.40 | 4.40 | 0.00 |
+
+## 2026-11-04 — D-049 solo Mappa del tesoro (4 monete)
+
+Partite per riga: 2000 (seed 0..1999). Override: OfferCompass=false, OfferPurse=false, OfferAmulet=false. Bot level up: default.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.4% | 97.6% | 2.0% | 1.12 | 2.37 | 3.88 | 8.31 | 16.39 | 0.00 | 91.30 | 100.0% | 2.94 | 0.03 | 2.17 | 1.15 | 1.46 | 3.46 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.74 | 5.73 | 3.88 | 12.85 | 61.08 | 0.00 | 68.96 | 100.0% | 18.82 | 0.41 | 6.59 | 0.00 | 0.14 | 2.14 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.74 | 6.05 | 4.10 | 12.73 | 60.96 | 0.00 | 69.02 | 100.0% | 18.87 | 0.39 | 6.71 | 0.01 | 0.45 | 2.45 | 0.00 |
+| Nebbia | random | 0.3% | 98.4% | 1.4% | 1.09 | 2.33 | 3.60 | 8.02 | 15.26 | 13.15 | 91.87 | 100.0% | 2.68 | 0.02 | 1.98 | 1.16 | 1.08 | 3.08 | 0.00 |
+| Nebbia | greedy | 26.0% | 73.7% | 0.4% | 2.04 | 5.33 | 4.55 | 9.59 | 40.51 | 16.23 | 79.24 | 58.8% | 10.92 | 0.80 | 4.70 | 2.69 | 2.80 | 4.80 | 0.00 |
+| Nebbia | clue | 23.3% | 76.5% | 0.3% | 1.91 | 5.00 | 4.28 | 9.69 | 37.83 | 13.95 | 80.58 | 61.1% | 10.12 | 0.71 | 4.34 | 2.50 | 2.71 | 4.71 | 0.00 |
+| Esplorazione | random | 0.6% | 98.1% | 1.3% | 1.17 | 2.44 | 3.75 | 8.59 | 20.43 | 0.00 | 16.93 | 100.0% | 3.89 | 0.05 | 2.52 | 1.54 | 1.59 | 3.58 | 0.01 |
+| Esplorazione | greedy | 43.1% | 56.9% | 0.0% | 2.76 | 5.93 | 4.04 | 12.49 | 58.04 | 0.00 | 29.16 | 100.0% | 18.31 | 0.54 | 6.26 | 2.91 | 2.50 | 4.50 | 0.00 |
+| Esplorazione | clue | 47.4% | 52.6% | 0.0% | 2.74 | 6.26 | 4.20 | 12.24 | 58.03 | 0.00 | 29.13 | 100.0% | 18.38 | 0.60 | 6.46 | 3.00 | 2.40 | 4.40 | 0.00 |
+
+## 2026-11-04 — D-049 solo Amuleto (Anello +1, 5 monete)
+
+Partite per riga: 2000 (seed 0..1999). Override: OfferCompass=false, OfferPurse=false, OfferTreasureMap=false. Bot level up: default.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.6% | 97.1% | 2.4% | 1.14 | 2.44 | 3.75 | 8.34 | 16.75 | 0.00 | 91.13 | 100.0% | 3.07 | 0.04 | 2.21 | 1.18 | 1.53 | 3.52 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.74 | 5.73 | 3.88 | 12.85 | 61.08 | 0.00 | 68.96 | 100.0% | 18.82 | 0.41 | 6.59 | 0.00 | 0.14 | 2.14 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.74 | 6.05 | 4.10 | 12.73 | 60.96 | 0.00 | 69.02 | 100.0% | 18.87 | 0.39 | 6.71 | 0.01 | 0.45 | 2.45 | 0.00 |
+| Nebbia | random | 0.3% | 97.8% | 2.0% | 1.11 | 2.39 | 3.83 | 8.05 | 15.58 | 13.41 | 91.71 | 100.0% | 2.80 | 0.03 | 2.01 | 1.17 | 1.15 | 3.15 | 0.00 |
+| Nebbia | greedy | 26.9% | 72.8% | 0.4% | 2.07 | 5.48 | 4.52 | 9.48 | 40.60 | 16.16 | 79.20 | 58.8% | 11.07 | 0.84 | 4.70 | 2.69 | 2.89 | 4.89 | 0.00 |
+| Nebbia | clue | 24.0% | 75.8% | 0.3% | 1.93 | 5.10 | 4.26 | 9.64 | 37.93 | 13.85 | 80.54 | 61.2% | 10.24 | 0.74 | 4.34 | 2.49 | 2.79 | 4.79 | 0.00 |
+| Esplorazione | random | 0.9% | 97.6% | 1.6% | 1.20 | 2.53 | 4.06 | 8.62 | 20.92 | 0.00 | 17.02 | 100.0% | 4.08 | 0.07 | 2.57 | 1.58 | 1.69 | 3.69 | 0.01 |
+| Esplorazione | greedy | 43.1% | 56.9% | 0.0% | 2.76 | 5.93 | 4.04 | 12.49 | 58.04 | 0.00 | 29.16 | 100.0% | 18.31 | 0.54 | 6.26 | 2.91 | 2.50 | 4.50 | 0.00 |
+| Esplorazione | clue | 47.4% | 52.6% | 0.0% | 2.74 | 6.27 | 4.20 | 12.23 | 58.02 | 0.00 | 29.13 | 100.0% | 18.37 | 0.60 | 6.46 | 3.00 | 2.40 | 4.40 | 0.00 |
+
+## 2026-11-04 — D-049 tutti e quattro
+
+Partite per riga: 2000 (seed 0..1999). Override: nessuno. Bot level up: default.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.6% | 97.4% | 2.0% | 1.13 | 2.41 | 3.75 | 8.33 | 16.63 | 0.00 | 91.18 | 100.0% | 3.03 | 0.04 | 2.19 | 1.19 | 1.49 | 3.49 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.74 | 5.73 | 3.88 | 12.85 | 61.08 | 0.00 | 68.96 | 100.0% | 18.82 | 0.41 | 6.59 | 0.00 | 0.14 | 2.14 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.74 | 6.05 | 4.10 | 12.73 | 60.96 | 0.00 | 69.02 | 100.0% | 18.87 | 0.39 | 6.71 | 0.01 | 0.45 | 2.45 | 0.00 |
+| Nebbia | random | 0.4% | 98.1% | 1.5% | 1.11 | 2.38 | 4.38 | 8.07 | 15.69 | 13.33 | 91.65 | 100.0% | 2.83 | 0.03 | 2.03 | 1.20 | 1.12 | 3.12 | 0.00 |
+| Nebbia | greedy | 28.0% | 71.7% | 0.4% | 2.08 | 5.45 | 4.50 | 9.67 | 41.64 | 15.58 | 78.68 | 60.7% | 11.36 | 0.82 | 4.81 | 2.71 | 2.77 | 4.77 | 0.00 |
+| Nebbia | clue | 25.2% | 74.6% | 0.3% | 1.94 | 5.10 | 4.28 | 9.74 | 38.75 | 13.31 | 80.12 | 62.9% | 10.46 | 0.71 | 4.43 | 2.51 | 2.64 | 4.64 | 0.00 |
+| Esplorazione | random | 0.4% | 98.2% | 1.5% | 1.18 | 2.48 | 4.50 | 8.58 | 20.51 | 0.00 | 16.96 | 100.0% | 3.92 | 0.05 | 2.54 | 1.58 | 1.60 | 3.59 | 0.01 |
+| Esplorazione | greedy | 43.1% | 56.9% | 0.0% | 2.76 | 5.93 | 4.04 | 12.49 | 58.04 | 0.00 | 29.16 | 100.0% | 18.31 | 0.54 | 6.26 | 2.91 | 2.50 | 4.50 | 0.00 |
+| Esplorazione | clue | 47.4% | 52.6% | 0.0% | 2.74 | 6.26 | 4.20 | 12.24 | 58.03 | 0.00 | 29.13 | 100.0% | 18.37 | 0.59 | 6.46 | 3.00 | 2.40 | 4.40 | 0.00 |
+
+## 2026-11-04 — D-049 bot che compra: nessun oggetto nuovo
+
+Partite per riga: 2000 (seed 0..1999). Override: OfferCompass=false, OfferPurse=false, OfferTreasureMap=false, OfferAmulet=false. Bot level up: default. Bot compra prima di attaccare: sì.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.6% | 97.6% | 1.9% | 1.12 | 2.35 | 4.00 | 8.28 | 16.20 | 0.00 | 91.40 | 100.0% | 2.91 | 0.03 | 2.15 | 1.12 | 1.46 | 3.45 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.78 | 5.79 | 3.88 | 12.85 | 61.68 | 0.00 | 68.66 | 100.0% | 18.66 | 0.66 | 6.89 | 0.62 | 0.15 | 2.15 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.78 | 5.98 | 4.10 | 12.73 | 61.49 | 0.00 | 68.76 | 100.0% | 18.58 | 0.59 | 6.99 | 0.70 | 0.46 | 2.46 | 0.00 |
+| Nebbia | random | 0.3% | 98.7% | 1.1% | 1.09 | 2.33 | 3.67 | 7.97 | 15.11 | 13.01 | 91.94 | 100.0% | 2.67 | 0.03 | 1.97 | 1.12 | 1.08 | 3.08 | 0.00 |
+| Nebbia | greedy | 28.7% | 70.7% | 0.7% | 2.10 | 5.41 | 4.86 | 9.12 | 41.42 | 16.71 | 78.79 | 58.7% | 10.99 | 0.85 | 4.81 | 2.96 | 2.94 | 4.94 | 0.00 |
+| Nebbia | clue | 25.3% | 74.5% | 0.3% | 1.97 | 5.08 | 4.53 | 9.38 | 38.62 | 14.34 | 80.19 | 61.1% | 10.19 | 0.77 | 4.45 | 2.75 | 2.82 | 4.82 | 0.00 |
+| Esplorazione | random | 0.6% | 98.3% | 1.2% | 1.17 | 2.43 | 4.64 | 8.51 | 20.21 | 0.00 | 16.86 | 100.0% | 3.83 | 0.05 | 2.50 | 1.50 | 1.59 | 3.59 | 0.01 |
+| Esplorazione | greedy | 43.3% | 56.8% | 0.0% | 2.81 | 5.98 | 4.11 | 12.49 | 58.75 | 0.00 | 29.20 | 100.0% | 18.16 | 0.76 | 6.56 | 3.59 | 2.52 | 4.52 | 0.00 |
+| Esplorazione | clue | 47.6% | 52.4% | 0.0% | 2.81 | 6.26 | 4.27 | 12.23 | 58.81 | 0.00 | 29.19 | 100.0% | 18.17 | 0.83 | 6.77 | 3.78 | 2.43 | 4.43 | 0.00 |
+
+## 2026-11-04 — D-049 bot che compra: solo Bussola
+
+Partite per riga: 2000 (seed 0..1999). Override: OfferPurse=false, OfferTreasureMap=false, OfferAmulet=false. Bot level up: default. Bot compra prima di attaccare: sì.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.6% | 97.6% | 1.9% | 1.12 | 2.35 | 4.00 | 8.28 | 16.20 | 0.00 | 91.40 | 100.0% | 2.91 | 0.03 | 2.15 | 1.12 | 1.46 | 3.45 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.78 | 5.79 | 3.88 | 12.85 | 61.68 | 0.00 | 68.66 | 100.0% | 18.66 | 0.66 | 6.89 | 0.62 | 0.15 | 2.15 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.78 | 5.98 | 4.10 | 12.73 | 61.49 | 0.00 | 68.76 | 100.0% | 18.58 | 0.59 | 6.99 | 0.70 | 0.46 | 2.46 | 0.00 |
+| Nebbia | random | 0.3% | 98.5% | 1.3% | 1.09 | 2.32 | 3.80 | 8.02 | 15.25 | 12.93 | 91.87 | 100.0% | 2.70 | 0.03 | 1.98 | 1.13 | 1.09 | 3.09 | 0.00 |
+| Nebbia | greedy | 31.5% | 68.0% | 0.6% | 2.06 | 5.36 | 4.74 | 9.21 | 41.97 | 15.28 | 78.52 | 61.6% | 11.05 | 0.76 | 4.89 | 3.03 | 2.70 | 4.70 | 0.00 |
+| Nebbia | clue | 28.6% | 71.3% | 0.2% | 1.95 | 5.06 | 4.58 | 9.39 | 39.26 | 13.40 | 79.87 | 63.2% | 10.30 | 0.70 | 4.52 | 2.79 | 2.58 | 4.58 | 0.00 |
+| Esplorazione | random | 0.6% | 98.3% | 1.2% | 1.17 | 2.43 | 4.64 | 8.51 | 20.21 | 0.00 | 16.86 | 100.0% | 3.83 | 0.05 | 2.50 | 1.50 | 1.59 | 3.59 | 0.01 |
+| Esplorazione | greedy | 43.3% | 56.8% | 0.0% | 2.81 | 5.98 | 4.11 | 12.49 | 58.75 | 0.00 | 29.20 | 100.0% | 18.16 | 0.76 | 6.56 | 3.59 | 2.52 | 4.52 | 0.00 |
+| Esplorazione | clue | 47.6% | 52.4% | 0.0% | 2.81 | 6.26 | 4.27 | 12.23 | 58.81 | 0.00 | 29.19 | 100.0% | 18.17 | 0.83 | 6.77 | 3.78 | 2.43 | 4.43 | 0.00 |
+
+## 2026-11-04 — D-049 bot che compra: solo Borsa
+
+Partite per riga: 2000 (seed 0..1999). Override: OfferCompass=false, OfferTreasureMap=false, OfferAmulet=false. Bot level up: default. Bot compra prima di attaccare: sì.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.5% | 97.8% | 1.7% | 1.12 | 2.36 | 3.60 | 8.28 | 16.22 | 0.00 | 91.39 | 100.0% | 2.91 | 0.03 | 2.15 | 1.14 | 1.45 | 3.44 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.78 | 5.79 | 3.88 | 12.85 | 61.68 | 0.00 | 68.66 | 100.0% | 18.64 | 0.65 | 6.89 | 0.64 | 0.15 | 2.15 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.77 | 5.99 | 4.10 | 12.73 | 61.48 | 0.00 | 68.76 | 100.0% | 18.56 | 0.59 | 6.98 | 0.71 | 0.46 | 2.46 | 0.00 |
+| Nebbia | random | 0.3% | 98.5% | 1.3% | 1.09 | 2.32 | 3.80 | 8.02 | 15.23 | 13.12 | 91.89 | 100.0% | 2.69 | 0.02 | 1.98 | 1.13 | 1.09 | 3.09 | 0.00 |
+| Nebbia | greedy | 27.0% | 72.4% | 0.7% | 2.07 | 5.35 | 4.75 | 9.25 | 40.98 | 16.57 | 79.01 | 58.6% | 10.76 | 0.82 | 4.76 | 3.00 | 2.88 | 4.87 | 0.00 |
+| Nebbia | clue | 24.5% | 75.3% | 0.3% | 1.95 | 5.04 | 4.44 | 9.45 | 38.42 | 14.37 | 80.29 | 60.9% | 10.04 | 0.76 | 4.42 | 2.80 | 2.79 | 4.79 | 0.00 |
+| Esplorazione | random | 0.6% | 98.0% | 1.5% | 1.17 | 2.45 | 4.17 | 8.57 | 20.41 | 0.00 | 16.92 | 100.0% | 3.89 | 0.05 | 2.52 | 1.54 | 1.59 | 3.58 | 0.01 |
+| Esplorazione | greedy | 43.1% | 56.9% | 0.0% | 2.81 | 5.98 | 4.11 | 12.50 | 58.72 | 0.00 | 29.20 | 100.0% | 18.11 | 0.75 | 6.55 | 3.61 | 2.52 | 4.52 | 0.00 |
+| Esplorazione | clue | 47.5% | 52.5% | 0.0% | 2.81 | 6.27 | 4.26 | 12.24 | 58.79 | 0.00 | 29.19 | 100.0% | 18.13 | 0.83 | 6.76 | 3.80 | 2.43 | 4.43 | 0.00 |
+
+## 2026-11-04 — D-049 bot che compra: solo Mappa
+
+Partite per riga: 2000 (seed 0..1999). Override: OfferCompass=false, OfferPurse=false, OfferAmulet=false. Bot level up: default. Bot compra prima di attaccare: sì.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.4% | 97.6% | 2.0% | 1.12 | 2.37 | 3.88 | 8.31 | 16.39 | 0.00 | 91.30 | 100.0% | 2.94 | 0.03 | 2.17 | 1.15 | 1.46 | 3.46 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.77 | 5.79 | 3.88 | 12.85 | 61.67 | 0.00 | 68.66 | 100.0% | 18.63 | 0.65 | 6.89 | 0.64 | 0.15 | 2.15 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.77 | 5.99 | 4.10 | 12.73 | 61.48 | 0.00 | 68.76 | 100.0% | 18.56 | 0.59 | 6.99 | 0.72 | 0.46 | 2.46 | 0.00 |
+| Nebbia | random | 0.3% | 98.4% | 1.4% | 1.09 | 2.33 | 3.60 | 8.02 | 15.26 | 13.15 | 91.87 | 100.0% | 2.68 | 0.02 | 1.98 | 1.16 | 1.08 | 3.08 | 0.00 |
+| Nebbia | greedy | 27.7% | 71.7% | 0.7% | 2.08 | 5.41 | 4.84 | 9.17 | 41.23 | 16.72 | 78.89 | 58.7% | 10.79 | 0.84 | 4.80 | 3.10 | 2.89 | 4.89 | 0.00 |
+| Nebbia | clue | 24.8% | 75.1% | 0.2% | 1.97 | 5.11 | 4.52 | 9.41 | 38.61 | 14.54 | 80.19 | 60.8% | 10.09 | 0.77 | 4.45 | 2.85 | 2.82 | 4.82 | 0.00 |
+| Esplorazione | random | 0.6% | 98.1% | 1.3% | 1.17 | 2.44 | 3.75 | 8.59 | 20.43 | 0.00 | 16.93 | 100.0% | 3.89 | 0.05 | 2.52 | 1.54 | 1.59 | 3.58 | 0.01 |
+| Esplorazione | greedy | 43.3% | 56.8% | 0.0% | 2.81 | 5.99 | 4.10 | 12.49 | 58.72 | 0.00 | 29.20 | 100.0% | 18.10 | 0.74 | 6.54 | 3.62 | 2.52 | 4.52 | 0.00 |
+| Esplorazione | clue | 47.6% | 52.4% | 0.0% | 2.81 | 6.28 | 4.26 | 12.23 | 58.80 | 0.00 | 29.19 | 100.0% | 18.13 | 0.83 | 6.76 | 3.81 | 2.43 | 4.43 | 0.00 |
+
+## 2026-11-04 — D-049 bot che compra: solo Amuleto
+
+Partite per riga: 2000 (seed 0..1999). Override: OfferCompass=false, OfferPurse=false, OfferTreasureMap=false. Bot level up: default. Bot compra prima di attaccare: sì.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.6% | 97.1% | 2.4% | 1.14 | 2.44 | 3.75 | 8.34 | 16.75 | 0.00 | 91.13 | 100.0% | 3.07 | 0.04 | 2.21 | 1.18 | 1.53 | 3.52 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.78 | 5.77 | 3.88 | 12.85 | 61.64 | 0.00 | 68.68 | 100.0% | 18.61 | 0.64 | 6.87 | 0.64 | 0.15 | 2.15 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.77 | 5.96 | 4.10 | 12.73 | 61.43 | 0.00 | 68.78 | 100.0% | 18.53 | 0.57 | 6.96 | 0.71 | 0.46 | 2.46 | 0.00 |
+| Nebbia | random | 0.3% | 97.8% | 2.0% | 1.11 | 2.39 | 3.83 | 8.05 | 15.58 | 13.41 | 91.71 | 100.0% | 2.80 | 0.03 | 2.01 | 1.17 | 1.15 | 3.15 | 0.00 |
+| Nebbia | greedy | 29.4% | 70.1% | 0.6% | 2.12 | 5.57 | 4.82 | 9.03 | 41.41 | 16.67 | 78.80 | 58.7% | 11.02 | 0.89 | 4.81 | 3.08 | 3.01 | 5.01 | 0.00 |
+| Nebbia | clue | 25.9% | 73.9% | 0.3% | 1.99 | 5.19 | 4.50 | 9.33 | 38.68 | 14.38 | 80.16 | 60.9% | 10.22 | 0.79 | 4.45 | 2.83 | 2.90 | 4.90 | 0.00 |
+| Esplorazione | random | 0.9% | 97.6% | 1.6% | 1.20 | 2.53 | 4.06 | 8.62 | 20.92 | 0.00 | 17.02 | 100.0% | 4.08 | 0.07 | 2.57 | 1.58 | 1.69 | 3.69 | 0.01 |
+| Esplorazione | greedy | 43.3% | 56.8% | 0.0% | 2.80 | 5.98 | 4.11 | 12.49 | 58.70 | 0.00 | 29.20 | 100.0% | 18.09 | 0.74 | 6.54 | 3.63 | 2.52 | 4.52 | 0.00 |
+| Esplorazione | clue | 47.6% | 52.4% | 0.0% | 2.80 | 6.26 | 4.27 | 12.22 | 58.74 | 0.00 | 29.19 | 100.0% | 18.10 | 0.82 | 6.74 | 3.80 | 2.43 | 4.43 | 0.00 |
+
+## 2026-11-04 — D-049 bot che compra: tutti e quattro
+
+Partite per riga: 2000 (seed 0..1999). Override: nessuno. Bot level up: default. Bot compra prima di attaccare: sì.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classica | random | 0.6% | 97.4% | 2.0% | 1.13 | 2.41 | 3.75 | 8.33 | 16.63 | 0.00 | 91.18 | 100.0% | 3.03 | 0.04 | 2.19 | 1.19 | 1.49 | 3.49 | 0.00 |
+| Classica | greedy | 40.1% | 60.0% | 0.0% | 2.78 | 5.79 | 3.88 | 12.85 | 61.66 | 0.00 | 68.67 | 100.0% | 18.62 | 0.65 | 6.88 | 0.65 | 0.15 | 2.15 | 0.00 |
+| Classica | clue | 44.1% | 55.9% | 0.0% | 2.77 | 5.98 | 4.10 | 12.73 | 61.47 | 0.00 | 68.77 | 100.0% | 18.55 | 0.58 | 6.98 | 0.72 | 0.46 | 2.46 | 0.00 |
+| Nebbia | random | 0.4% | 98.1% | 1.5% | 1.11 | 2.38 | 4.38 | 8.07 | 15.69 | 13.33 | 91.65 | 100.0% | 2.83 | 0.03 | 2.03 | 1.20 | 1.12 | 3.12 | 0.00 |
+| Nebbia | greedy | 31.5% | 68.0% | 0.6% | 2.07 | 5.42 | 4.73 | 9.19 | 41.94 | 15.32 | 78.53 | 61.5% | 11.01 | 0.78 | 4.88 | 3.10 | 2.71 | 4.71 | 0.00 |
+| Nebbia | clue | 28.5% | 71.4% | 0.2% | 1.96 | 5.11 | 4.58 | 9.38 | 39.29 | 13.47 | 79.85 | 63.2% | 10.29 | 0.71 | 4.52 | 2.83 | 2.61 | 4.61 | 0.00 |
+| Esplorazione | random | 0.4% | 98.2% | 1.5% | 1.18 | 2.48 | 4.50 | 8.58 | 20.51 | 0.00 | 16.96 | 100.0% | 3.92 | 0.05 | 2.54 | 1.58 | 1.60 | 3.59 | 0.01 |
+| Esplorazione | greedy | 43.1% | 56.9% | 0.0% | 2.81 | 5.97 | 4.11 | 12.50 | 58.71 | 0.00 | 29.20 | 100.0% | 18.08 | 0.75 | 6.54 | 3.63 | 2.52 | 4.52 | 0.00 |
+| Esplorazione | clue | 47.5% | 52.5% | 0.0% | 2.81 | 6.27 | 4.25 | 12.24 | 58.78 | 0.00 | 29.19 | 100.0% | 18.10 | 0.82 | 6.75 | 3.81 | 2.43 | 4.43 | 0.00 |
+
