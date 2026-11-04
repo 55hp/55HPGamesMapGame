@@ -80,6 +80,8 @@ ads.reward_unlocked	Reward unlocked	Ricompensa sbloccata	Recompensa desbloqueada
 game.score	Score	Punteggio	Puntaje	Score	Punktzahl	スコア	점수	得分	Pontuação
 game.best_score	Best	Record	Mejor	Meilleur	Bester	ベスト	최고 기록	最佳	Recorde
 game.high_score	High Score	Record personale	Puntuación máxima	Meilleur score	Höchste Punktzahl	ハイスコア	하이스코어	最高分	Alta Pontuação
+game.result.won	You won	Hai vinto	Ganaste	Victoire	Gewonnen	勝利	승리	胜利	Você venceu
+game.result.lost	You lost	Hai perso	Perdiste	Défaite	Verloren	敗北	패배	失败	Você perdeu
 game.coins	Coins	Monete	Monedas	Pièces	Münzen	コイン	코인	金币	Moedas
 game.gems	Gems	Gemme	Gemas	Gemmes	Edelsteine	ジェム	젬	宝石	Gemas
 game.energy	Energy	Energia	Energía	Énergie	Energie	エネルギー	에너지	能量	Energia

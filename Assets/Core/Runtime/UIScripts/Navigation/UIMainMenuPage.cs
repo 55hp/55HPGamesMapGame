@@ -51,6 +51,10 @@ namespace hp55games.Mobile.Game.UI
             Bind(optionsButton, OnOptionsClicked);
             Bind(creditsButton, OnCreditsClicked);
             Bind(exitButton, OnExitClicked);
+
+            // iOS: Application.Quit() non fa nulla e le linee guida Apple sconsigliano un pulsante di uscita.
+            if (exitButton != null && Application.platform == RuntimePlatform.IPhonePlayer)
+                exitButton.gameObject.SetActive(false);
         }
 
         private void OnPlayClicked()

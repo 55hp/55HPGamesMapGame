@@ -58,3 +58,9 @@ Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, s
 #### Per Franci
 - Pulsante ESCI del menu: su iOS non fa nulla e Apple lo sconsiglia; da nascondere prima di una build iOS.
 - Gli sprite UI spostati da Bezi in `Assets/Art/_2D/UI/` sono esclusi da git (arte acquistata, repo pubblico): un clone pulito non li ha.
+
+### Athena — 2026-11-04 (seconda parte) — Core autorizzato da Franci su questo branch
+- `UIMainMenuPage.cs`: pulsante ESCI nascosto su iOS (`RuntimePlatform.IPhonePlayer`).
+- `UIResultsPage.cs`: "PUNTEGGIO: 0" invece di "PUNTEGGIO :0"; titolo dell'esito localizzato con le chiavi nuove `game.result.won` / `game.result.lost` (prima "Hai vinto"/"Hai perso" fissi in italiano).
+- Pagina risultati ridisegnata da Bezi (stile Crediti/Opzioni) e `UICamera` in `01_Menu` e `03_Results` (sparito "No cameras rendering").
+- Da riportare nel 55HP Template: queste due modifiche e quelle di Bezi del commit eca848c.

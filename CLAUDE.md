@@ -56,7 +56,7 @@ I file in `tech/` sono di Athena. Li modifichi solo se un prompt ti dà il testo
 12. **Commit locali; push solo su conferma di Franci; MAI merge, da nessuna parte.** `git add` per percorso, mai `git add -A`.
 13. Nessun riferimento a file che non esistono nel repo.
 14. **Codice legacy da rimuovere** (`MapClusterGenerator`, Food, Flee, analyzer a cluster): non estenderlo né correggerlo; la rimozione è la spec 0012. Se ti blocca prima, segnalalo.
-15. **Template Core** (`hp55games.Mobile.Core.*`): non modificarlo. Gli eventi nuovi vivono in Features.
+15. **Template Core** (`hp55games.Mobile.Core.*`): di regola non modificarlo; gli eventi nuovi vivono in Features. Eccezione autorizzata da Franci (04/11/2026) sul branch `athena/v2-impl`: correzioni mirate al Core quando sono la soluzione giusta, ognuna elencata nel report della spec come "da riportare nel 55HP Template".
 16. Namespace = nome dell'assembly (`hp55games.MapGame.Rules`, `hp55games.MapGame.Features.*`).
 
 ## Trappole note

@@ -1,5 +1,6 @@
 using hp55games.Mobile.Core.Architecture;
 using hp55games.Mobile.Core.Context;
+using hp55games.Mobile.Core.Localization;
 using hp55games.Mobile.Core.SceneFlow;
 using hp55games.Mobile.Core.UI;
 using hp55games.Mobile.Core;
@@ -23,7 +24,7 @@ namespace hp55games.Mobile.Game.UI
         [SerializeField] private UILocalizedText _scoreLabel;
         [SerializeField] private UILocalizedText _bestScoreLabel;
 
-        [Tooltip("PLACEHOLDER, non localizzato: testo diretto invece di UILocalizedText perché non esistono ancora due chiavi di localizzazione (vittoria/sconfitta) da scambiare. -- Franci TASK -- sostituire con due UILocalizedText (o due chiavi) quando la localizzazione del risultato viene definita davvero.")]
+        [Tooltip("Titolo dell'esito: il testo viene dalle chiavi game.result.won / game.result.lost (sconfitta se Lives <= 0).")]
         [SerializeField] private TextMeshProUGUI _statusLabel;
 
         [SerializeField] private Button _retryButton;
@@ -43,7 +44,7 @@ namespace hp55games.Mobile.Game.UI
 
             if (_scoreLabel != null)
             {
-                _scoreLabel.SetSuffix(" :" + score.ToString());
+                _scoreLabel.SetSuffix(": " + score.ToString());
                 _scoreLabel.Refresh();
             }
 
@@ -60,13 +61,13 @@ namespace hp55games.Mobile.Game.UI
 
             if (_scoreLabel != null)
             {
-                _scoreLabel.SetSuffix(" :" + finalScore);
+                _scoreLabel.SetSuffix(": " + finalScore);
                 _scoreLabel.Refresh();
             }
 
             if (_bestScoreLabel != null)
             {
-                _bestScoreLabel.SetSuffix(" :" + bestScore);
+                _bestScoreLabel.SetSuffix(": " + bestScore);
                 _bestScoreLabel.Refresh();
             }
         }
@@ -85,7 +86,8 @@ namespace hp55games.Mobile.Game.UI
             if (_statusLabel == null) return;
 
             bool lost = _context != null && _context.Lives <= 0;
-            _statusLabel.text = lost ? "Hai perso" : "Hai vinto";
+            string key = lost ? "game.result.lost" : "game.result.won";
+            _statusLabel.text = ServiceRegistry.TryResolve<ILocalizationService>(out var loc) ? loc.Get(key) : key;
         }
 
         private void OnRetryClicked()
