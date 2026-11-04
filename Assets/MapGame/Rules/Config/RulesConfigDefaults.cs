@@ -175,6 +175,7 @@ namespace hp55games.MapGame.Rules
                 {
                     new NpcOfferDef { Id = "inn_rest", Price = 5, Effect = NpcOfferEffect.FullHeal },
                     new NpcOfferDef { Id = "inn_phoenix", Effect = NpcOfferEffect.GiveItem, ItemId = Phoenix }, // D-052
+                    new NpcOfferDef { Id = "inn_locate_npc", Effect = NpcOfferEffect.LocateNpc }, // D-055, solo Nebbia
                     Clue("inn_clue_trader_1", ClueTarget.Trader, 1, 5),
                     Clue("inn_clue_trader_2", ClueTarget.Trader, 2, 9),
                     Clue("inn_clue_monsters_1", ClueTarget.MonstersNormal, 1, 5),

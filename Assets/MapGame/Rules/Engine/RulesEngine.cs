@@ -297,6 +297,14 @@ namespace hp55games.MapGame.Rules
                 if ((mapFx == ItemEffect.MapGold || mapFx == ItemEffect.MapSilver) && !State.HasItem(offer.ItemId)
                     && MapTarget(mapFx.Value) < 0) continue;
                 if (offer.Effect == NpcOfferEffect.Clues && !CluesActive) continue; // D-053
+                if (offer.Effect == NpcOfferEffect.LocateNpc)
+                {
+                    // D-055: solo dove gli indizi normali non ci sono (Nebbia); NPC estratto tra quelli localizzabili.
+                    if (CluesActive) continue;
+                    var npcTarget = PickLocatableNpc();
+                    if (npcTarget == null) continue;
+                    o.ClueTarget = npcTarget.Value;
+                }
                 if (offer.Effect == NpcOfferEffect.Clues)
                 {
                     // D-038: un indizio su contenuti già tutti scoperti non esiste: l'offerta non compare.
@@ -367,11 +375,15 @@ namespace hp55games.MapGame.Rules
                     break;
                 case NpcOfferEffect.Scout:
                     ReceiveScout(offer.Amount);
-                    // D-054 (Franci, 05/11/2026): dopo una Ricognizione l'NPC resta aperto, si compra finché ci sono monete.
-                    Push(BuildNpcDecision(d.TileIndex, d.Npc));
+                    break;
+                case NpcOfferEffect.LocateNpc:
+                    LocateNpc(opt.ClueTarget);
                     break;
                 case NpcOfferEffect.TreasureMap: break; // D-051: sostituita dalle Mappe Trinket
             }
+            // D-054/D-055 (Franci, 05/11/2026): comprare non chiude l'NPC; lo chiudono solo l'attacco e "Vai via".
+            // Il pannello torna dopo le scelte nate dall'acquisto (Ricognizione da posare, mani piene).
+            if (State.Status == RunStatus.Playing) Push(BuildNpcDecision(d.TileIndex, d.Npc));
         }
 
         // ---------------------------------------------------------------- risorse
@@ -585,6 +597,45 @@ namespace hp55games.MapGame.Rules
             State.MissionBonus += _config.MissionRewardAttack;
             int amount = _config.MissionRewardAttack;
             Emit(RuleEventType.MissionReached, e => { e.TileIndex = index; e.Kind = def.Kind; e.Amount = amount; e.ClueTarget = def.ClueTarget.Value; });
+        }
+
+        // ---------------------------------------------------------------- D-055: indizi di posizione
+
+        private static readonly ClueTarget[] LocatableNpcs =
+            { ClueTarget.Witch, ClueTarget.Hunter, ClueTarget.Smith, ClueTarget.Inn, ClueTarget.Trader };
+
+        /// <summary>Righe e colonne libere (mai usate per un indizio) che contengono un NPC coperto di quel tipo.</summary>
+        private List<LineRef> LocateLines(ClueTarget target)
+        {
+            var lines = new List<LineRef>();
+            int w = _config.Width;
+            for (int i = 0; i < _revealed.Length; i++)
+            {
+                if (_revealed[i] || !CensusMapGenerator.Matches(_config, Layout.Tiles[i], target)) continue;
+                foreach (var l in new[] { LineRef.Row(i / w), LineRef.Col(i % w) })
+                    if (!_usedClueLines.Contains(l) && !lines.Contains(l)) lines.Add(l);
+            }
+            return lines;
+        }
+
+        private ClueTarget? PickLocatableNpc()
+        {
+            var candidates = new List<ClueTarget>();
+            foreach (var t in LocatableNpcs) if (LocateLines(t).Count > 0) candidates.Add(t);
+            if (candidates.Count == 0) return null;
+            return candidates[_rng.Range(0, candidates.Count)];
+        }
+
+        /// <summary>Posa da solo un indizio su una riga o colonna che contiene davvero quell'NPC (conteggio visibile).</summary>
+        private void LocateNpc(ClueTarget target)
+        {
+            var lines = LocateLines(target);
+            if (lines.Count == 0) return;
+            var line = lines[_rng.Range(0, lines.Count)];
+            _usedClueLines.Add(line);
+            int count = Layout.ClueCount(target, line);
+            _clueResults[line] = (target, count);
+            Emit(RuleEventType.ClueUsed, e => { e.Line = line; e.ClueTarget = target; e.Amount = count; });
         }
 
         /// <summary>D-053: gli indizi esistono in questa modalità?</summary>

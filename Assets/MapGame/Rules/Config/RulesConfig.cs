@@ -24,6 +24,8 @@ namespace hp55games.MapGame.Rules
         public bool FogShowBoss { get; set; }
         /// <summary>D-053: in Nebbia gli indizi di riga/colonna non esistono (false). Le Ricognizioni restano.</summary>
         public bool FogClues { get; set; }
+        /// <summary>D-055: prezzo dell'indizio di posizione di un NPC (Locanda, solo Nebbia).</summary>
+        public int LocateNpcPrice { get; set; } = 8;
         /// <summary>In Nebbia il bordo si vede anche sulle tile adiacenti a una scoperta (comportamento D-040, ora spento di default).</summary>
         public bool FogRevealsAdjacent { get; set; }
         /// <summary>Ricognizioni di partenza nelle modalità con nebbia (forme ScoutShapes, in ordine).</summary>
@@ -142,6 +144,7 @@ namespace hp55games.MapGame.Rules
                     if (o.ItemId == "shield") { o.Price = ShieldPrice; continue; }
                     if (o.ItemId == "phoenix") { o.Price = PhoenixPrice; continue; }
                     if (o.ItemId == "herbarium") { o.Price = HerbariumPrice; continue; }
+                    if (o.Effect == NpcOfferEffect.LocateNpc) { o.Price = LocateNpcPrice; continue; }
                     if (o.FixedPrice) continue;
                     if (o.ItemId == "amulet") { o.Price = AmuletPrice; continue; }
                     if (o.Effect == NpcOfferEffect.Clues) o.Price = o.Amount >= 2 ? CluePrice2 : CluePrice1;

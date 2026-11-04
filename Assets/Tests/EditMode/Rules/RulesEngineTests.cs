@@ -450,7 +450,7 @@ namespace hp55games.MapGame.Rules.Tests
             e.Reveal(Find(e, ContentKind.Villagers));
             var evs = e.Submit("villagers_clue_bush");
             Assert.IsNotNull(First(evs, RuleEventType.ClueLost));
-            Assert.IsNull(e.CurrentDecision);
+            Assert.AreEqual(DecisionKind.Npc, e.CurrentDecision.Kind); // D-054: dopo l'acquisto l'NPC resta aperto
         }
 
         // ------------------------------------------------ Lanterna
@@ -818,6 +818,43 @@ namespace hp55games.MapGame.Rules.Tests
             Assert.IsFalse(e.CurrentDecision.Find("villagers_scout_0").Enabled);
             e.Submit(OptionIds.Close);
             Assert.IsNull(e.CurrentDecision);
+        }
+
+        [Test]
+        public void D055_BuyingItem_KeepsNpcOpen()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.State.Coins = 100;
+            e.Reveal(Find(e, ContentKind.Witch));
+            e.Submit("witch_lantern");
+            Assert.AreEqual(DecisionKind.Npc, e.CurrentDecision.Kind);
+            Assert.IsFalse(e.CurrentDecision.Find("witch_lantern").Enabled);
+            e.Submit("witch_ring");
+            Assert.IsTrue(e.State.HasItem(RulesConfigDefaults.Ring2));
+            Assert.AreEqual(DecisionKind.Npc, e.CurrentDecision.Kind);
+            e.Submit(OptionIds.Close);
+            Assert.IsNull(e.CurrentDecision);
+        }
+
+        [Test]
+        public void D055_InnLocateNpc_FogOnly_PlacesClueOnLineWithNpc()
+        {
+            var open = Started(config: Config());
+            open.State.Coins = 100;
+            open.Reveal(Find(open, ContentKind.Inn));
+            Assert.IsNull(open.CurrentDecision.Find("inn_locate_npc"));
+
+            var c = Config(); c.Mode = GameMode.Fog; var e = Started(config: c);
+            e.State.Coins = 100;
+            e.Reveal(Find(e, ContentKind.Inn));
+            var o = e.CurrentDecision.Find("inn_locate_npc");
+            Assert.IsNotNull(o);
+            Assert.AreEqual(c.LocateNpcPrice, o.Price);
+            var evs = e.Submit("inn_locate_npc");
+            var used = First(evs, RuleEventType.ClueUsed);
+            Assert.IsNotNull(used);
+            Assert.AreEqual(o.ClueTarget, used.ClueTarget);
+            Assert.GreaterOrEqual(used.Amount, 1);
         }
 }
 }

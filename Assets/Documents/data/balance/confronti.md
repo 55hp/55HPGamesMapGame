@@ -1114,3 +1114,33 @@ Partite per riga: 2000 (seed 0..1999). Override: nessuno. Bot level up: default.
 | Nebbia | greedy | 35.5% | 62.3% | 2.3% | 2.18 | 5.49 | 4.55 | 10.13 | 44.32 | 20.22 | 77.34 | 53.9% | 12.03 | 0.87 | 5.39 | 5.43 | 0.00 | 0.00 | 0.00 |
 | Nebbia | clue | 38.5% | 59.7% | 1.9% | 2.24 | 5.64 | 4.62 | 10.04 | 45.19 | 20.88 | 76.90 | 54.1% | 12.47 | 0.96 | 5.48 | 5.64 | 0.00 | 0.00 | 0.00 |
 
+## 2026-11-04 — D-055 Nebbia: comprare non chiude l'NPC, indizio di posizione 8 monete
+
+Partite per riga: 2000 (seed 0..1999). Override: nessuno. Bot level up: default. Bot compra prima di attaccare: no.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Nebbia | random | 0.5% | 96.4% | 3.2% | 1.13 | 2.46 | 4.70 | 8.37 | 16.17 | 13.44 | 91.41 | 100.0% | 3.06 | 0.05 | 2.10 | 1.65 | 0.00 | 0.02 | 0.00 |
+| Nebbia | greedy | 38.5% | 60.5% | 1.0% | 2.22 | 5.55 | 4.66 | 10.02 | 45.17 | 17.29 | 76.91 | 59.8% | 12.45 | 0.86 | 5.50 | 6.86 | 0.00 | 0.00 | 0.00 |
+| Nebbia | clue | 38.2% | 60.6% | 1.2% | 2.22 | 5.57 | 4.64 | 9.83 | 44.99 | 17.63 | 77.01 | 59.4% | 12.53 | 0.95 | 5.43 | 6.97 | 0.00 | 0.07 | 0.00 |
+
+## 2026-11-04 — D-055 Nebbia: indizio di posizione 5 monete
+
+Partite per riga: 2000 (seed 0..1999). Override: LocateNpcPrice=5. Bot level up: default. Bot compra prima di attaccare: no.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Nebbia | random | 0.5% | 96.8% | 2.8% | 1.14 | 2.46 | 4.60 | 8.41 | 16.35 | 13.53 | 91.32 | 100.0% | 3.13 | 0.05 | 2.13 | 1.69 | 0.00 | 0.05 | 0.00 |
+| Nebbia | greedy | 38.5% | 60.5% | 1.0% | 2.22 | 5.55 | 4.66 | 10.02 | 45.17 | 17.29 | 76.91 | 59.8% | 12.45 | 0.86 | 5.50 | 6.86 | 0.00 | 0.00 | 0.00 |
+| Nebbia | clue | 38.2% | 60.6% | 1.3% | 2.22 | 5.58 | 4.65 | 9.82 | 44.86 | 17.60 | 77.07 | 59.4% | 12.50 | 0.95 | 5.42 | 6.97 | 0.00 | 0.10 | 0.00 |
+
+## 2026-11-04 — D-055 Nebbia: senza indizio di posizione (confronto)
+
+Partite per riga: 2000 (seed 0..1999). Override: LocateNpcPrice=999. Bot level up: default. Bot compra prima di attaccare: no.
+
+| Modalità | Bot | Vittorie | Morte | Boss fuggito | Livello | Attacco fine | HP fine (vittorie) | Danni | Tocchi | Tocchi ciechi | Mosse legali medie | Scelte con mossa sicura | Uccisioni | Mini-boss | NPC aperti | Acquisti | Indizi extra ricevuti | Indizi usati (con i 2 di partenza) | Indizi persi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Nebbia | random | 0.7% | 96.2% | 3.2% | 1.15 | 2.47 | 4.08 | 8.44 | 16.37 | 13.53 | 91.31 | 100.0% | 3.11 | 0.05 | 2.12 | 1.71 | 0.00 | 0.00 | 0.00 |
+| Nebbia | greedy | 38.5% | 60.5% | 1.0% | 2.22 | 5.55 | 4.66 | 10.02 | 45.17 | 17.29 | 76.91 | 59.8% | 12.45 | 0.86 | 5.50 | 6.86 | 0.00 | 0.00 | 0.00 |
+| Nebbia | clue | 38.6% | 60.2% | 1.2% | 2.23 | 5.58 | 4.65 | 9.88 | 45.18 | 17.66 | 76.91 | 59.4% | 12.59 | 0.95 | 5.44 | 7.01 | 0.00 | 0.00 | 0.00 |
+

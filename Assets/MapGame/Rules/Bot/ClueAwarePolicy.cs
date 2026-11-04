@@ -217,6 +217,10 @@ namespace hp55games.MapGame.Rules
                     bool row = o.Id.Contains("_scout_row");
                     if (BestCluedLine(e, row) != null) return o.Id;
                 }
+                // D-055: indizio di posizione sul bersaglio della missione, finché non è raggiunto.
+                if (!s.MissionReached && s.Mission != null)
+                    foreach (var o in d.Options)
+                        if (o.Enabled && o.Id == "inn_locate_npc" && o.ClueTarget == s.Mission.Target) return o.Id;
                 if (s.Attack < e.Config.NpcDefense && s.Hp > 2)
                     foreach (var o in d.Options)
                         if (o.Enabled && o.Price > 0 && o.Id.Contains("clue")
