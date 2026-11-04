@@ -14,6 +14,25 @@ namespace hp55games.MapGame.Rules
         public int AttackAtEnd;
         public int CoinsSpent;
         public int Reveals;
+        // Metriche di confronto (baseline 04/11/2026)
+        public int HpAtEnd;
+        public int DamageTaken;
+        public int EncountersLost;
+        public int TrapsTriggered;
+        public int Kills;
+        public int MiniBossKills;
+        public int NpcsOpened;
+        public int OffersBought;
+        public int CluesReceived;
+        public int CluesUsed;
+        public int CluesLost;
+        /// <summary>Tocchi su tile coperte di cui il bot non vedeva il bordo (nebbia).</summary>
+        public int BlindClicks;
+        /// <summary>Somma delle mosse legali disponibili a ogni scelta di tile (per la media).</summary>
+        public long LegalChoicesSum;
+        public int TileChoices;
+        /// <summary>Scelte di tile in cui esisteva almeno una mossa senza rischio (livello 0, 1, 3, 4 visibile).</summary>
+        public int ChoicesWithSafeMove;
     }
 
     /// <summary>
@@ -164,18 +183,57 @@ namespace hp55games.MapGame.Rules
             e.Start();
             var r = new SimResult { Seed = seed, Mission = e.State.Mission.Id };
             int spent = 0, reveals = 0, guard = 0;
+            void Track(IReadOnlyList<RuleEvent> evs)
+            {
+                foreach (var ev in evs)
+                {
+                    switch (ev.Type)
+                    {
+                        case RuleEventType.CoinsSpent: spent += ev.Amount; break;
+                        case RuleEventType.DamageTaken: r.DamageTaken += ev.Amount; break;
+                        case RuleEventType.EncounterLost: r.EncountersLost++; break;
+                        case RuleEventType.TrapTriggered: r.TrapsTriggered++; break;
+                        case RuleEventType.EncounterWon:
+                            r.Kills++;
+                            if (ev.Kind == ContentKind.MiniBossCoins || ev.Kind == ContentKind.MiniBossGoldKey
+                                || ev.Kind == ContentKind.MiniBossSilverKey || ev.Kind == ContentKind.MiniBossWeapon) r.MiniBossKills++;
+                            break;
+                        case RuleEventType.NpcKilled: r.Kills++; break;
+                        case RuleEventType.NpcOpened: r.NpcsOpened++; break;
+                        case RuleEventType.OfferBought: r.OffersBought++; break;
+                        case RuleEventType.ClueReceived: r.CluesReceived++; break;
+                        case RuleEventType.ClueUsed: r.CluesUsed++; break;
+                        case RuleEventType.ClueLost: r.CluesLost++; break;
+                    }
+                }
+            }
             while (e.State.Status == RunStatus.Playing && guard++ < 1000)
             {
                 var d = e.CurrentDecision;
                 if (d != null)
                 {
-                    foreach (var ev in e.Submit(policy.ChooseOption(e, d)))
-                        if (ev.Type == RuleEventType.CoinsSpent) spent += ev.Amount;
+                    Track(e.Submit(policy.ChooseOption(e, d)));
                     continue;
                 }
-                e.Reveal(policy.ChooseTile(e));
+                int legal = 0; bool safe = false;
+                for (int i = 0; i < e.Layout.Count; i++)
+                {
+                    if (!e.IsRevealable(i)) continue;
+                    legal++;
+                    if (e.IsMaskVisible(i))
+                    {
+                        int m = e.ContentAt(i).MaskLevel;
+                        if (m == 0 || m == 1 || m == 3 || m == 4) safe = true;
+                    }
+                }
+                r.LegalChoicesSum += legal; r.TileChoices++;
+                if (safe) r.ChoicesWithSafeMove++;
+                int tile = policy.ChooseTile(e);
+                if (!e.IsMaskVisible(tile)) r.BlindClicks++;
+                Track(e.Reveal(tile));
                 reveals++;
             }
+            r.HpAtEnd = e.State.Hp;
             r.Status = e.State.Status;
             r.Loss = e.State.LossReason;
             r.Level = e.State.Level;
