@@ -198,6 +198,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         public bool TryRevealTile(HexCoord target)
         {
             if (Time.frameCount <= InputBlockedUntilFrame) return false;
+            // In pausa il popup copre la UI ma i tap sul tabellone arrivano comunque al raycast di mondo.
+            if (ServiceRegistry.TryResolve<IGameStateMachine>(out var fsm) && fsm.Current is PauseState) return false;
             if (!IsClickable(target)) return false;
             var events = _engine.Reveal(_tiles[target].RulesIndex);
             if (events.Count == 0) return false;

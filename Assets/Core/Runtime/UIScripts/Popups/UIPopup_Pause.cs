@@ -63,7 +63,8 @@ namespace hp55games.Mobile.Game.UI
                 return;
             }
 
-            AsyncUtils.FireAndForget(_sceneFlow.GoToResultsAsync(), context: nameof(UIPopup_Pause));
+            // Abbandonare la partita torna al menu: la pagina risultati la leggerebbe come vittoria (Lives > 0).
+            AsyncUtils.FireAndForget(_sceneFlow.GoToMenuAsync(), context: nameof(UIPopup_Pause));
         }
     }
 }

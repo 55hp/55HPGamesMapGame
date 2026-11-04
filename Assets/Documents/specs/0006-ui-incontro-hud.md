@@ -68,3 +68,12 @@ Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, s
 ### Athena — 2026-11-04 (terza parte) — rifinitura HUD (Bezi)
 - `UIRunHUD`: barra superiore a "chip", barra XP con sprite del pack (prima l'Image non aveva sprite e si vedeva sempre piena), carte equipaggiamento Arma/Anello/Trinket, sfondo del registro, foglio delle scelte. `DecisionOption` e `LineLabel` (badge per il risultato degli indizi) allineati allo stesso stile.
 - Verificato in Play: indizi su riga/colonna, scelta NPC con "Vai via", barra XP vuota a 0/10.
+
+### Athena — 2026-11-04 (quarta parte) — pausa
+- `PauseButtonView` (Features/UI/Run): pulsante dell'HUD che apre la pausa del template (`ISceneFlowService.GoToPauseAsync`).
+- `HexGridController.TryRevealTile`: ignora i tap sul tabellone mentre la FSM è in `PauseState`.
+- Core, da riportare nel 55HP Template: `UIPopup_Pause` "Esci" torna al menu invece che ai risultati (la pagina risultati leggeva l'abbandono come vittoria).
+- Popup generico, pausa, toast e overlay di caricamento ridisegnati da Bezi (commit 1aa02c9).
+
+#### Per Bezi
+- In `UIRunHUD.prefab`: pulsante pausa nella barra superiore con `PauseButtonView` (`_button` assegnato).
