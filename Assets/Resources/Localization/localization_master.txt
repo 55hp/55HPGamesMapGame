@@ -240,6 +240,10 @@ run.float.heal	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+{0} HP	+
 run.float.coins	+{0} coins	+{0} monete	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins	+{0} coins
 run.float.xp	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP	+{0} XP
 run.banner.level_up	LEVEL {0}!	LIVELLO {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!	LEVEL {0}!
+run.mission_intro.title	MISSION	MISSIONE	MISSION	MISSION	MISSION	MISSION	MISSION	MISSION	MISSION
+run.mission_intro.reward	Start: {1} clues on {0}\nReach it: +1 Attack	Partenza: {1} indizi su {0}\nRaggiungilo: +1 Attacco	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack	Start: {1} clues on {0}\nReach it: +1 Attack
+run.mission_intro.go	Go!	Via!	Go!	Go!	Go!	Go!	Go!	Go!	Go!
+run.banner.mission_reached	MISSION COMPLETE! +{0} ATTACK	MISSIONE COMPIUTA! +{0} ATTACCO	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK	MISSION COMPLETE! +{0} ATTACK
 run.banner.key_silver	SILVER KEY!	CHIAVE D'ARGENTO!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!	SILVER KEY!
 run.banner.key_gold	GOLD KEY!	CHIAVE D'ORO!	GOLD KEY!	GOLD KEY!	GOLD KEY!	GOLD KEY!	GOLD KEY!	GOLD KEY!	GOLD KEY!
 run.results.cause_won	The Boss is defeated!	Il Boss è sconfitto!	The Boss is defeated!	The Boss is defeated!	The Boss is defeated!	The Boss is defeated!	The Boss is defeated!	The Boss is defeated!	The Boss is defeated!
