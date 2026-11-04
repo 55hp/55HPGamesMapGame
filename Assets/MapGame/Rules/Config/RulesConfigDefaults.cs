@@ -78,7 +78,8 @@ namespace hp55games.MapGame.Rules
             // Censimento (03 §1, data/tile_census.csv) e definizioni
             void Def(ContentKind k, int qty, ContentDef d) { d.Kind = k; c.Census[k] = qty; c.Contents[k] = d; }
             Def(ContentKind.Start, 1, new ContentDef { Category = ContentCategory.None });
-            Def(ContentKind.Empty, 14, new ContentDef { Category = ContentCategory.None });
+            // D-041 (Franci, 04/11/2026): Vuota coperta, bordo neutro (livello 0); toccarla non fa nulla ma conta per le linee.
+            Def(ContentKind.Empty, 14, new ContentDef { Category = ContentCategory.None, MaskLevel = 0 });
             // D-037 (Franci, 04/11/2026): Boss di nuovo al livello 6, unico e riconoscibile dal bordo (annulla D-033).
             Def(ContentKind.Boss, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 6, Defense = 8, IsObjective = true, ClueTarget = ClueTarget.Boss });
             Def(ContentKind.MiniBossWeapon, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, ItemId = MiniBossWeapon, ClueTarget = ClueTarget.MiniBoss });

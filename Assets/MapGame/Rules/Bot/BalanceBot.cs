@@ -77,6 +77,8 @@ namespace hp55games.MapGame.Rules
             // La Lanterna svela il tipo: il bot lo usa come farebbe un giocatore.
             if (e.IsTypeShown(i)) return ScoreKnown(def, s, cfg);
             int atk = s.Attack, hp = s.Hp;
+            // D-040: senza bordo visibile il bot non sa nulla della tile (nebbia).
+            if (!e.IsMaskVisible(i)) return 15;
             switch (mask)
             {
                 case 1: return hp >= 3 || atk >= 2 ? 50 : 30;
@@ -85,6 +87,7 @@ namespace hp55games.MapGame.Rules
                 case 2: return atk >= 3 ? 40 : (hp >= 4 ? 10 : -50);
                 case 5: return atk >= cfg.NpcDefense ? 45 : (hp >= 4 ? 20 : -40);
                 case 6: return atk >= cfg.Content(ContentKind.Boss).Defense ? 1000 : -1000;
+                case 0: return 25; // Vuota (D-041): nessun rischio, avanza le linee
                 default: return 0;
             }
         }

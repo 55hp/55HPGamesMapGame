@@ -51,7 +51,23 @@ namespace hp55games.MapGame.Rules
 
         public bool IsRevealable(int index) =>
             _started && State.Status == RunStatus.Playing && _pending.Count == 0
-            && index >= 0 && index < _revealed.Length && !_revealed[index];
+            && index >= 0 && index < _revealed.Length && !_revealed[index]
+            && (_config.Mode != GameMode.FogAdjacent || IsAdjacentToRevealed(index));
+
+        /// <summary>
+        /// D-040: il giocatore vede il livello di mascheramento (bordo) di questa tile coperta?
+        /// Open: sempre. Fog e FogAdjacent: solo se adiacente a una tile scoperta.
+        /// </summary>
+        public bool IsMaskVisible(int index) =>
+            index >= 0 && index < _revealed.Length && !_revealed[index]
+            && (_config.Mode == GameMode.Open || IsAdjacentToRevealed(index));
+
+        public bool IsAdjacentToRevealed(int index)
+        {
+            foreach (int nb in HexGridMath.Neighbors(index, _config.Width, _config.Height))
+                if (_revealed[nb]) return true;
+            return false;
+        }
 
         public bool IsLineFree(LineRef line) => !_usedClueLines.Contains(line);
 
@@ -83,7 +99,8 @@ namespace hp55games.MapGame.Rules
             for (int i = 0; i < _revealed.Length; i++)
             {
                 var k = Layout.Tiles[i];
-                if (k == ContentKind.Start || k == ContentKind.Empty)
+                // D-041: le Vuote sono coperte come le altre (bordo neutro, livello 0); scoperta solo la partenza.
+                if (k == ContentKind.Start)
                 {
                     _revealed[i] = true;
                     Emit(RuleEventType.TileRevealed, e => { e.TileIndex = i; e.Kind = k; });

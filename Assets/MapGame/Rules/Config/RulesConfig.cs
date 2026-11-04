@@ -7,8 +7,18 @@ namespace hp55games.MapGame.Rules
     /// Si crea con <see cref="RulesConfigDefaults.Level1"/> e si può modificare (es. dall'asset in Features)
     /// prima di passarlo al motore; durante la partita va trattato come sola lettura.
     /// </summary>
+    /// <summary>
+    /// D-040: modalità di gioco. Open = tutta la plancia leggibile e cliccabile (R-002, R-080);
+    /// Fog = bordo visibile solo sulle tile adiacenti a una scoperta, clic libero;
+    /// FogAdjacent = bordo visibile e clic consentito solo sulle tile adiacenti a una scoperta (esplorazione).
+    /// </summary>
+    public enum GameMode { Open = 0, Fog = 1, FogAdjacent = 2 }
+
     public sealed class RulesConfig
     {
+        /// <summary>Modalità della partita (D-040). Va impostata prima di creare il motore.</summary>
+        public GameMode Mode { get; set; } = GameMode.Open;
+
         // Plancia (R-001, R-008)
         public int Width { get; set; }
         public int Height { get; set; }

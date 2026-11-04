@@ -70,7 +70,9 @@ namespace hp55games.MapGame.RulesHarness
             for (int a = 3; a < args.Length; a++)
             {
                 var kv = args[a].Split('=');
-                typeof(hp55games.MapGame.Rules.RulesConfig).GetProperty(kv[0]).SetValue(config, int.Parse(kv[1]));
+                var prop = typeof(hp55games.MapGame.Rules.RulesConfig).GetProperty(kv[0]);
+                object value = prop.PropertyType.IsEnum ? Enum.Parse(prop.PropertyType, kv[1]) : (object)int.Parse(kv[1]);
+                prop.SetValue(config, value);
                 Console.WriteLine("override " + args[a]);
             }
             var lines = new System.Collections.Generic.List<string> { "policy,seed,mission,status,loss,level,attack,coins_spent,reveals" };

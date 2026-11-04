@@ -31,7 +31,7 @@ namespace hp55games.MapGame.Features.Gameplay.Run
                 var kind = layout.Tiles[i];
                 var def = config.Content(kind);
                 var coord = ContentKindMap.ToHexCoord(i, layout.Width);
-                bool open = kind == ContentKind.Start || kind == ContentKind.Empty;
+                bool open = kind == ContentKind.Start; // D-041: le Vuote nascono coperte
                 tiles[coord] = new HexTileData(coord)
                 {
                     Content = kind,

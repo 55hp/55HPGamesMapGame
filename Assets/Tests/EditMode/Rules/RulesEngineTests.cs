@@ -21,13 +21,13 @@ namespace hp55games.MapGame.Rules.Tests
         }
 
         [Test]
-        public void R005_R008_StartAndEmpties_Revealed_BossHidden()
+        public void D041_OnlyStartRevealed_EmptiesCovered_BossHidden()
         {
             var e = Started();
             for (int i = 0; i < e.Layout.Tiles.Length; i++)
             {
                 var k = e.Layout.Tiles[i];
-                Assert.AreEqual(k == ContentKind.Start || k == ContentKind.Empty, e.IsRevealed(i), $"{k}");
+                Assert.AreEqual(k == ContentKind.Start, e.IsRevealed(i), $"{k}");
             }
             Assert.IsFalse(e.IsTypeShown(e.Layout.BossIndex));
         }
@@ -537,6 +537,40 @@ namespace hp55games.MapGame.Rules.Tests
             SetAttack(e, c.Content(ContentKind.Monster2).Defense);
             var evs = e.Reveal(Find(e, ContentKind.Monster2));
             Assert.IsTrue(evs.Any(x => x.Type == RuleEventType.ClueReceived && x.ClueTarget == c.MonsterKillClueTarget));
+        }
+    
+        [Test]
+        public void D041_EmptyTile_RevealsWithoutEffect()
+        {
+            var e = Started();
+            int idx = Find(e, ContentKind.Empty);
+            var hp = e.State.Hp; var coins = e.State.Coins;
+            var evs = e.Reveal(idx);
+            Assert.IsTrue(e.IsRevealed(idx));
+            Assert.AreEqual(hp, e.State.Hp); Assert.AreEqual(coins, e.State.Coins);
+            Assert.IsTrue(evs.Any(x => x.Type == RuleEventType.TileRevealed));
+        }
+
+        [Test]
+        public void D040_Fog_MaskVisibleOnlyNextToRevealed_ClickFree()
+        {
+            var c = Config(); c.Mode = GameMode.Fog; var e = Started(config: c);
+            int far = -1;
+            for (int i = 0; i < e.Layout.Tiles.Length; i++)
+                if (!e.IsRevealed(i) && !e.IsAdjacentToRevealed(i)) { far = i; break; }
+            Assert.GreaterOrEqual(far, 0);
+            Assert.IsFalse(e.IsMaskVisible(far));
+            Assert.IsTrue(e.IsRevealable(far));
+            foreach (int nb in HexGridMath.Neighbors(e.Layout.StartIndex, c.Width, c.Height))
+                if (!e.IsRevealed(nb)) Assert.IsTrue(e.IsMaskVisible(nb));
+        }
+
+        [Test]
+        public void D040_FogAdjacent_OnlyAdjacentRevealable()
+        {
+            var c = Config(); c.Mode = GameMode.FogAdjacent; var e = Started(config: c);
+            for (int i = 0; i < e.Layout.Tiles.Length; i++)
+                if (!e.IsRevealed(i)) Assert.AreEqual(e.IsAdjacentToRevealed(i), e.IsRevealable(i), $"tile {i}");
         }
     }
 }
