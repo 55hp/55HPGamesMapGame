@@ -64,3 +64,7 @@ Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, s
 - `UIResultsPage.cs`: "PUNTEGGIO: 0" invece di "PUNTEGGIO :0"; titolo dell'esito localizzato con le chiavi nuove `game.result.won` / `game.result.lost` (prima "Hai vinto"/"Hai perso" fissi in italiano).
 - Pagina risultati ridisegnata da Bezi (stile Crediti/Opzioni) e `UICamera` in `01_Menu` e `03_Results` (sparito "No cameras rendering").
 - Da riportare nel 55HP Template: queste due modifiche e quelle di Bezi del commit eca848c.
+
+### Athena — 2026-11-04 (terza parte) — rifinitura HUD (Bezi)
+- `UIRunHUD`: barra superiore a "chip", barra XP con sprite del pack (prima l'Image non aveva sprite e si vedeva sempre piena), carte equipaggiamento Arma/Anello/Trinket, sfondo del registro, foglio delle scelte. `DecisionOption` e `LineLabel` (badge per il risultato degli indizi) allineati allo stesso stile.
+- Verificato in Play: indizi su riga/colonna, scelta NPC con "Vai via", barra XP vuota a 0/10.
