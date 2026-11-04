@@ -35,6 +35,8 @@ namespace hp55games.Mobile.Core.Architecture
             Register<IObjectPoolService>(new ObjectPoolService());
             
             Register<IUIOptionsService>(new UIOptionsService());
+
+            Register<hp55games.Mobile.Core.Haptics.IHapticsService>(new hp55games.Mobile.Core.Haptics.HapticsService());
             
             Register<ILocalizationService>(new LocalizationService());
             

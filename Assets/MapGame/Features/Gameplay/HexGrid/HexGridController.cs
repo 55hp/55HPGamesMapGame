@@ -7,6 +7,7 @@ using hp55games.Mobile.Core.Architecture;
 using hp55games.Mobile.Core.Architecture.States;
 using hp55games.Mobile.Core.Context;
 using hp55games.Mobile.Core.Gameplay.Events;
+using hp55games.Mobile.Core.Haptics;
 using hp55games.Mobile.Core.Juice;
 using UnityEngine;
 
@@ -200,7 +201,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (Time.frameCount <= InputBlockedUntilFrame) return false;
             // In pausa il popup copre la UI ma i tap sul tabellone arrivano comunque al raycast di mondo.
             if (ServiceRegistry.TryResolve<IGameStateMachine>(out var fsm) && fsm.Current is PauseState) return false;
-            if (!IsClickable(target)) return false;
+            if (!IsClickable(target))
+            {
+                Haptic(HapticStrength.Light); // tocco non valido (tile già giocata o decisione aperta)
+                return false;
+            }
             var events = _engine.Reveal(_tiles[target].RulesIndex);
             if (events.Count == 0) return false;
             Dispatch(events);
@@ -262,10 +267,26 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             if (hp) _bus?.Publish(new HpChangedEvent());
             if (coins) _bus?.Publish(new ScoreChangedEvent());
             if (keys) _bus?.Publish(new KeysChangedEvent());
+            if (won || lost) Haptic(HapticStrength.Heavy);
+            else if (hp && HasType(events, RuleEventType.DamageTaken)) Haptic(HapticStrength.Medium);
+            else if (HasType(events, RuleEventType.LevelUp)) Haptic(HapticStrength.Medium);
+            else if (HasType(events, RuleEventType.EncounterWon) || HasType(events, RuleEventType.NpcKilled)) Haptic(HapticStrength.Light);
+
             if (won) _feedbackService?.Play("victory");
             else if (lost) _feedbackService?.Play("game_over");
             // L'esito resta a schermo finché la UI non chiama ConfirmEnd: GameplayState passa subito ai risultati
             // appena riceve PlayerVictoryEvent/PlayerDeathEvent, quindi non li pubblichiamo qui.
+        }
+
+        private static bool HasType(IReadOnlyList<RuleEvent> events, RuleEventType type)
+        {
+            foreach (var e in events) if (e.Type == type) return true;
+            return false;
+        }
+
+        private void Haptic(HapticStrength strength)
+        {
+            if (ServiceRegistry.TryResolve(out IHapticsService h)) h.Play(strength);
         }
 
         /// <summary>Partita finita, esito mostrato, in attesa di ConfirmEnd.</summary>

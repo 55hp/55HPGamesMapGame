@@ -90,3 +90,15 @@ Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, s
 
 #### Per Bezi
 - In `UIRunHUD.prefab`: banner a nastro centrato nella metà alta del tabellone con `CanvasGroup` + TMP grande, componente `RunBannerView` (`_group`, `_text`); sopra i numeri fluttuanti, sotto il foglio scelte; GameObject sempre attivo (la visibilità è l'alpha), raycast disattivati.
+
+### Athena — 2026-11-04 (settima parte) — decisioni di Franci applicate
+- Rules: 5 monete iniziali, partenza sicura, Boss di nuovo unico al livello 6 (D-036, D-037). Harness 50/50; bot Greedy 49,1%.
+- Esito dell'attacco a un NPC mostrato prima della scelta (C1): "Perdi N HP, nessuna ricompensa" / "Vinci: <premio>", calcolato dal motore (`DecisionOption.PredictedWin/PredictedDamage`).
+- Registro tolto dall'HUD (F3): `RunUiRoot` non usa più `RunLogView`.
+- Tile: pallini del livello negli angoli interni (1–6, senso orario dall'alto a sinistra) e anello spesso per il livello 6 (`HexTileView._levelPips`, `_thickBorder`).
+- Core, da riportare nel 55HP Template: `IHapticsService`/`HapticsService` (Light/Medium/Heavy, rispetta l'opzione Vibrazione; Android con ampiezza, iOS solo forte), registrato in `ServiceRegistry.InstallDefaults`. In MapGame: tocco non valido (leggero), danno e level up (medio), uccisione (leggero), vittoria/sconfitta (forte).
+
+#### Per Bezi
+- `UIRunHUD.prefab`: eliminare l'oggetto Log (`RunLogView`) e riassegnare lo spazio al tabellone.
+- Prefab della tile: 6 pallini (SpriteRenderer) negli angoli interni in senso orario da alto-sinistra in `_levelPips`; anello esterno in `_thickBorder`.
+- `HexTileConfigCatalog.DifficultyLevelBorderColors`: L1 `#9CCB5A`, L2 `#F2B544`, L3 `#5AB4F0`, L4 `#7FE0D0`, L5 `#F06A3C`, L6 `#D6244F`.
