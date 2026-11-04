@@ -42,6 +42,9 @@ Ultima revisione di Franci: 13/10/2026.
 | D-037 | Boss e mascheramento | Boss di nuovo **unico al livello 6** (annulla D-033) | Franci 04/11/2026; bot Greedy 38,5% → 49% |
 | D-038 | Indizi del Mercante e indizi inutili | Mercante: bersaglio di livello 5 estratto tra quelli ancora coperti (annulla D-028); nessun indizio su bersagli già tutti scoperti, né in vendita né in premio | Franci 04/11/2026 |
 | D-039 | Indizi come ricompensa | +1 indizio sul bersaglio della missione per linea completata; Piccolo 2 ucciso → 1 indizio sugli Arbusti (mostri e bersaglio: default di Athena) | Franci 04/11/2026; bot Greedy 48,8% |
+| D-040 | Modalità di gioco | Classica / Nebbia / Esplorazione, scelte dal menu; "Riprova" mantiene la modalità | Franci 04/11/2026; bot Greedy 41,2% / 43,1% / 43,1% (il bot ignora gli indizi) |
+| D-041 | Tile Vuote | coperte, bordo grigio livello 0, nessun effetto, contano per le linee | Franci 04/11/2026 |
+| D-042 | Avatar | il personaggio compare sull'ultima tile toccata; l'icona del contenuto sfuma | Franci 04/11/2026, solo presentazione |
 | D-035 | Seed della partita | casuale a ogni partita; `MapGenerationConfig.UseFixedSeed` per riprodurre una mappa; `CurrentRunSeed` ≠ 0 vince sempre | prima ogni partita aveva la stessa mappa (Seed 12345 fisso), modifica di D-024 decisa da Athena |
 
 ## Aperte (Athena, sessione delegata 03/11/2026: implementate, da rivedere da Franci)

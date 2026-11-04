@@ -58,6 +58,24 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
         public HexCoord Coord { get; private set; }
 
+        // Avatar (PlayerAvatarView): l'icona del contenuto sparisce quando l'avatar prende il suo posto.
+        private bool _iconSuppressed;
+
+        /// <summary>Trasparenza di icona ed etichetta (0..1), per la dissolvenza prima che arrivi l'avatar.</summary>
+        public void SetIconAlpha(float alpha)
+        {
+            if (_icon != null) { var c = _icon.color; c.a = alpha; _icon.color = c; }
+            if (_iconLabel != null) { var c = _iconLabel.color; c.a = alpha; _iconLabel.color = c; }
+        }
+
+        /// <summary>Nasconde per sempre l'icona del contenuto di questa tile (anche ai Reveal successivi).</summary>
+        public void SuppressIcon()
+        {
+            _iconSuppressed = true;
+            _icon?.gameObject.SetActive(false);
+            _iconLabel?.gameObject.SetActive(false);
+        }
+
         public void Setup(HexCoord coord)
         {
             Coord = coord;
@@ -157,7 +175,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             if (_visualConfig != null)
             {
-                bool show = showIcon;
+                bool show = showIcon && !_iconSuppressed;
 
                 if (_icon != null)
                 {

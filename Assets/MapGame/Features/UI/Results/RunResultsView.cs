@@ -41,6 +41,7 @@ namespace hp55games.MapGame.Features.UI.Results
 
             var sb = new StringBuilder();
             void Line(string key, object value) => sb.AppendLine(RunText.T(key, value));
+            sb.AppendLine(RunText.T("run.results.mode", RunText.T("run.mode." + r.Mode.ToString().ToLowerInvariant())));
             if (r.MissionId != null) sb.AppendLine(RunText.T("run.mission." + r.MissionId));
             Line("run.results.level", r.Level);
             Line("run.results.attack", r.Attack);

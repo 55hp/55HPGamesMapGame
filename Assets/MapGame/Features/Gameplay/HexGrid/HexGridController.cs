@@ -138,7 +138,10 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
             // D-035: senza seed di run nel contesto, mappa nuova a ogni partita (seed fisso solo se richiesto).
             // Mappa del giorno: richiesta dal menu tramite RunSeedRequest, consumata qui (una partita).
             bool daily = false;
-            if (ServiceRegistry.TryResolve(out RunSeedRequest request) && request.HasRequest)
+            ServiceRegistry.TryResolve(out RunSeedRequest request);
+            // D-040: modalità scelta nel menu (resta per "Riprova"); di default Open.
+            _rules.Mode = request != null ? request.Mode : GameMode.Open;
+            if (request != null && request.HasRequest)
             {
                 _seed = request.Seed; daily = request.IsDaily; request.Clear();
             }
@@ -149,7 +152,7 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
 
             _engine = new RulesEngine(_rules, unchecked((ulong)_seed));
             IsAwaitingEndConfirm = false;
-            _results = new RunResults(_seed, daily);
+            _results = new RunResults(_seed, daily, _rules.Mode);
             ServiceRegistry.Register(_results);
             _resultsInitial = true;
             if (!_engine.Layout.Success)
@@ -177,6 +180,9 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         // ---------------------------------------------------------------- query per le viste
 
         /// <summary>R-002/R-005: cliccabile = coperta, nessuna decisione in attesa, partita in corso.</summary>
+        /// <summary>D-040: il bordo di questa tile coperta è visibile nella modalità corrente?</summary>
+        public bool IsMaskVisible(HexTileData tile) => _engine != null && tile != null && _engine.IsMaskVisible(tile.RulesIndex);
+
         public bool IsClickable(HexCoord coord) =>
             _engine != null && _tiles.TryGetValue(coord, out var t) && _engine.IsRevealable(t.RulesIndex);
 

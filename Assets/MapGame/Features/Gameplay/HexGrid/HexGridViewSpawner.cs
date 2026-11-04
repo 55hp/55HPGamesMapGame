@@ -78,7 +78,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                 view.transform.localPosition = _unityGrid.GetCellCenterLocal(new Vector3Int(row, col, 0));                view.Setup(coord);
                 view.ApplyState(tile.Spotting);
                 bool tileExplored = tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted;
-                view.SetClickable(!tileExplored); // v2: nel prefab il bordo è anche l'indicatore; le coperte lo mostrano sempre (R-080)
+                // v2: nel prefab il bordo è anche l'indicatore. D-040: in nebbia si vede solo vicino alle tile scoperte.
+                view.SetClickable(!tileExplored && _grid.IsMaskVisible(tile));
                 view.SetDifficultyLevel(tile.DifficultyLevel);
                 if (tile.Spotting == SpottingState.Spotted || tile.TypeShown)
                     view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: tileExplored);
@@ -96,7 +97,8 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
                     var tile = kvp.Value;
                     bool tileExplored = tile.Exploration == ExplorationState.Explored && tile.Spotting == SpottingState.Spotted;
                     view.ApplyState(tile.Spotting);
-                    view.SetClickable(!tileExplored);
+                    view.SetClickable(!tileExplored && _grid.IsMaskVisible(tile));
+                    view.SetDifficultyLevel(tile.DifficultyLevel); // riallinea pallini/anello alla visibilità del bordo
                     if (tile.Spotting == SpottingState.Spotted || tile.TypeShown)
                         view.Reveal(tile.Type, showIcon: ShouldShowIcon(tile), showAlpha: tileExplored);
                 }

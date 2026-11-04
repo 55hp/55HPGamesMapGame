@@ -16,10 +16,11 @@ Il vecchio GDD (Notion, congelato all'08/08/2026) non è più una fonte: dove co
 ## 2. Plancia e azione base
 
 - **R-001** Griglia esagonale 10×10 = 100 tile, coordinate assiali (Q,R) in memoria, conversione odd-q per il disegno. Etichette: colonne A–J, righe 1–10.
+- **R-002b** Modalità **[D-040]**: *Classica* (tutto come sotto), *Nebbia* (il bordo si vede solo sulle tile adiacenti a una scoperta; clic libero), *Esplorazione* (bordo visibile e clic consentito solo sulle tile adiacenti a una scoperta).
 - **R-002** Il giocatore può cliccare **qualsiasi** tile coperta. Con m = tile totali e n = tile già scoperte, le scelte sono m − n. Nessun vincolo di adiacenza.
 - **R-003** Una tile girata non è più interagibile, senza eccezioni (neppure i forzieri).
 - **R-004** Una risorsa ottenuta oltre il massimo è persa.
-- **R-005** Le tile **Vuote** sono scoperte fin dall'inizio e non sono cliccabili.
+- **R-005** Le tile **Vuote** sono **coperte** come le altre, con bordo neutro (livello 0): toccarle non ha effetto ma conta per completare le linee **[D-041]** (prima erano scoperte dall'inizio).
 - **R-006** Le Strade (Road) non esistono più nel livello 1. Cascate, cluster, PathCluster ed EventCluster non si usano.
 - **R-007** Il posizionamento è sparso e pseudocasuale con seed (stesso seed = stessa mappa): vedi `04_mappa.md`. Niente cluster.
 - **R-008b** Partenza sicura **[D-036]**: nessuna tile di livello 2, 5 o 6 adiacente alla partenza e almeno un Piccolo 1 o un Forziere di monete entro 3 esagoni. Il generatore ottiene il vincolo scambiando tile (il censimento non cambia).

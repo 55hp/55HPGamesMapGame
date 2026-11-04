@@ -25,10 +25,13 @@ namespace hp55games.MapGame.Features.Gameplay.Run
         public int CoinsEarned { get; private set; }
         public int DamageTaken { get; private set; }
 
-        public RunResults(int seed, bool isDaily)
+        public GameMode Mode { get; private set; }
+
+        public RunResults(int seed, bool isDaily, GameMode mode)
         {
             Seed = seed;
             IsDaily = isDaily;
+            Mode = mode;
         }
 
         public void Apply(IReadOnlyList<RuleEvent> events, RulesEngine engine, bool initial)
@@ -60,6 +63,7 @@ namespace hp55games.MapGame.Features.Gameplay.Run
     }
 
     /// <summary>
+    /// Impostazioni della prossima partita: modalità (D-040) e seed richiesto (mappa del giorno).
     /// Richiesta di seed per la prossima partita (mappa del giorno). Il contesto del template azzera
     /// CurrentRunSeed all'ingresso in Gameplay, quindi la richiesta passa da qui; HexGridController la consuma.
     /// </summary>
@@ -68,10 +72,16 @@ namespace hp55games.MapGame.Features.Gameplay.Run
         public int Seed { get; private set; }
         public bool IsDaily { get; private set; }
         public bool HasRequest => Seed != 0;
+        /// <summary>D-040: modalità della prossima partita. Resta impostata (anche per "Riprova") finché il menu non la azzera.</summary>
+        public GameMode Mode { get; set; } = GameMode.Open;
 
         public void RequestDaily(int seed) { Seed = seed; IsDaily = true; }
 
+        /// <summary>Consuma il seed (una partita); la modalità resta.</summary>
         public void Clear() { Seed = 0; IsDaily = false; }
+
+        /// <summary>Ritorno al menu: modalità classica, nessun seed.</summary>
+        public void ResetToDefault() { Clear(); Mode = GameMode.Open; }
 
         /// <summary>Seed del giorno (UTC): stesso valore per tutti i giocatori nello stesso giorno, mai 0.</summary>
         public static int DailySeed(int year, int month, int day)

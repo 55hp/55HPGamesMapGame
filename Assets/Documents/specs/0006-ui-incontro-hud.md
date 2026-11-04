@@ -110,3 +110,12 @@ Pop-up esito incontro (senza Fuggi) e HUD con HP, Attacco, monete, XP, chiavi, s
 - `UIResults_Page.prefab`: blocco statistiche con `RunResultsView` (`_cause`, `_stats`, `_seed`); nascondere le etichette Punteggio/Record.
 - `UIRunHUD.prefab`: pulsante "?" nella barra superiore e popup tutorial a pagine con `TutorialPopupView` (titolo, corpo scrollabile, "1/6", Indietro/Avanti/Chiudi), sopra tutto il resto dell'HUD.
 - `MainMenu_page.prefab`: pulsante "MAPPA DEL GIORNO" (chiave `run.menu.daily`) sotto GIOCA con `DailyChallengeButton`.
+
+### Athena — 2026-11-04 (ottava parte) — modalità, Vuote coperte, avatar
+- Rules: `GameMode` Open/Fog/FogAdjacent (`RulesConfig.Mode`), `IsMaskVisible`, adiacenza in Esplorazione; Vuote coperte a livello 0 (D-040, D-041). Harness 56/56.
+- Features: `RunSeedRequest.Mode` (resta per "Riprova"), `MenuRunSetup` (azzera all'apertura del menu), `GameModeButton`; bordi nascosti in nebbia (`HexGridViewSpawner`); `PlayerAvatarView` sull'ultima tile (D-042); modalità nella pagina risultati.
+
+#### Per Bezi
+- `MainMenu_page.prefab`: `MenuRunSetup` sulla radice; accanto a GIOCA due pulsanti con `GameModeButton` (Fog / FogAdjacent), testo `run.menu.mode_fog` / `run.menu.mode_explore` e riga descrittiva `run.menu.mode_*_desc`; descrizione sotto GIOCA `run.menu.mode_open_desc`.
+- `HexTileConfigCatalog`: colore livello 0 grigio neutro.
+- `02_Gameplay`: oggetto `PlayerAvatar` (SpriteRenderer con lo sprite del personaggio oggi usato dalla tile Start, sorting sopra le icone) con `PlayerAvatarView` (`_grid`, `_spawner`, `_avatar`).

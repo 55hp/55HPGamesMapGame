@@ -37,11 +37,8 @@ namespace hp55games.MapGame.Features.UI.Menu
         private void OnClicked()
         {
             if (!enabled || !ServiceRegistry.TryResolve(out ISceneFlowService flow)) return;
-            if (!ServiceRegistry.TryResolve(out RunSeedRequest request))
-            {
-                request = new RunSeedRequest();
-                ServiceRegistry.Register(request);
-            }
+            var request = MenuRunSetup.Get();
+            request.Mode = hp55games.MapGame.Rules.GameMode.Open;
             var today = DateTime.UtcNow.Date;
             request.RequestDaily(RunSeedRequest.DailySeed(today.Year, today.Month, today.Day));
             AsyncUtils.FireAndForget(StartAsync(flow), context: nameof(DailyChallengeButton));
