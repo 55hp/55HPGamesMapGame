@@ -40,7 +40,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 552a14f0a6f07b04b941f8a88ebcd50a, type: 2}
   - {fileID: 11400000, guid: cb70ce9ff06527e42ab373a283427f0d, type: 2}
   DifficultyLevelBorderColors:
-  - {r: 0, g: 0, b: 0, a: 1}
+  - {r: 0.5411765, g: 0.56078434, b: 0.59607846, a: 1}
   - {r: 0.6117647, g: 0.79607844, b: 0.3529412, a: 1}
   - {r: 0.9490196, g: 0.70980394, b: 0.26666668, a: 1}
   - {r: 0.3529412, g: 0.7058824, b: 0.9411765, a: 1}
