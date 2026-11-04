@@ -4,6 +4,7 @@ using hp55games.MapGame.Features.Configs;
 using hp55games.MapGame.Features.Gameplay.Run;
 using hp55games.MapGame.Rules;
 using hp55games.Mobile.Core.Architecture;
+using hp55games.Mobile.Core.Architecture.States;
 using hp55games.Mobile.Core.Context;
 using hp55games.Mobile.Core.Gameplay.Events;
 using hp55games.Mobile.Core.Juice;
@@ -91,8 +92,11 @@ namespace hp55games.MapGame.Features.Gameplay.HexGrid
         {
             ServiceRegistry.TryResolve(out _feedbackService);
             if (_bus != null) _gameStartedSub = _bus.Subscribe<GameStartedEvent>(_ => InitializeSession());
-            // Fallback standalone: senza FSM Lives resta al default (-1).
-            if (_context != null && _context.Lives < 0) InitializeSession();
+            // Fallback standalone (scena aperta da sola, senza FSM): nessuno pubblicherà GameStartedEvent.
+            // Con la FSM registrata la partita parte solo dall'evento, altrimenti la mappa
+            // verrebbe generata due volte con due seed diversi (D-035).
+            bool hasFsm = ServiceRegistry.TryResolve<IGameStateMachine>(out var fsm) && fsm.Current != null;
+            if (!hasFsm && _context != null && _context.Lives < 0) InitializeSession();
         }
 
         private void OnDestroy() => _gameStartedSub?.Dispose();
