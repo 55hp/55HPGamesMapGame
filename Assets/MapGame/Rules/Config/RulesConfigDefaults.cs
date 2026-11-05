@@ -29,6 +29,7 @@ namespace hp55games.MapGame.Rules
         public const string Shield = "shield";             // D-052
         public const string Phoenix = "phoenix";           // D-052
         public const string Herbarium = "herbarium";       // D-052
+        public const string WoodShield = "wood_shield";    // D-056
 
         public static RulesConfig Level1()
         {
@@ -95,6 +96,7 @@ namespace hp55games.MapGame.Rules
             Item(MapGold, ItemSlot.Trinket, 0, ItemEffect.MapGold);
             Item(MapSilver, ItemSlot.Trinket, 0, ItemEffect.MapSilver);
             Item(Shield, ItemSlot.Hand, 0, ItemEffect.Shield);
+            Item(WoodShield, ItemSlot.Hand, 0, ItemEffect.Shield); // D-056: si rompe dopo WoodShieldCharges colpi
             Item(Phoenix, ItemSlot.Trinket, 0, ItemEffect.Phoenix);
             Item(Herbarium, ItemSlot.Trinket, 0, ItemEffect.Herbarium);
 
@@ -102,7 +104,8 @@ namespace hp55games.MapGame.Rules
             void Def(ContentKind k, int qty, ContentDef d) { d.Kind = k; c.Census[k] = qty; c.Contents[k] = d; }
             Def(ContentKind.Start, 1, new ContentDef { Category = ContentCategory.None });
             // D-041 (Franci, 04/11/2026): Vuota coperta, bordo neutro (livello 0); toccarla non fa nulla ma conta per le linee.
-            Def(ContentKind.Empty, 14, new ContentDef { Category = ContentCategory.None, MaskLevel = 0 });
+            // D-056: una Vuota diventa il quarto Paesano.
+            Def(ContentKind.Empty, 13, new ContentDef { Category = ContentCategory.None, MaskLevel = 0 });
             // D-037 (Franci, 04/11/2026): Boss di nuovo al livello 6, unico e riconoscibile dal bordo (annulla D-033).
             Def(ContentKind.Boss, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 6, Defense = 8, IsObjective = true, ClueTarget = ClueTarget.Boss });
             Def(ContentKind.MiniBossWeapon, 1, new ContentDef { Category = ContentCategory.Monster, MaskLevel = 5, Defense = 5, Xp = 3, ItemId = MiniBossWeapon, ClueTarget = ClueTarget.MiniBoss });
@@ -126,7 +129,7 @@ namespace hp55games.MapGame.Rules
             Def(ContentKind.Inn, 2, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 5, ClueTarget = ClueTarget.Inn });
             Def(ContentKind.Trader, 2, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 5, ClueTarget = ClueTarget.Trader });
             Def(ContentKind.Farmer, 3, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 3 });
-            Def(ContentKind.Villagers, 3, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 3 });
+            Def(ContentKind.Villagers, 4, new ContentDef { Category = ContentCategory.Npc, MaskLevel = 3 });
 
             // NPC (03 §3, data/npc_offers.csv). Prezzi indizi: 1 per 5, 2 per 9 (D-027).
             NpcOfferDef Clue(string id, ClueTarget t, int n, int price) =>
@@ -153,6 +156,7 @@ namespace hp55games.MapGame.Rules
                 {
                     // D-051: il Potenziamento diventa un Trinket (+1 Attacco), quindi uno solo per partita.
                     new NpcOfferDef { Id = "smith_upgrade", Price = 5, Effect = NpcOfferEffect.GiveItem, ItemId = Whetstone, FixedPrice = true },
+                    new NpcOfferDef { Id = "smith_shield", Effect = NpcOfferEffect.GiveItem, ItemId = Shield }, // D-056: lo Scudo passa al Fabbro
                     Clue("smith_clue_1", ClueTarget.Inn, 1, 5),
                     Clue("smith_clue_2", ClueTarget.Inn, 2, 9),
                 },
@@ -201,6 +205,7 @@ namespace hp55games.MapGame.Rules
                     new NpcOfferDef { Id = "trader_map_gold", Price = 4, Effect = NpcOfferEffect.GiveItem, ItemId = MapGold, FixedPrice = true },
                     new NpcOfferDef { Id = "trader_map_silver", Price = 4, Effect = NpcOfferEffect.GiveItem, ItemId = MapSilver, FixedPrice = true },
                     new NpcOfferDef { Id = "trader_amulet", Price = 5, Effect = NpcOfferEffect.GiveItem, ItemId = Amulet },
+                    new NpcOfferDef { Id = "trader_wood_shield", Effect = NpcOfferEffect.GiveItem, ItemId = WoodShield }, // D-056
                 },
             };
             c.Npcs[ContentKind.Farmer] = new NpcDef
@@ -214,17 +219,15 @@ namespace hp55games.MapGame.Rules
                     Clue("farmer_clue_2", ClueTarget.Bush, 2, 9),
                 },
             };
+            // D-056 (Franci, 05/11/2026): i Paesani regalano una sola cosa, a scelta: una Ricognizione da 7 caselle
+            // oppure un indizio di posizione di un NPC (2 Paesani su una riga, 2 su una colonna). Niente vendite.
             c.Npcs[ContentKind.Villagers] = new NpcDef
             {
                 Kind = ContentKind.Villagers, Fightable = false,
                 Offers =
                 {
-                    new NpcOfferDef { Id = "villagers_shield", Effect = NpcOfferEffect.GiveItem, ItemId = Shield }, // D-052
-                    Clue("villagers_clue_fountain", ClueTarget.Fountain, 1, 5),
-                    Clue("villagers_clue_smith", ClueTarget.Smith, 1, 5),
-                    Clue("villagers_clue_bush", ClueTarget.Bush, 1, 5),
-                    Scout("villagers_scout_0", ScoutShapes.Single), Scout("villagers_scout_1", ScoutShapes.Cluster),
-                    Scout("villagers_scout_row", ScoutShapes.Row), Scout("villagers_scout_col", ScoutShapes.Column),
+                    new NpcOfferDef { Id = "villagers_gift_scout", Price = 0, Effect = NpcOfferEffect.Scout, Amount = ScoutShapes.Cluster, ClosesNpc = true, FixedPrice = true },
+                    new NpcOfferDef { Id = "villagers_gift_clue", Price = 0, Effect = NpcOfferEffect.LocateNpc, ClosesNpc = true, FixedPrice = true },
                 },
             };
 
@@ -250,9 +253,10 @@ namespace hp55games.MapGame.Rules
             c.MissionRewardAttack = 1;
             c.MiniBossDefense = 5; // con 4 Classica ed Esplorazione salgono al 94% / 88% (bot Greedy): troppo facile
             c.TrinketPrice = 6;
-            // D-052 (Franci, 04/11/2026): Scudo dai Paesani, Fenice dalla Locanda, Erbario dal Contadino.
-            // Scudo che non si rompe: Esplorazione 92%; si rompe dopo 3 colpi: 64% (provvisorio, da decidere).
-            c.ShieldCharges = 3;
+            // D-052 (Franci, 04/11/2026): Fenice dalla Locanda, Erbario dal Contadino.
+            // D-056: lo Scudo (Fabbro, 8 monete) non si rompe; quello di legno (Mercante) sì.
+            c.ShieldCharges = 0;
+            c.ShieldPrice = 8;
             c.RepriceOffers();
             return c;
         }

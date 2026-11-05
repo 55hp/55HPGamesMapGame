@@ -220,7 +220,7 @@ namespace hp55games.MapGame.Rules
                 // D-055: indizio di posizione sul bersaglio della missione, finché non è raggiunto.
                 if (!s.MissionReached && s.Mission != null)
                     foreach (var o in d.Options)
-                        if (o.Enabled && o.Id == "inn_locate_npc" && o.ClueTarget == s.Mission.Target) return o.Id;
+                        if (o.Enabled && (o.Id == "inn_locate_npc" || o.Id == "villagers_gift_clue") && o.ClueTarget == s.Mission.Target) return o.Id;
                 if (s.Attack < e.Config.NpcDefense && s.Hp > 2)
                     foreach (var o in d.Options)
                         if (o.Enabled && o.Price > 0 && o.Id.Contains("clue")

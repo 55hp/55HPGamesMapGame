@@ -447,8 +447,8 @@ namespace hp55games.MapGame.Rules.Tests
             var set = (System.Collections.Generic.HashSet<LineRef>)field.GetValue(e);
             foreach (var l in e.AllLines()) set.Add(l);
             e.State.Coins = 100;
-            e.Reveal(Find(e, ContentKind.Villagers));
-            var evs = e.Submit("villagers_clue_bush");
+            e.Reveal(Find(e, ContentKind.Farmer));
+            var evs = e.Submit("farmer_clue_1");
             Assert.IsNotNull(First(evs, RuleEventType.ClueLost));
             Assert.AreEqual(DecisionKind.Npc, e.CurrentDecision.Kind); // D-054: dopo l'acquisto l'NPC resta aperto
         }
@@ -803,19 +803,19 @@ namespace hp55games.MapGame.Rules.Tests
         {
             var c = Config(); c.Mode = GameMode.Fog; var e = Started(config: c);
             e.State.Coins = c.ScoutPriceSingle * 3;
-            int npc = Find(e, ContentKind.Villagers);
+            int npc = Find(e, ContentKind.Inn);
             e.Reveal(npc);
             for (int k = 0; k < 3; k++)
             {
                 Assert.AreEqual(DecisionKind.Npc, e.CurrentDecision.Kind, $"acquisto {k}");
-                Assert.AreEqual(-1, e.CurrentDecision.Find("villagers_scout_0").Stock);
-                e.Submit("villagers_scout_0");
+                Assert.AreEqual(-1, e.CurrentDecision.Find("inn_scout_0").Stock);
+                e.Submit("inn_scout_0");
                 Assert.AreEqual(DecisionKind.Scout, e.CurrentDecision.Kind);
                 e.Submit(e.CurrentDecision.Options.First(o => o.Enabled).Id);
             }
             Assert.AreEqual(0, e.State.Coins);
             Assert.AreEqual(DecisionKind.Npc, e.CurrentDecision.Kind);
-            Assert.IsFalse(e.CurrentDecision.Find("villagers_scout_0").Enabled);
+            Assert.IsFalse(e.CurrentDecision.Find("inn_scout_0").Enabled);
             e.Submit(OptionIds.Close);
             Assert.IsNull(e.CurrentDecision);
         }
@@ -855,6 +855,45 @@ namespace hp55games.MapGame.Rules.Tests
             Assert.IsNotNull(used);
             Assert.AreEqual(o.ClueTarget, used.ClueTarget);
             Assert.GreaterOrEqual(used.Amount, 1);
+        }
+
+        [Test]
+        public void D056_Villagers_TwoExclusiveGifts_RowOrColumn()
+        {
+            var c = Config(); c.Mode = GameMode.Fog; var e = Started(config: c);
+            Assert.AreEqual(4, c.Census[ContentKind.Villagers]);
+            int rowsSeen = 0, colsSeen = 0;
+            for (int k = 0; k < 4; k++)
+            {
+                int v = Find(e, ContentKind.Villagers);
+                e.Reveal(v);
+                var d = e.CurrentDecision;
+                Assert.AreEqual(DecisionKind.Npc, d.Kind);
+                Assert.AreEqual(0, d.Find("villagers_gift_scout").Price);
+                var evs = e.Submit("villagers_gift_clue");
+                var used = First(evs, RuleEventType.ClueUsed);
+                Assert.IsNotNull(used);
+                if (used.Line.IsRow) rowsSeen++; else colsSeen++;
+                Assert.IsNull(e.CurrentDecision); // dono scelto: l'NPC si chiude
+            }
+            Assert.AreEqual(c.VillagersRowClueCount, rowsSeen);
+            Assert.AreEqual(4 - c.VillagersRowClueCount, colsSeen);
+        }
+
+        [Test]
+        public void D056_WoodShield_Breaks_IronShield_DoesNot()
+        {
+            var c = Config(); var e = Started(config: c);
+            e.State.Give(c.Item(RulesConfigDefaults.WoodShield));
+            e.State.ShieldChargesLeft = c.WoodShieldCharges;
+            for (int k = 0; k < c.WoodShieldCharges; k++)
+            {
+                e.State.Hp = 10; e.State.MaxHp = 10;
+                e.Reveal(Find(e, ContentKind.Trap2));
+            }
+            Assert.IsFalse(e.State.HasItem(RulesConfigDefaults.WoodShield));
+            Assert.AreEqual(0, c.ShieldCharges);
+            Assert.AreEqual(8, c.Npcs[ContentKind.Smith].Offers.First(o => o.Id == "smith_shield").Price);
         }
 }
 }

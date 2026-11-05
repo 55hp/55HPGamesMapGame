@@ -28,6 +28,11 @@ namespace hp55games.MapGame.Rules
         public int LocateNpcPrice { get; set; } = 8;
         /// <summary>Livello del bordo della Locanda (0 = lascia quello del censimento). Per le prove col bot.</summary>
         public int InnMaskLevel { get; set; }
+        /// <summary>D-056: colpi parati dallo Scudo di legno prima di rompersi.</summary>
+        public int WoodShieldCharges { get; set; } = 2;
+        public int WoodShieldPrice { get; set; } = 4;
+        /// <summary>D-056: quanti Paesani (in ordine di tile) danno l'indizio su una riga; gli altri su una colonna.</summary>
+        public int VillagersRowClueCount { get; set; } = 2;
         /// <summary>In Nebbia il bordo si vede anche sulle tile adiacenti a una scoperta (comportamento D-040, ora spento di default).</summary>
         public bool FogRevealsAdjacent { get; set; }
         /// <summary>Ricognizioni di partenza nelle modalità con nebbia (forme ScoutShapes, in ordine).</summary>
@@ -145,14 +150,15 @@ namespace hp55games.MapGame.Rules
                 {
                     if (o.ItemId == "map_gold" || o.ItemId == "map_silver") { o.Price = TreasureMapPrice; continue; }
                     if (o.ItemId == "shield") { o.Price = ShieldPrice; continue; }
+                    if (o.ItemId == "wood_shield") { o.Price = WoodShieldPrice; continue; }
                     if (o.ItemId == "phoenix") { o.Price = PhoenixPrice; continue; }
                     if (o.ItemId == "herbarium") { o.Price = HerbariumPrice; continue; }
-                    if (o.Effect == NpcOfferEffect.LocateNpc) { o.Price = LocateNpcPrice; continue; }
+                    if (o.Effect == NpcOfferEffect.LocateNpc && !o.FixedPrice) { o.Price = LocateNpcPrice; continue; }
                     if (o.FixedPrice) continue;
                     if (o.ItemId == "amulet") { o.Price = AmuletPrice; continue; }
                     if (o.Effect == NpcOfferEffect.Clues) o.Price = o.Amount >= 2 ? CluePrice2 : CluePrice1;
                     else if (o.Effect == NpcOfferEffect.GiveItem && TrinketPrice > 0 && Item(o.ItemId)?.Slot == ItemSlot.Trinket) o.Price = TrinketPrice;
-                    else if (o.Effect == NpcOfferEffect.Scout) o.Price = ScoutShapes.IsLine(o.Amount) ? ScoutPriceLine : o.Amount == ScoutShapes.Cluster ? ScoutPriceCluster : ScoutPriceSingle;
+                    else if (o.Effect == NpcOfferEffect.Scout && !o.ClosesNpc) o.Price = ScoutShapes.IsLine(o.Amount) ? ScoutPriceLine : o.Amount == ScoutShapes.Cluster ? ScoutPriceCluster : ScoutPriceSingle;
                 }
             }
         }

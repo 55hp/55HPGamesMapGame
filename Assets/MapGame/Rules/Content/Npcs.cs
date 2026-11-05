@@ -29,6 +29,10 @@ namespace hp55games.MapGame.Rules
         public int RandomTargetMaskLevel { get; set; }
         /// <summary>Acquistabile una sola volta per run (Fabbro).</summary>
         public bool OncePerRun { get; set; }
+        /// <summary>D-056: scegliere questa offerta chiude l'NPC (doni dei Paesani, alternativi tra loro).</summary>
+        public bool ClosesNpc { get; set; }
+        /// <summary>D-056: indizio di posizione limitato a righe (Row) o colonne (Col); null = entrambe.</summary>
+        public bool? LocateRowsOnly { get; set; }
         /// <summary>D-051: prezzo proprio, non riallineato a TrinketPrice da RepriceOffers.</summary>
         public bool FixedPrice { get; set; }
 

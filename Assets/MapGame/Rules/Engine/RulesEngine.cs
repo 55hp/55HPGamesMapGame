@@ -299,9 +299,10 @@ namespace hp55games.MapGame.Rules
                 if (offer.Effect == NpcOfferEffect.Clues && !CluesActive) continue; // D-053
                 if (offer.Effect == NpcOfferEffect.LocateNpc)
                 {
-                    // D-055: solo dove gli indizi normali non ci sono (Nebbia); NPC estratto tra quelli localizzabili.
-                    if (CluesActive) continue;
-                    var npcTarget = PickLocatableNpc();
+                    // D-055: quello in vendita (Locanda) solo dove gli indizi normali non ci sono (Nebbia);
+                    // D-056: il dono dei Paesani in ogni modalità. NPC estratto tra quelli localizzabili.
+                    if (CluesActive && !offer.ClosesNpc) continue;
+                    var npcTarget = PickLocatableNpc(LocateAxis(offer, index));
                     if (npcTarget == null) continue;
                     o.ClueTarget = npcTarget.Value;
                 }
@@ -377,13 +378,14 @@ namespace hp55games.MapGame.Rules
                     ReceiveScout(offer.Amount);
                     break;
                 case NpcOfferEffect.LocateNpc:
-                    LocateNpc(opt.ClueTarget);
+                    LocateNpc(opt.ClueTarget, LocateAxis(offer, d.TileIndex));
                     break;
                 case NpcOfferEffect.TreasureMap: break; // D-051: sostituita dalle Mappe Trinket
             }
             // D-054/D-055 (Franci, 05/11/2026): comprare non chiude l'NPC; lo chiudono solo l'attacco e "Vai via".
             // Il pannello torna dopo le scelte nate dall'acquisto (Ricognizione da posare, mani piene).
-            if (State.Status == RunStatus.Playing) Push(BuildNpcDecision(d.TileIndex, d.Npc));
+            // D-056: i doni dei Paesani si escludono a vicenda: sceglierne uno chiude l'NPC.
+            if (State.Status == RunStatus.Playing && !offer.ClosesNpc) Push(BuildNpcDecision(d.TileIndex, d.Npc));
         }
 
         // ---------------------------------------------------------------- risorse
@@ -393,8 +395,15 @@ namespace hp55games.MapGame.Rules
             if (State.HasEffect(ItemEffect.Shield) && amount > 0) // D-052
             {
                 amount = Math.Max(0, amount - _config.ShieldReduction);
-                if (_config.ShieldCharges > 0 && --State.ShieldChargesLeft <= 0)
-                    DropHand(State.MainHand?.Effect == ItemEffect.Shield ? State.MainHand : State.OffHand); // lo Scudo si rompe
+                // D-056: para per primo uno Scudo che non si rompe; altrimenti quello con gli usi contati.
+                var held = new[] { State.MainHand, State.OffHand };
+                ItemDef shield = null;
+                foreach (var h in held) if (h != null && h.Effect == ItemEffect.Shield && ShieldChargesOf(h) == 0) shield = h;
+                if (shield == null)
+                {
+                    foreach (var h in held) if (h != null && h.Effect == ItemEffect.Shield) shield = h;
+                    if (shield != null && --State.ShieldChargesLeft <= 0) DropHand(shield); // lo Scudo si rompe
+                }
             }
             if (amount <= 0) return;
             State.Hp -= amount;
@@ -516,7 +525,7 @@ namespace hp55games.MapGame.Rules
 
         private void Place(ItemDef item)
         {
-            if (item.Effect == ItemEffect.Shield) State.ShieldChargesLeft = _config.ShieldCharges;
+            if (item.Effect == ItemEffect.Shield && ShieldChargesOf(item) > 0) State.ShieldChargesLeft = ShieldChargesOf(item);
             if (item.TwoHanded || State.MainHand == null)
             {
                 if (item.TwoHanded) State.OffHand = null;
@@ -599,13 +608,29 @@ namespace hp55games.MapGame.Rules
             Emit(RuleEventType.MissionReached, e => { e.TileIndex = index; e.Kind = def.Kind; e.Amount = amount; e.ClueTarget = def.ClueTarget.Value; });
         }
 
+        /// <summary>D-056: colpi che uno Scudo para prima di rompersi (0 = non si rompe).</summary>
+        private int ShieldChargesOf(ItemDef item) =>
+            item.Id == RulesConfigDefaults.WoodShield ? _config.WoodShieldCharges : _config.ShieldCharges;
+
+        /// <summary>D-056: i primi VillagersRowClueCount Paesani (in ordine di tile) danno indizi su righe, gli altri su colonne.</summary>
+        private bool VillagerGivesRow(int tileIndex)
+        {
+            int rank = 0;
+            for (int i = 0; i < tileIndex; i++) if (Layout.Tiles[i] == ContentKind.Villagers) rank++;
+            return rank < _config.VillagersRowClueCount;
+        }
+
+        /// <summary>Asse dell'indizio di posizione di un'offerta: null = riga o colonna.</summary>
+        private bool? LocateAxis(NpcOfferDef offer, int npcTile) =>
+            offer.LocateRowsOnly ?? (offer.ClosesNpc && Layout.Tiles[npcTile] == ContentKind.Villagers ? VillagerGivesRow(npcTile) : (bool?)null);
+
         // ---------------------------------------------------------------- D-055: indizi di posizione
 
         private static readonly ClueTarget[] LocatableNpcs =
             { ClueTarget.Witch, ClueTarget.Hunter, ClueTarget.Smith, ClueTarget.Inn, ClueTarget.Trader };
 
         /// <summary>Righe e colonne libere (mai usate per un indizio) che contengono un NPC coperto di quel tipo.</summary>
-        private List<LineRef> LocateLines(ClueTarget target)
+        private List<LineRef> LocateLines(ClueTarget target, bool? rows = null)
         {
             var lines = new List<LineRef>();
             int w = _config.Width;
@@ -613,23 +638,23 @@ namespace hp55games.MapGame.Rules
             {
                 if (_revealed[i] || !CensusMapGenerator.Matches(_config, Layout.Tiles[i], target)) continue;
                 foreach (var l in new[] { LineRef.Row(i / w), LineRef.Col(i % w) })
-                    if (!_usedClueLines.Contains(l) && !lines.Contains(l)) lines.Add(l);
+                    if ((rows == null || l.IsRow == rows.Value) && !_usedClueLines.Contains(l) && !lines.Contains(l)) lines.Add(l);
             }
             return lines;
         }
 
-        private ClueTarget? PickLocatableNpc()
+        private ClueTarget? PickLocatableNpc(bool? rows)
         {
             var candidates = new List<ClueTarget>();
-            foreach (var t in LocatableNpcs) if (LocateLines(t).Count > 0) candidates.Add(t);
+            foreach (var t in LocatableNpcs) if (LocateLines(t, rows).Count > 0) candidates.Add(t);
             if (candidates.Count == 0) return null;
             return candidates[_rng.Range(0, candidates.Count)];
         }
 
         /// <summary>Posa da solo un indizio su una riga o colonna che contiene davvero quell'NPC (conteggio visibile).</summary>
-        private void LocateNpc(ClueTarget target)
+        private void LocateNpc(ClueTarget target, bool? rows)
         {
-            var lines = LocateLines(target);
+            var lines = LocateLines(target, rows);
             if (lines.Count == 0) return;
             var line = lines[_rng.Range(0, lines.Count)];
             _usedClueLines.Add(line);
