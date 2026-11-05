@@ -16,22 +16,21 @@ Questo file contiene solo ciò che cambia *come* lavori.
 ## L'Editor di Franci è quasi sempre aperto
 
 - Mai lanciare Unity da CLI (`-batchmode`, `-executeMethod`).
-- Un `.cs` nuovo non ha `.meta` finché Franci non torna sull'Editor. Non scrivere a mano `.meta` né `.asset`/`.prefab`/`.unity`.
+- Un `.cs` nuovo non ha `.meta` finché l'Editor non lo importa. Non scrivere a mano `.meta` né `.asset`/`.prefab`/`.unity` (usa gli strumenti Editor, vedi Ownership).
 
 ## Ownership
 
 | Attore | Possiede | Non tocca |
 |---|---|---|
-| Claude Code | C#, test, asmdef, `Tools/RulesHarness/`, sezione Stato del README, "Lato codice" delle spec, questo file | scene, prefab, `.asset`, materiali, report di Bezi, `tech/*` |
-| Bezi | scene, prefab, Inspector, asset, layout UI | C# |
+| Claude Code | C#, test, asmdef, `Tools/RulesHarness/`, sezione Stato del README, "Lato codice" delle spec, questo file; **prefab, scene e asset tramite strumenti Editor nel repo** (dal 05/11/2026, Bezi non è più disponibile) | `tech/*` (salvo patch di Athena), report di altri |
 | Franci | design, priorità, commit/push finali, playtest, bilanciamento | — |
-| Athena | `tech/`, intestazione delle spec, prompt | codice e asset |
+| Athena | `tech/`, intestazione delle spec, prompt | — |
 
-Il confine codice/scena è di Bezi: se uno script ha bisogno di un oggetto di scena/prefab/asset, dichiara un `[SerializeField]` e scrivi il setup mancante nella checklist della spec. Nel report distingui **per Bezi** (wiring, gerarchie, prefab, asset) e **per Franci** (una singola modifica isolata).
+Prefab, scene e `.asset` si modificano **solo** con script Editor versionati (`Assets/MapGame/Features/Editor/`, menu `MapGame Tools`), idempotenti, che usano `PrefabUtility.LoadPrefabContents`/`SaveAsPrefabAsset`; mai editando a mano lo YAML. Lo script si lancia dall'Editor (da Franci o da Claude con il controllo del computer) e il risultato si verifica con uno screenshot in Play mode. I valori di layout scritti da uno strumento vivono nello strumento stesso (unica fonte di verità).
 
 ### Spec e report
 
-- Spec: `Assets/Documents/specs/NNNN-slug.md`. Athena scrive intestazione, obiettivo, contratto; tu compili "Lato codice", checklist Bezi, "Per Franci" con lo stato reale e il commit.
+- Spec: `Assets/Documents/specs/NNNN-slug.md`. Athena scrive intestazione, obiettivo, contratto; tu compili "Lato codice", gli strumenti Editor usati, "Per Franci" con lo stato reale e il commit.
 - Report in coda sotto `## Report`, append-only. Intestazione: `### Claude Code — AAAA-MM-GG — commit abc1234`. Non modifichi mai le voci di Bezi o Franci.
 - Domande sulle regole: se `02`/`03` non coprono un caso non inventare. Implementa il resto, lascia `// TODO R-xxx: <domanda>` nel punto esatto e scrivi la domanda sotto `#### Domande`. Le voci **[DEFAULT]** sono decisioni valide: implementale come scritte.
 - Se un report di Bezi contraddice il disco, è vecchio: controlla il commit che dichiara.
