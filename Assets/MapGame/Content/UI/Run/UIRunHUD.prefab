@@ -3928,7 +3928,7 @@ MonoBehaviour:
   m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 1
-  m_fontSizeMin: 22
+  m_fontSizeMin: 18
   m_fontSizeMax: 36
   m_fontStyle: 1
   m_HorizontalAlignment: 2
@@ -4306,7 +4306,7 @@ GameObject:
   - component: {fileID: 8207010846849357248}
   - component: {fileID: 6490821592669752376}
   m_Layer: 0
-  m_Name: WeaponSlot
+  m_Name: Hand1Slot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4516,7 +4516,7 @@ MonoBehaviour:
   m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 1
-  m_fontSizeMin: 22
+  m_fontSizeMin: 16
   m_fontSizeMax: 36
   m_fontStyle: 1
   m_HorizontalAlignment: 2
@@ -8388,7 +8388,7 @@ GameObject:
   - component: {fileID: 4477356230895094841}
   - component: {fileID: 1478887081785412155}
   m_Layer: 0
-  m_Name: RingSlot
+  m_Name: Hand2Slot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8930,7 +8930,7 @@ MonoBehaviour:
   m_MinHeight: -1
   m_PreferredWidth: 0
   m_PreferredHeight: -1
-  m_FlexibleWidth: 1
+  m_FlexibleWidth: 1.6
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
 --- !u!1 &8697137832932149848
@@ -9324,7 +9324,7 @@ MonoBehaviour:
   m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 1
-  m_fontSizeMin: 22
+  m_fontSizeMin: 18
   m_fontSizeMax: 36
   m_fontStyle: 1
   m_HorizontalAlignment: 2
