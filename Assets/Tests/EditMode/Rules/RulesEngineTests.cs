@@ -854,6 +854,7 @@ namespace hp55games.MapGame.Rules.Tests
             var used = First(evs, RuleEventType.ClueUsed);
             Assert.IsNotNull(used);
             Assert.AreEqual(o.ClueTarget, used.ClueTarget);
+            Assert.AreEqual(used.Line, First(evs, RuleEventType.NpcLocated).Line);
             Assert.GreaterOrEqual(used.Amount, 1);
         }
 
@@ -886,13 +887,15 @@ namespace hp55games.MapGame.Rules.Tests
             var c = Config(); var e = Started(config: c);
             e.State.Give(c.Item(RulesConfigDefaults.WoodShield));
             e.State.ShieldChargesLeft = c.WoodShieldCharges;
+            int broken = 0;
             for (int k = 0; k < c.WoodShieldCharges; k++)
             {
                 e.State.Hp = 10; e.State.MaxHp = 10;
-                e.Reveal(Find(e, ContentKind.Trap2));
+                broken += e.Reveal(Find(e, ContentKind.Trap2)).Count(x => x.Type == RuleEventType.ItemBroken);
             }
             Assert.IsFalse(e.State.HasItem(RulesConfigDefaults.WoodShield));
             Assert.AreEqual(0, c.ShieldCharges);
+            Assert.AreEqual(1, broken, "un solo evento ItemBroken");
             Assert.AreEqual(8, c.Npcs[ContentKind.Smith].Offers.First(o => o.Id == "smith_shield").Price);
         }
 }

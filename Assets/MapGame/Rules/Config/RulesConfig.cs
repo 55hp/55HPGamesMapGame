@@ -33,6 +33,8 @@ namespace hp55games.MapGame.Rules
         public int WoodShieldPrice { get; set; } = 4;
         /// <summary>D-056: quanti Paesani (in ordine di tile) danno l'indizio su una riga; gli altri su una colonna.</summary>
         public int VillagersRowClueCount { get; set; } = 2;
+        /// <summary>Prova: se vero, comprare una cura chiude l'NPC come prima di D-055.</summary>
+        public bool HealsCloseNpc { get; set; }
         /// <summary>In Nebbia il bordo si vede anche sulle tile adiacenti a una scoperta (comportamento D-040, ora spento di default).</summary>
         public bool FogRevealsAdjacent { get; set; }
         /// <summary>Ricognizioni di partenza nelle modalità con nebbia (forme ScoutShapes, in ordine).</summary>

@@ -385,7 +385,8 @@ namespace hp55games.MapGame.Rules
             // D-054/D-055 (Franci, 05/11/2026): comprare non chiude l'NPC; lo chiudono solo l'attacco e "Vai via".
             // Il pannello torna dopo le scelte nate dall'acquisto (Ricognizione da posare, mani piene).
             // D-056: i doni dei Paesani si escludono a vicenda: sceglierne uno chiude l'NPC.
-            if (State.Status == RunStatus.Playing && !offer.ClosesNpc) Push(BuildNpcDecision(d.TileIndex, d.Npc));
+            bool heal = offer.Effect == NpcOfferEffect.Heal || offer.Effect == NpcOfferEffect.FullHeal;
+            if (State.Status == RunStatus.Playing && !offer.ClosesNpc && !(heal && _config.HealsCloseNpc)) Push(BuildNpcDecision(d.TileIndex, d.Npc));
         }
 
         // ---------------------------------------------------------------- risorse
