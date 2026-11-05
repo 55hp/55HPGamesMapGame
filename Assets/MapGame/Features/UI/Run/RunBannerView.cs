@@ -85,6 +85,12 @@ namespace hp55games.MapGame.Features.UI.Run
                 {
                     case RuleEventType.LevelUp: _queue.Enqueue(RunText.T("run.banner.level_up", ev.Amount)); break;
                     case RuleEventType.PhoenixSaved: _queue.Enqueue(RunText.T("run.banner.phoenix")); break;
+                    case RuleEventType.ItemBroken: _queue.Enqueue(RunText.T("run.banner.item_broken", RunText.Item(ev.ItemId))); break;
+                    case RuleEventType.NpcLocated:
+                        var e = _session?.Engine;
+                        string line = e == null ? "" : RunText.T(ev.Line.IsRow ? "run.banner.row" : "run.banner.col", ev.Line.Label(e.Config.Height));
+                        _queue.Enqueue(RunText.T("run.banner.npc_located", RunText.Clue(ev.ClueTarget), line));
+                        break;
                     case RuleEventType.MissionReached: _queue.Enqueue(RunText.T("run.banner.mission_reached", ev.Amount)); break;
                     case RuleEventType.KeyObtained:
                         _queue.Enqueue(RunText.T(ev.Key == KeyKind.Gold ? "run.banner.key_gold" : "run.banner.key_silver"));

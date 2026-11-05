@@ -402,7 +402,11 @@ namespace hp55games.MapGame.Rules
                 if (shield == null)
                 {
                     foreach (var h in held) if (h != null && h.Effect == ItemEffect.Shield) shield = h;
-                    if (shield != null && --State.ShieldChargesLeft <= 0) DropHand(shield); // lo Scudo si rompe
+                    if (shield != null && --State.ShieldChargesLeft <= 0)
+                    {
+                        DropHand(shield); // lo Scudo si rompe
+                        Emit(RuleEventType.ItemBroken, e => e.ItemId = shield.Id);
+                    }
                 }
             }
             if (amount <= 0) return;
@@ -661,6 +665,7 @@ namespace hp55games.MapGame.Rules
             int count = Layout.ClueCount(target, line);
             _clueResults[line] = (target, count);
             Emit(RuleEventType.ClueUsed, e => { e.Line = line; e.ClueTarget = target; e.Amount = count; });
+            Emit(RuleEventType.NpcLocated, e => { e.Line = line; e.ClueTarget = target; e.Amount = count; });
         }
 
         /// <summary>D-053: gli indizi esistono in questa modalità?</summary>
