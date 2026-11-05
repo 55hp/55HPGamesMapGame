@@ -120,7 +120,7 @@ namespace hp55games.MapGame.Features.UI.Run
             }
             if (OptionIds.IsEquip(o.Id)) return T("run.item.equip");
             // Le offerte di indizi ricevono il bersaglio effettivo (D-038: per il Mercante è estratto all'apertura).
-            return T("run.offer." + o.Id, Clue(o.ClueTarget));
+            return T("run.offer." + o.Id, Clue(o.ClueTarget), c.WoodShieldCharges);
         }
 
         /// <summary>Riga secondaria: prezzo, motivo di disabilitazione, rischio dell'attacco.</summary>

@@ -323,7 +323,7 @@ namespace hp55games.MapGame.Rules
                 if (offer.OncePerRun && offer.Effect == NpcOfferEffect.SmithUpgrade && State.SmithUpgradeBought)
                 { o.Enabled = false; o.DisabledReasonKey = "ui.npc.reason.already_bought"; }
                 else if (offer.Effect == NpcOfferEffect.GiveItem && State.HasItem(offer.ItemId))
-                { o.Enabled = false; o.DisabledReasonKey = "ui.npc.reason.already_owned"; } // D-050
+                { o.Enabled = false; o.DisabledReasonKey = "ui.npc.reason.already_owned"; o.Stock = 0; } // D-050: niente "x1" se già tuo
                 else if (State.Coins < offer.Price)
                 { o.Enabled = false; o.DisabledReasonKey = "ui.npc.reason.no_coins"; }
                 d.Options.Add(o);
